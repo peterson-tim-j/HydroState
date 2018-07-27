@@ -1,0 +1,21 @@
+Package: hydroState
+Title: What the Package Does (one line, title case)
+Version: 0.0.0.9000
+Authors@R: person("First", "Last", email = "first.last@example.com", role = c("aut", "cre"))
+Description: What the package does (one paragraph).
+Depends: R (>= 3.4.2)
+Imports: rgenoud, sn
+License: What license is it under?
+Encoding: UTF-8
+LazyData: true
+RoxygenNote: 6.0.1
+Collate: 
+    'abstracts.R'
+    'Qhat.boxcox.R'
+    'Qhat.burbidge.R'
+    'QhatModel.homo.normal.linear.R'
+    'QhatModel.homo.normal.linear.AR1.R'
+    'QhatModel.homo.normal.linear.AR2.R'
+    'QhatModel.homo.skewedNormal.linear.R'
+    'markov.annualHomogeneous.R'
+    'hydroState.R'
