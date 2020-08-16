@@ -1,7 +1,9 @@
 # HydroState
 _HydroState_ is an R-package that idenifies regime changes in streamflow time-series that is not explained by variations in precipitation. The package allows a flexible set of Hidden Markov Models of annual, seasonal or monthly time-step to be built and which includes precipitation as a predictor of streamflow. Suites of models can be build for a single catchment, ranging from from one to three states and each with differing combinations of error models and auto-correlation terms, allowing the most parsimineous model to easily be idenified (by AIC). The entire package is written in R S4 object oriented code. Future versions will include documentation of the funcations, classes and methods.
 
-The package was developed for the analysis of long-term streamflow data during and after meteorlogical drought. The package development was funded by the Victorian Government Climate and Water Initiate (https://www.water.vic.gov.au/climate-change/research/vicwaci). The package was developed and applied to 162 unregulated catchments across Victoria (Australia). The annual and monthly observed data is included in the package and is available using the following R commands:
+The package development was funded by the Victorian Government The Department of Environment, Land, Water and Planning _Climate and Water Initiate_ (https://www.water.vic.gov.au/climate-change/research/vicwaci). 
+
+The package was developed for the analysis of long-term streamflow data during and after meteorlogical drought. The package has been applied to 162 unregulated catchments across Victoria (Australia). The annual and monthly observed data is included in the package and is available using the following R commands:
 ```R
 data(streamflow_annual)
 data(streamflow_monthly)
