@@ -1,4 +1,5 @@
-# This HydroState examples builds and calibrates one two-state seasonal model and plots the results.
+# This HydroState examples builds and calibrates many combinations of one and two state seasonal models
+# and then extracts the best model (by AIC) and plots the results.
 #----------------
 rm(list=ls())
 library(hydroState)
@@ -69,27 +70,20 @@ if (!do.Monthly.Analysis) {
   streamflow_monthly = streamflow_monthly.seasonal
 }
 
-# Build input objects. Note a linear model and a model with first-roder serial correlation is built.
-transition.graph=matrix(TRUE,2,2)
-Qhat = new('Qhat.log', input.data=streamflow_monthly)
-QhatModel = new('QhatModel.subAnnual.homo.gamma.linear.AR3', input.data=streamflow_monthly, transition.graph=transition.graph,
-                state.dependent.mean.a0=T,state.dependent.mean.a1=F, state.dependent.std.a0=T,
-                state.dependent.mean.AR1=F, state.dependent.mean.AR2=F, state.dependent.mean.AR3=F,
-                subAnnual.dependent.mean.a0=T, subAnnual.dependent.mean.a1=T,subAnnual.dependent.std.a0=F)
+# Build all combinations of seasonal models for this gauge. Note, seasonal flickering between states is allowed.
+all.Models <- new('hydroState.subAnnual.allModels',as.character(gaugeID), streamflow_monthly, allow.flickering=T, build.3state.models=F)
 
-markov = new('markov.annualHomogeneous.flickering', transition.graph=transition.graph, allow.flickering=T)
+# Calibrate (using MLW) each of the models.
+all.Models <- fit(all.Models, pop.size.perParameter=10, max.generations=500, doParallel=F)
 
-# Build HydroState object
-model = new('hydroState',input.data=streamflow_monthly, Qhat.object=Qhat, QhatModel.object=QhatModel, markov.model.object=markov)
-
-# Fit the model
-model <- hydroState::fit(model,pop.size.perParameter = 10, max.generations=500)
+# Select the best model (byt AIC)
+best.model = getAIC.bestModel(all.Models)
 
 # Name the states names with 1990 being defined as a 'norma' runoff year.
-model <- setStateNames(model, 1990)
+best.model <- setStateNames(best.model, 1990)
 
 # Plot Viterbi states
-vstates<-viterbi(model)
+viterbi(best.model)
 
 # Plot pseduo residuals
-check.PseudoResiduals(model)
+check.PseudoResiduals(best.model)

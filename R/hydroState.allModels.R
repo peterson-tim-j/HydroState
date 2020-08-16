@@ -50,12 +50,8 @@ setMethod(f="initialize",signature="hydroState.allModels",definition=function(.O
   Qhat.boxcox = new('Qhat.boxcox', input.data=input.data)
   Qhat.log = new('Qhat.log', input.data=input.data)
 
-  # Check if the input has monthly data. If so, then use the seasonal AR version of the Qhat models.
-  if (any(names(input.data)=='month')) {
-    model.extension = '.SAR1'
-  } else {
-    model.extension = ''
-  }
+  # Check if flickering between states is allows
+  model.extension=''
   if (allow.flickering) {
     model.extension.markov = '.flickering'
   } else {
@@ -293,8 +289,6 @@ setMethod(f="initialize",signature="hydroState.allModels",definition=function(.O
 )
 
 setMethod(f = "fit",signature="hydroState.allModels",definition=function(.Object,
-                                                                         minTrialsPerModel=5,
-                                                                         maxTrialsPerModel=20,
                                                                          pop.size.perParameter=25,
                                                                          max.generations=10000,
                                                                          Domains,
@@ -304,6 +298,11 @@ setMethod(f = "fit",signature="hydroState.allModels",definition=function(.Object
                                                                          doParallel=F,
                                                                          ...)
 {
+
+  # Set the min and max numbe rof calibrations per model
+  minTrialsPerModel=5
+  maxTrialsPerModel=20
+
 
   model.names <- names(.Object@models)
   nModels = length(.Object@models)

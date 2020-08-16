@@ -1,4 +1,4 @@
-# Run hydroState
+# This HydroState examples builds and calibrates one two-state annual model and plots the results.
 #----------------
 rm(list=ls())
 library(hydroState)
@@ -6,47 +6,42 @@ library(DEoptim)
 library(truncnorm)
 
 # Load flow data
-flowdata = read.csv('vignette/delwp_hy.csv')
-flowdata = data.frame(flowdata)
+data(streamflow_annual)
 
 # Extract one catchment
 gaugeID = 221201;
-flowdata = flowdata[flowdata$gauge==gaugeID,]
+streamflow_annual = streamflow_annual[streamflow_annual$gauge==gaugeID,]
 
 # Convert to format for hydroState
-flowdata = data.frame(year = flowdata$hy_year, flow=flowdata$q, precipitation=flowdata$p)
-filt = flowdata$year>=1900
-flowdata = flowdata[filt,]
+streamflow_annual = data.frame(year = streamflow_annual$hy_year, flow=streamflow_annual$q, precipitation=streamflow_annual$p)
+filt = streamflow_annual$year>=1900
+streamflow_annual = streamflow_annual[filt,]
 
-# flowdata = flowdata[104:nrow(flowdata),]
-
-# Build input objects. Note a linear model and a model with first-roder serial correlation is built.
+# Build input objects.
+# Note a 2-state linear model with first-order serial correlation is built. A truncated normal distribution is used for
+# each Markov state.
 transition.graph=matrix(TRUE,2,2)
-Qhat = new('Qhat.log', input.data=flowdata)
-QhatModel = new('QhatModel.homo.normal.linear.AR3', input.data=flowdata, transition.graph=transition.graph)
+Qhat = new('Qhat.log', input.data=streamflow_annual)
+QhatModel = new('QhatModel.homo.normal.linear.AR1', input.data=streamflow_annual, transition.graph=transition.graph)
 markov = new('markov.annualHomogeneous', transition.graph=transition.graph)
 
 # Build HydroState object
-model = new('hydroState',input.data=flowdata, Qhat.object=Qhat, QhatModel.object=QhatModel, markov.model.object=markov)
+model = new('hydroState',input.data=streamflow_annual, Qhat.object=Qhat, QhatModel.object=QhatModel, markov.model.object=markov)
 
-# Fit the model
-t1 = Sys.time()
-model <- hydroState::fit(model,pop.size.perParameter = 10, max.generations=100)
-t2 = Sys.time()
-t2-t1
+# Fit the model using DEoptim
+model <- hydroState::fit(model,pop.size.perParameter = 10, max.generations=500)
 
-# Name the states
+# Name the states names with 1990 being defined as a 'norma' runoff year.
 model <- setStateNames(model, 1990)
 
 # Plot Viterbi states
 viterbi(model)
 
-
-# Check reliability of viterbi statee predictions.
-check.viterbi(model, 100000)
-
 # Plot pseduo residuals
 check.PseudoResiduals(model)
 
-# Get resilience index.
-drought.resilience.index(model, year.drought.start=1998, year.drought.end=2009,year.postdrought.end=2016)
+# Build all seasonal models for this gauge, the claibration each model, select the best (byt AIC) and plot
+#-------------------------------------------
+all.Models <- new('hydroState.allModels',as.character(gaugeID), streamflow_annual, allow.flickering=F)
+all.Models <- fit(all.Models, pop.size.perParameter=5, max.generations=25, doParallel=F)
+best.model = getAIC.bestModel(all.Models)
