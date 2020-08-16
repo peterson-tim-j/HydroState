@@ -9,7 +9,10 @@ data(streamflow_monthly)
 
 # Example 1. A two-state annual model
 
-This _HydroState_ example builds and calibrates one two-state annual model and plots the results. The plot below shows the input data, the Viterbi states over time and the conditional state probabilities.
+This _HydroState_ example builds and calibrates one two-state annual model and plots the results. The plot below shows the input data, the estimated Viterbi states over time and the states with the cumulative rainfall residual (D) and the conditional state probabilities (E).
+
+![example1](https://user-images.githubusercontent.com/8623994/90325344-c24f2080-dfbd-11ea-956e-c64b7820342f.png)
+
 
 ```R
 #----------------
@@ -52,4 +55,4 @@ viterbi(model)
 
 # Plot pseduo residuals
 check.PseudoResiduals(model)
-```R
+```
