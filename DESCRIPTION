@@ -1,4 +1,4 @@
-Package: hydroState
+Package: HydroState
 Title: Hidden Markov Modelling of hydrological state change
 Version: 0.1.0.0
 Authors@R: c(
