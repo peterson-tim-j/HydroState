@@ -11,87 +11,68 @@ Qhat.burbidge <- setClass(
   # Define the slots
   slots = c(
     input.data = "data.frame",
-    parameters = "list"
+    parameters = "parameters"
   ),
 
   # Set the default values for the slots. (optional)
   prototype=list(
     input.data = data.frame(year=c(0),month=c(0),precipitation=c(0)),
-    parameters= list(lambda = 0.5)
+    parameters= new('parameters',c('lambda.burbidge'),c(10))
   )
 )
 
 # Valid object?
 validObject <- function(object) {
-  if(object@parameters$lambda >=0) TRUE
-  else warning("parameters$lambda must be >=0")
+  if(object@parameters$lambda.burbidge >=0) TRUE
+  else warning("parameters$lambda.burbidge must be >=0")
 }
 setValidity("Qhat.burbidge", validObject)
 
-# # Initialise object
-# #setGeneric(name="initialize",def=function(.Object,input.data){standardGeneric("initialize")})
-# setMethod("initialize","Qhat.burbidge", function(.Object, input.data) {
-#   .Object@input.data <- input.data
-#   validObject(.Object)
-#   .Object
-# }
-# )
-#
-# # create a method to assign the parameter
-# #setGeneric(name="setParameters",def=function(.Object,parameters){standardGeneric("setParameters")})
-# setMethod(f="setParameters",
-#           signature="Qhat.burbidge",
-#           definition=function(.Object,parameters)
-#           {
-#             .Object@parameters$lambda <- parameters$lambda
-#             validObject(.Object)
-#             return(.Object)
-#           }
-# )
-setMethod(f="setParameters.fromTransformed",
-          signature="Qhat.burbidge",
-          definition=function(.Object,parameters)
-          {
-            .Object@parameters$lambda <- 10^parameters$lambda
-            validObject(.Object)
-            return(.Object)          }
-)
-
-# # create a method to assign the parameter
-# #setGeneric(name="getParameters",def=function(.Object){standardGeneric("getParameters")})
-# setMethod(f="getParameters",signature="Qhat.burbidge",definition=function(.Object)
-#           {
-#             return(list(lambda = .Object@parameters$lambda))
-#           }
-# )
-setMethod(f="getTransformedParameterBounds",
-          signature="Qhat.burbidge",
-          definition=function(.Object)
-          {
-            parameters = getParameters(.Object)
-            lowerBound = list(lambda = rep(-6, length(.Object@parameters$lambda)))
-            upperBound = list(lambda = rep(3, length(.Object@parameters$lambda)))
-            return(list(lower = lowerBound, upper = upperBound))
-          }
+setMethod("initialize","Qhat.burbidge", function(.Object, input.data) {
+  .Object@input.data <- input.data
+  validObject(.Object)
+  .Object
+}
 )
 
 # Calculate the transformed flow
 #setGeneric(name="getQhat",def=function(.Object, data){standardGeneric("getQhat")})
 setMethod(f="getQhat",signature=c("Qhat.burbidge",'data.frame'),definition=function(.Object, data)
-          {
-            if (is.data.frame(data))
-              data = data$flow
+{
+  if (!is.data.frame(data))
+    stop('"Data" must be a data.frame.')
 
-            return(asinh(data/abs(Object@parameters$lambda))/abs(Object@parameters$lambda))
 
-          }
+  # Get object parameter list
+  parameters = getParameters(.Object@parameters)
+
+  data$Qhat.flow <- asinh(data$flow/abs(parameters$lambda.burbidge))/asinh(1.0/abs(parameters$lambda.burbidge))
+  data$Qhat.precipitation <- data$precipitation
+
+  return(data)
+
+}
 )
-#
-# # Calculate the transformed flow using the object data
-# #setGeneric(name="getQhat",def=function(.Object){standardGeneric("getQhat")})
-# setMethod(f="getQhat",signature="Qhat.burbidge",definition=function(.Object)
-#           {
-#              data = .Object@input.data$flow
-#              return(getQhat(.Object, data))
-#           }
-# )
+
+# Calculate the transformed flow using the object data
+#setGeneric(name="getQhat",def=function(.Object){standardGeneric("getQhat")})
+setMethod(f="getQhat",signature="Qhat.burbidge",definition=function(.Object)
+{
+  data = .Object@input.data$flow
+  return(getQhat(.Object, data))
+}
+)
+
+setMethod(f="getQ.backTransformed",signature=c("Qhat.burbidge",'data.frame'),definition=function(.Object, data)
+{
+  if (!is.data.frame(data))
+    stop('"Data" must be a data.frame.')
+
+  # Get object parameter list
+  parameters = getParameters(.Object@parameters)
+
+  data$flow.modelled <- sinh(data$Qhat.flow * asinh(1.0/abs(parameters$lambda.burbidge)))*abs(parameters$lambda.burbidge)
+  return(data)
+
+}
+)

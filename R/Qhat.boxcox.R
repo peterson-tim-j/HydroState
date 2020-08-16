@@ -1,4 +1,4 @@
-##' @include abstracts.R
+##' @include abstracts.R parameters.R
 ##' @export
 Qhat.boxcox <- setClass(
   # Set the name for the class
@@ -11,13 +11,13 @@ Qhat.boxcox <- setClass(
   # Define the slots
   slots = c(
     input.data = "data.frame",
-    parameters = "list"
+    parameters = "parameters"
   ),
 
   # Set the default values for the slots. (optional)
   prototype=list(
     input.data = data.frame(year=c(0),month=c(0),precipitation=c(0)),
-    parameters= list(lambda = 0.5)
+    parameters= new('parameters',c('lambda'),c(1))
   )
 )
 
@@ -36,57 +36,25 @@ setMethod("initialize","Qhat.boxcox", function(.Object, input.data) {
   .Object
 }
 )
-
-# create a method to assign the parameter
-#setGeneric(name="setParameters",def=function(.Object,parameters){standardGeneric("setParameters")})
-setMethod(f="setParameters",
-          signature="Qhat.boxcox",
-          definition=function(.Object,parameters)
-          {
-            .Object@parameters$lambda <- parameters$lambda
-            validObject(.Object)
-            return(.Object)
-          }
-)
-setMethod(f="setParameters.fromTransformed",
-          signature="Qhat.boxcox",
-          definition=function(.Object,parameters)
-          {
-            .Object@parameters$lambda <- 10^parameters$lambda
-            validObject(.Object)
-            return(.Object)          }
-)
-
-# create a method to assign the parameter
-#setGeneric(name="getParameters",def=function(.Object){standardGeneric("getParameters")})
-setMethod(f="getParameters",signature="Qhat.boxcox",definition=function(.Object)
-          {
-            return(list(lambda = .Object@parameters$lambda))
-          }
-)
-setMethod(f="getTransformedParameterBounds",
-          signature="Qhat.boxcox",
-          definition=function(.Object)
-          {
-            parameters = getParameters(.Object)
-            lowerBound = list(lambda = rep(-10, length(.Object@parameters$lambda)))
-            upperBound = list(lambda = rep(log10(1), length(.Object@parameters$lambda)))
-            return(list(lower = lowerBound, upper = upperBound))
-          }
-)
-
 # Calculate the transformed flow
 #setGeneric(name="getQhat",def=function(.Object, data){standardGeneric("getQhat")})
 setMethod(f="getQhat",signature=c("Qhat.boxcox",'data.frame'),definition=function(.Object, data)
           {
-            if (is.data.frame(data))
-              data = data$flow
+            if (!is.data.frame(data))
+              stop('"Data" must be a data.frame.')
 
-            if (.Object@parameters$lambda>1e-8) {
-              return( (((data+1)^.Object@parameters$lambda-1)/.Object@parameters$lambda) )
+
+            # Get object parameter list
+            parameters = getParameters(.Object@parameters)
+
+            if (parameters$lambda>1e-8) {
+              data$Qhat.flow <- ((data$flow+1)^parameters$lambda-1)/parameters$lambda
             } else {
-              return( (log(data+1)))
+              data$Qhat.flow <- log(data$flow +1)
             }
+            data$Qhat.precipitation <- data$precipitation
+
+            return(data)
           }
 )
 
@@ -94,7 +62,24 @@ setMethod(f="getQhat",signature=c("Qhat.boxcox",'data.frame'),definition=functio
 #setGeneric(name="getQhat",def=function(.Object){standardGeneric("getQhat")})
 setMethod(f="getQhat",signature="Qhat.boxcox",definition=function(.Object)
           {
-             data = .Object@input.data$flow
+             data = .Object@input.data
              return(getQhat(.Object, data))
           }
+)
+
+setMethod(f="getQ.backTransformed",signature=c("Qhat.boxcox",'data.frame'),definition=function(.Object, data)
+{
+  if (!is.data.frame(data))
+    stop('"Data" must be a data.frame.')
+
+  # Get object parameter list
+  parameters = getParameters(.Object@parameters)
+
+  if (parameters$lambda>1e-8) {
+    data$flow.modelled <- ( data$Qhat.flow * parameters$lambda + 1) ^ (1/parameters$lambda)-1
+  } else {
+    data$flow.modelled <- exp(data$Qhat.flow)-1
+  }
+  return(data)
+}
 )

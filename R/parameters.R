@@ -15,7 +15,7 @@ parameters <- setClass(
 
   # Set the default values for the slots. (optional)
   prototype=list(
-    parameters = list(),
+    values = list(),
     lower.bound = -Inf,
     upper.bound = Inf,
     use.log.transform = F
@@ -88,11 +88,31 @@ setMethod(f="setBounds",
                  # .Object@upper.bound[[parameter.names[i]]] <- 1;
                 .Object@lower.bound[[parameter.names[i]]] <- -0.5;
                 .Object@upper.bound[[parameter.names[i]]] <- 0.5;
-
+              } else if (parameter.names[i]=='mean.a0.amp') {
+                .Object@lower.bound[[parameter.names[i]]] <- 0;
+                .Object@upper.bound[[parameter.names[i]]] <- 1;
+              } else if (parameter.names[i]=='mean.a0.disp') {
+                .Object@lower.bound[[parameter.names[i]]] <- -0.5;
+                .Object@upper.bound[[parameter.names[i]]] <- 0.5;
+              } else if (parameter.names[i]=='mean.a0.phase') {
+                .Object@lower.bound[[parameter.names[i]]] <- -1;
+                .Object@upper.bound[[parameter.names[i]]] <- 1;
               } else if (parameter.names[i]=='mean.a1' || parameter.names[i]=='mean.summer.a1' || parameter.names[i]=='mean.autumn.a1' ||
                          parameter.names[i]=='mean.winter.a1' || parameter.names[i]=='mean.spring.a1') {
                 .Object@lower.bound[[parameter.names[i]]] <- 1e-5;
                 .Object@upper.bound[[parameter.names[i]]] <- 1;
+              } else if (parameter.names[i]=='mean.trend') {
+                .Object@lower.bound[[parameter.names[i]]] <- -0.1;
+                .Object@upper.bound[[parameter.names[i]]] <- 0.1;
+              } else if (parameter.names[i]=='mean.a1.amp') {
+                .Object@lower.bound[[parameter.names[i]]] <-  1e-7;
+                .Object@upper.bound[[parameter.names[i]]] <-  1;
+              } else if (parameter.names[i]=='mean.a1.disp') {
+                .Object@lower.bound[[parameter.names[i]]] <- 1e-5;
+                .Object@upper.bound[[parameter.names[i]]] <-  1;
+              } else if (parameter.names[i]=='mean.a1.phase') {
+                .Object@lower.bound[[parameter.names[i]]] <- -1;
+                .Object@upper.bound[[parameter.names[i]]] <-  1;
               } else if (parameter.names[i]=='mean.AR1') {
                 .Object@lower.bound[[parameter.names[i]]] <- -1;
                 .Object@upper.bound[[parameter.names[i]]] <- 1;
@@ -109,6 +129,15 @@ setMethod(f="setBounds",
                          parameter.names[i]=='std.winter.a0' || parameter.names[i]=='std.spring.a0') {
                 .Object@lower.bound[[parameter.names[i]]] <- 0.05;
                 .Object@upper.bound[[parameter.names[i]]] <- 0.75;
+              } else if (parameter.names[i]=='std.a0.amp') {
+                .Object@lower.bound[[parameter.names[i]]] <-  0;
+                .Object@upper.bound[[parameter.names[i]]] <-  1;
+              } else if (parameter.names[i]=='std.a0.disp') {
+                .Object@lower.bound[[parameter.names[i]]] <- -1;
+                .Object@upper.bound[[parameter.names[i]]] <-  1;
+              } else if (parameter.names[i]=='std.a0.phase') {
+                .Object@lower.bound[[parameter.names[i]]] <- -1;
+                .Object@upper.bound[[parameter.names[i]]] <-  1;
               } else if (parameter.names[i]=='shape.a0') {
                 .Object@lower.bound[[parameter.names[i]]] <- -10;
                 .Object@upper.bound[[parameter.names[i]]] <- 10;
@@ -147,11 +176,17 @@ setMethod(f="setTransforms",
               } else if (parameter.names[i]=='lambda.burbidge') {
                   .Object@use.log.transform[[parameter.names[i]]] <- T
               } else if (parameter.names[i]=='mean.a0' || parameter.names[i]=='mean.summer.a0' || parameter.names[i]=='mean.autumn.a0' ||
-                         parameter.names[i]=='mean.winter.a0' || parameter.names[i]=='mean.spring.a0') {
+                         parameter.names[i]=='mean.winter.a0' || parameter.names[i]=='mean.spring.a0' ||
+                         parameter.names[i]=='mean.a0.amp' || parameter.names[i]=='mean.a0.disp' || parameter.names[i]=='mean.a0.phase') {
+                .Object@use.log.transform[[parameter.names[i]]] <- F
+              } else if (parameter.names[i]=='mean.trend') {
                 .Object@use.log.transform[[parameter.names[i]]] <- F
               } else if (parameter.names[i]=='mean.a1' || parameter.names[i]=='mean.summer.a1' || parameter.names[i]=='mean.autumn.a1' ||
-                         parameter.names[i]=='mean.winter.a1' || parameter.names[i]=='mean.spring.a1') {
+                         parameter.names[i]=='mean.winter.a1' || parameter.names[i]=='mean.spring.a1' ||
+                         parameter.names[i]=='mean.a1.amp' || parameter.names[i]=='mean.a1.disp') {
                 .Object@use.log.transform[[parameter.names[i]]] <- T;
+              } else if (parameter.names[i]=='mean.a1.phase') {
+                .Object@use.log.transform[[parameter.names[i]]] <- F;
               } else if (parameter.names[i]=='mean.AR1') {
                 .Object@use.log.transform[[parameter.names[i]]] <- F;
               } else if (parameter.names[i]=='mean.AR2') {
@@ -161,7 +196,8 @@ setMethod(f="setTransforms",
               } else if (parameter.names[i]=='mean.SAR1') {
                 .Object@use.log.transform[[parameter.names[i]]] <- F;
               } else if (parameter.names[i]=='std.a0' || parameter.names[i]=='std.summer.a0' || parameter.names[i]=='std.autumn.a0' ||
-                         parameter.names[i]=='std.winter.a0' || parameter.names[i]=='std.spring.a0') {
+                         parameter.names[i]=='std.winter.a0' || parameter.names[i]=='std.spring.a0' ||
+                         parameter.names[i]=='std.a0.amp' || parameter.names[i]=='std.a0.disp' || parameter.names[i]=='std.a0.phase') {
                 .Object@use.log.transform[[parameter.names[i]]] <- F;
               } else if (parameter.names[i]=='shape.a0') {
                 .Object@use.log.transform[[parameter.names[i]]] <- F;

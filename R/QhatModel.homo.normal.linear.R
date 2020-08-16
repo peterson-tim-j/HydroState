@@ -1,4 +1,4 @@
-##' @include abstracts.R
+##' @include abstracts.R parameters.R
 ##' @export
 QhatModel.homo.normal.linear <- setClass(
   # Set the name for the class
@@ -12,18 +12,17 @@ QhatModel.homo.normal.linear <- setClass(
   slots = c(
     input.data = "data.frame",
     nStates = 'numeric',
-    parameters = "list"
+    use.truncated.dist = 'logical',
+    parameters = "parameters"
   ),
 
   # Set the default values for the slots. (optional)
   prototype=list(
     input.data = data.frame(year=c(0),month=c(0),precipitation=c(0)),
     nStates = Inf,
-    parameters = list(
-      mean.a1 = 1.0,
-      mean.a0 = 1.0,
-      std.a0 = 1.0
-      )
+    use.truncated.dist=T,
+    parameters = new('parameters',c('mean.a0', 'mean.a1','std.a0'),c(1,1,1))
+
   )
 )
 
@@ -36,81 +35,102 @@ setValidity("QhatModel.homo.normal.linear", validObject)
 
 # Initialise object
 #setGeneric(name="initialize",def=function(.Object,input.data){standardGeneric("initialize")})
-setMethod("initialize","QhatModel.homo.normal.linear", function(.Object, input.data, transition.graph=matrix(T,2,2),state.dependent.mean.a0=T, state.dependent.mean.a1=F, state.dependent.std.a0=T) {
+setMethod("initialize","QhatModel.homo.normal.linear", function(.Object, input.data, use.truncated.dist=T, transition.graph=matrix(T,2,2),
+                                                                state.dependent.mean.a0=T, state.dependent.mean.a1=F, state.dependent.mean.trend=NA, state.dependent.std.a0=T) {
   .Object@input.data <- input.data
+
+  .Object@use.truncated.dist = use.truncated.dist
 
   .Object@nStates = ncol(transition.graph)
 
-  # Set up model terms for mean and standard deviation.
-  .Object@parameters$mean.a0 = 0;
-  .Object@parameters$mean.a1 = 0.1;
-  .Object@parameters$std.a0 = 100;
-  if (state.dependent.mean.a0)
-    .Object@parameters$mean.a0 = rep(.Object@parameters$mean.a0, .Object@nStates);
-  if (state.dependent.mean.a1)
-    .Object@parameters$mean.a1 = rep(.Object@parameters$mean.a1, .Object@nStates);
-  if (state.dependent.std.a0)
-    .Object@parameters$std.a0 = rep(.Object@parameters$std.a0, .Object@nStates);
+  # Set the number of parameter values per parameter name and set up model terms for mean and standard deviation and trend.
+  if (is.na(state.dependent.mean.trend)) {
+    parameter.length <- as.numeric(c(state.dependent.mean.a0, state.dependent.mean.a1, state.dependent.std.a0)) * (.Object@nStates-1) + 1
+    .Object@parameters = new('parameters', c('mean.a0', 'mean.a1', 'std.a0'), parameter.length)
+  } else {
+    parameter.length <- as.numeric(c(state.dependent.mean.a0, state.dependent.mean.a1, state.dependent.mean.trend, state.dependent.std.a0)) * (.Object@nStates-1) + 1
+    .Object@parameters = new('parameters', c('mean.a0', 'mean.a1', 'mean.trend', 'std.a0'), parameter.length)
+  }
 
   validObject(.Object)
   .Object
 }
 )
 
+setGeneric(name="get.SeaonalityPeriod",def=function(.Object,input.data){standardGeneric("get.SeaonalityPeriod")})
+setMethod("get.SeaonalityPeriod","QhatModel.homo.normal.linear", function(.Object, input.data) {
 
-# create a method to assign the parameter
-#setGeneric(name="setParameters",def=function(.Object,parameters) {standardGeneric("setParameters")})
-setMethod(f="setParameters",
-          signature="QhatModel.homo.normal.linear",
-          definition=function(.Object,parameters)
-          {
-            .Object@parameters$mean.a1 <- parameters$mean.a1
-            .Object@parameters$mean.a0 <- parameters$mean.a0
-            .Object@parameters$std.a0 <- parameters$std.a0
-            validObject(.Object)
-            return(.Object)
-          }
-)
-setMethod(f="setParameters.fromTransformed",
-          signature="QhatModel.homo.normal.linear",
-          definition=function(.Object,parameters)
-          {
-            .Object@parameters$mean.a1 <- 10^parameters$mean.a1
-            .Object@parameters$mean.a0 <- parameters$mean.a0*100
-            .Object@parameters$std.a0 <- 10^parameters$std.a0
-            return(.Object)
-          }
-)
-# create a method to assign the parameter
-#setGeneric(name="getParameters",def=function(.Object,position) {standardGeneric("getParameters")})
-setMethod(f="getParameters",
-          signature="QhatModel.homo.normal.linear",
-          definition=function(.Object)
-          {
-            return(list(mean.a1=.Object@parameters$mean.a1,mean.a0=.Object@parameters$mean.a0, std.a0=.Object@parameters$std.a0))
-          }
+  if (any(names(input.data)=="month")) {
+  # Find seasonal period.
+  # Adapted from https://stackoverflow.com/questions/12824931/measure-the-periodicity-of-a-sequence-of-numbers-r
+  ii <- 0
+  while (TRUE) {
+    ii <- ii + 1
+    LAG <- sum((diff(input.data$month, lag = ii) == 0) - 1)
+    if (LAG == 0) { break }
+  }
+  seasonal.step.size = ii
+
+  # Check seaonality is number of AR terms.
+  if (seasonal.step.size<=1)
+    stop(paste('The period of seasonality is', seasonal.step.size, ' input data rows. It must be greater than the maximum AR trm for the model.'))
+
+  # Check seaonality is sensible.
+  if (seasonal.step.size>12)
+    warning(paste('The period of seasonality is', seasonal.step.size, ' input data rows. The module is designed for <=12 (i.e. monthly or less frequent).'))
+
+  } else {
+    seasonal.step.size = 0
+  }
+
+  return(seasonal.step.size)
+}
 )
 
 # Get transition matrix with no input data.
 setMethod(f="getEmissionDensity",
           signature=c("QhatModel.homo.normal.linear","data.frame"),
-          definition=function(.Object, data)
+          definition=function(.Object, data, cumProb.threshold.Qhat)
           {
 
             # Check Qhat is in data
-            if (!any(names(data)=="Qhat"))
-              stop('Input "data" must be a a data frame with a variable named "Qhat".')
+            if (!any(names(data)=="Qhat.flow"))
+              stop('Input "data" must be a a data frame with a variable named "Qhat.flow".')
+
+            if (!any(names(data)=="Qhat.precipitation"))
+              stop('Input "data" must be a a data frame with a variable named "Qhat.precipitation".')
 
             # Get the moments
             markov.mean = getMean(.Object, data)
             markov.variance = getVariance(.Object, data)
             markov.stds <- sqrt(markov.variance)
 
+            # For truncated flow, the mean  must >=0 else very negative means can arise
+            if (.Object@use.truncated.dist && any(markov.mean<0,na.rm = T) ) {
+                P = matrix(Inf, nrow(markov.mean), .Object@nStates)
+                #markov.mean = pmax(0, markov.mean,na.rm = T)
+            }
+
             # Calculate probabilities.
-            #P = dnorm(data$Qhat,markov.means,markov.stds)
             P <- matrix(NA, nrow(data),.Object@nStates)
-            for (i in 1:.Object@nStates) {
-              P[,i] = dnorm(data$Qhat,markov.mean[,i],markov.stds[,i])
+
+            # Set the lower limit of a truncated normal dist.
+            lowerX = -Inf;
+            if (.Object@use.truncated.dist)
+              lowerX = 0;
+
+            # get the prob.
+            if (!all(is.na(cumProb.threshold.Qhat))) {
+              if (length(cumProb.threshold.Qhat)!=nrow(data))
+                stop('The length of cumProb.threshold.Qhat must equal the number of rows of input data')
+
+              for (i in 1:.Object@nStates) {
+                P[,i] = ptruncnorm(cumProb.threshold.Qhat[i], a=lowerX, mean=markov.mean[,i], sd=markov.stds[,i])
+              }
+            } else {
+              for (i in 1:.Object@nStates) {
+                P[,i] = dtruncnorm(data$Qhat.flow, a=lowerX, mean=markov.mean[,i], sd=markov.stds[,i])
+              }
             }
 
             return(P)
@@ -127,92 +147,117 @@ setMethod(f="getDistributionPercentiles",
               stop('Input "data" must be a a data frame.')
 
             # Check Qhat is in data
-            if (!any(names(data)=="Qhat"))
-              stop('Input "data" must be a a data frame with a variable named "Qhat".')
+            if (!any(names(data)=="Qhat.flow"))
+              stop('Input "data" must be a a data frame with a variable named "Qhat.flow".')
 
             # Get the moments
             markov.mean = getMean(.Object, data)
             markov.variance = getVariance(.Object, data)
             markov.stds <- sqrt(markov.variance)
 
+            # Initialise returned variable
+            est = vector('list',length(precentiles))
+
+            # Set the lower limit of a truncated normal dist.
+            lowerX = -Inf;
+            if (.Object@use.truncated.dist)
+              lowerX = 0;
+
             # Calculate probabilities.
-            est = lapply(precentiles, qnorm, mean= markov.mean, sd=markov.stds)
+            for (i in 1:length(precentiles)) {
+              est.tmp = matrix(0,nrow(markov.mean),ncol(markov.mean))
+              for (j in 1:.Object@nStates) {
+                est.tmp[,j] <- qtruncnorm(precentiles[i], a=lowerX, mean= markov.mean[,j], sd=markov.stds[,j])
+              }
+              est[[i]] = est.tmp
+            }
+
+
             names(est) = precentiles
             return(est)
           }
 )
 
-setMethod(f="getTransformedParameterBounds",
-          signature="QhatModel.homo.normal.linear",
-          definition=function(.Object)
-          {
-            parameters = getParameters(.Object)
-            lowerBound = list(mean.a1 = rep(-6, length(.Object@parameters$mean.a1)),
-                              mean.a0 = rep(-3, length(.Object@parameters$mean.a0)),
-                              std.a0 = rep(log10(0.01), length(.Object@parameters$std.a0))
-            )
-            upperBound = list(mean.a1 = rep(log10(0.1), length(.Object@parameters$mean.a1)),
-                              mean.a0 = rep(3, length(.Object@parameters$mean.a0)),
-                              std.a0 = rep(log10(1000), length(.Object@parameters$std.a0))
-            )
-            return(list(lower = lowerBound, upper = upperBound))
-          }
-)
-
-
 # Calculate the transformed flow at the mean annual precip
 setGeneric(name="getMean",def=function(.Object, data) {standardGeneric("getMean")})
 setMethod(f="getMean",signature=c("QhatModel.homo.normal.linear","data.frame"),definition=function(.Object, data)
 {
-            ncols.a1 = length(.Object@parameters$mean.a1)
-            ncols.a0 = length(.Object@parameters$mean.a0)
-            nrows = length(data$precipitation);
-            ncols.max = max(c(ncols.a0 ,ncols.a1))
+
+            # Get object parameter list
+            parameters = getParameters(.Object@parameters)
+
+            ncols.a1 = length(parameters$mean.a1)
+            ncols.a0 = length(parameters$mean.a0)
+            ncols.trend = 0
+            if ('mean.trend' %in% names(parameters)) {
+              ncols.trend = length(parameters$mean.trend)
+            }
+            nrows = length(data$Qhat.precipitation);
+            ncols.max = max(c(ncols.a0 ,ncols.a1, ncols.trend))
+
             if (ncols.max > .Object@nStates)
               stop(paste('The number of parameters for each term of the mean model must must equal 1 or the number of states of ',.Object@nStates))
 
             # Check which terms are uniform for all states and whic terms are unique
             # to each state.
             if (ncols.a0==1 || ncols.a0==.Object@nStates) {
-              a0.est = matrix(rep(.Object@parameters$mean.a0,each=nrows),nrows,.Object@nStates);
+              a0.est = matrix(rep(parameters$mean.a0,each=nrows),nrows,.Object@nStates);
             } else if (ncols.a0<.Object@nStates) {
               stop(paste('The number of parameters for the a0 term of the mean model must must equal 1 or the number of states of ',.Object@nStates))
             }
             if (ncols.a1==1 || ncols.a1==.Object@nStates) {
-              a1.est = matrix(rep(.Object@parameters$mean.a1,each=nrows),nrows,.Object@nStates);
+              a1.est = matrix(rep(parameters$mean.a1,each=nrows),nrows,.Object@nStates);
             } else if (ncols.a1<.Object@nStates) {
               stop(paste('The number of parameters for the a1 term of the mean model must must equal 1 or the number of states of ',.Object@nStates))
             }
+            if (ncols.trend==1 || ncols.trend==.Object@nStates) {
+              trend.est = matrix(rep(parameters$mean.trend,each=nrows),nrows,.Object@nStates);
+            } else {
+              trend.est = 0
+            }
 
-            precip.data = matrix(data$precipitation,nrows,.Object@nStates);
+            time.vals = matrix(data$year - data$year[1],nrows,.Object@nStates)
+            precip.data = matrix(data$Qhat.precipitation,nrows,.Object@nStates);
 
             # Calculate the non-AR1 componants
-            Qhat.model <- precip.data * a1.est + a0.est
+            a0.est <- 100 * a0.est
+            Qhat.model <- precip.data * a1.est + a0.est + time.vals * trend.est
+
+            # print(paste('...DBG getMean.AR0 nrows Qhat.model.NAs:',nrow(Qhat.model)))
 
             return(Qhat.model)
           }
 )
 
+# Get variance. It is calculates as a parameter times the Qhat variance.
 setGeneric(name="getVariance",def=function(.Object, data) {standardGeneric("getVariance")})
 setMethod(f="getVariance",signature=c("QhatModel.homo.normal.linear","data.frame"),definition=function(.Object, data)
 {
+  # Get object parameter list
+  parameters = getParameters(.Object@parameters)
 
-  ncols.a0 = length(.Object@parameters$std.a0)
-  nrows = length(data$precipitation);
+  ncols.a0 = length(parameters$std.a0)
+  nrows = length(data$Qhat.precipitation);
 
-  a0.est = matrix(rep(.Object@parameters$std.a0,each=nrows),nrows,.Object@nStates);
-  #precip.data = rep(.Object@input.data$precipitation,1,ncols.a0);
+  # Get variance of the Qhat
+  Qhat.var = var(data$Qhat.flow, na.rm=T)
 
-  return(a0.est^2)
+  a0.est = Qhat.var * matrix(rep(parameters$std.a0,each=nrows),nrows,.Object@nStates);
+  #precip.data = rep(.Object@input.data$Qhat.precipitation,1,ncols.a0);
+
+  return(a0.est)
 
 }
 )
 
-setMethod(f="generate.sample.Qhat",signature="QhatModel.homo.normal.linear",definition=function(.Object, data, sample.states)
+setMethod(f="generate.sample.Qhat.fromViterbi",signature=c("QhatModel.homo.normal.linear",'data.frame','numeric'),definition=function(.Object, data, viterbi.states)
 {
 
+  if (length(viterbi.states) != nrow(data))
+    stop('The length of the viterbi.states must equal the number of rows in data.')
+
   # Generate a synthtic series of Qhat usng the input random series of states
-  nSamples = length(sample.states)
+  nSamples = length(viterbi.states)
   sample.Qhat = rep(0,nSamples)
 
   markov.mean = getMean(.Object, data)
@@ -221,73 +266,42 @@ setMethod(f="generate.sample.Qhat",signature="QhatModel.homo.normal.linear",defi
   if (nrow(markov.mean)!=nSamples)
     stop('The input vector of sample states must equal the numer of rows of the input data.')
 
+  # Set the lower limit of a truncated normal dist.
+  lowerX = -Inf;
+  if (.Object@use.truncated.dist)
+    lowerX = 0;
+
   for (i in 1:nSamples)
-    sample.Qhat[i] = rnorm(1, mean = markov.mean[i,sample.states[i]], sd = sqrt(markov.variance[i,sample.states[i]]))
+    sample.Qhat[i] = rtruncnorm(1, a=lowerX, mean = markov.mean[i,viterbi.states[i]], sd = sqrt(markov.variance[i,viterbi.states[i]]))
 
   return(sample.Qhat)
 }
 )
 
-# setMethod(f="getZScore.atObs",signature="QhatModel.homo.normal.linear",definition=function(.Object, data)
-# {
-#   # Get the emision probs from the input data
-#   emissionProbs <- getEmissionProbabilities(.Object, data)
-#
-#   # Get the standard deviation for each state
-#   sigma2 <- getVariance(.Object, data)
-#   sigma2 <- unique(sigma2)
-#   if (nrow(sigma2)>1)
-#     stop("getStateDistributionProb: This function requires that the variance for each state is constant over time.")
-#   sigma = as.vector(sqrt(sigma2))
-#
-#   # With the asumption of a zero mean, derive the Z-score value from the emission probs.
-#   emission.zscores = matrix(0,nrow(data),.Object@nStates)
-#   for (i in 1:.Object@nStates)
-#     emission.zscores[,i] <- qnorm(emissionProbs[,i], mean=0, sd = sigma[i])
-#
-#   return(emission.zscores)
-# }
-# )
+setMethod(f="generate.sample.Qhat",signature="QhatModel.homo.normal.linear",definition=function(.Object, data, nSamples)
+{
 
-# setMethod(f="getZScoreProbabilities.atIncrements",signature="QhatModel.homo.normal.linear",definition=function(.Object, data, nIncrements)
-# {
-#   # PROBLEMS: This function should give the prob. of increments of Qhat (from obs data) for each state.
-#
-#   # Get range in precipitation and derive vector of length nIncrements
-#
-#   #
-#
-#   #----------------------------------------
-#   # Get the emision probs from the input data
-#   emissionProbs <- getEmissionProbabilities(.Object, data)
-#
-#   # Get the standard deviation for each state
-#   sigma2 <- getVariance(.Object, data)
-#   sigma2 <- unique(sigma2)
-#   if (nrow(sigma2)>1)
-#     stop("getStateDistributionProb: This function requires that the variance for each state is constant over time.")
-#   sigma = as.vector(sqrt(sigma2))
-#
-#   # With the asumption of a zero mean, derive the Z-score value from the emission probs.
-#   emission.zscores = matrix(0,nrow(data),.Object@nStates)
-#   for (i in 1:.Object@nStates)
-#     emission.zscores[,i] <- qnorm(emissionProbs[,i], mean=0, sd = sigma[i])
-#
-#   # Derive a vector of z-score values that covers the range from min to max with length of nIncrements
-#   zscore.max = max(emission.zscores,na.rm = TRUE)
-#   zscore.min = min(emission.zscores,na.rm = TRUE)
-#   zscore.increments = seq(zscore.min, zscore.max, length.out = nIncrements)
-#
-#   # Derive the probabilities of the z-score increments for each state (assuming zero mean)
-#   zscore.probs = matrix(0,length(zscore.increments),.Object@nStates)
-#   for (i in 1:.Object@nStates)
-#     zscore.probs[,i] <- pnorm(zscore.increments, mean=0, sd = sigma[i])
-#
-#   if (any(is.na(zscore.probs)))
-#     stop('NAs in emission.zscores')
-#
-#   # Return zscore increments and probs
-#   zscore.probs = cbind(zscore.increments, zscore.probs)
-#   return(zscore.probs)
-# }
-# )
+  if (length(nSamples)!=1 || nSamples<=0)
+    stop('The input nSamples must be a single number >=1.')
+
+  # Get distribution for each state
+  markov.mean = getMean(.Object, data)
+  markov.variance = getVariance(.Object, data)
+
+  # Set the lower limit of a truncated normal dist.
+  lowerX = -Inf;
+  if (.Object@use.truncated.dist)
+    lowerX = 0;
+
+  sample.Qhat = vector('list',.Object@nStates)
+  for (i in 1:.Object@nStates) {
+    sample.Qhat[[i]] = matrix(NA,nrow(data),nSamples)
+    for (j in 1:nrow(data)) {
+      sample.Qhat[[i]][j,] = rtruncnorm(nSamples, a=lowerX, mean = markov.mean[j,i], sd = sqrt(markov.variance[j,i]))
+    }
+  }
+
+  return(sample.Qhat)
+}
+)
+

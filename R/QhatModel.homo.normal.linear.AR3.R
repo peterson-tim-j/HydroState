@@ -24,17 +24,23 @@ setValidity("QhatModel.homo.normal.linear.AR3", validObject)
 # Initialise object
 #setGeneric(name="initialize",def=function(.Object,input.data){standardGeneric("initialize")})
 setMethod("initialize","QhatModel.homo.normal.linear.AR3", function(.Object, input.data, use.truncated.dist=T, transition.graph=matrix(T,2,2),
-                                                                    state.dependent.mean.a0=T, state.dependent.mean.a1=F,
+                                                                    state.dependent.mean.a0=T, state.dependent.mean.a1=F, state.dependent.mean.trend=NA,
                                                                     state.dependent.mean.AR1=F, state.dependent.mean.AR2=F,state.dependent.mean.AR3=F,
                                                                     state.dependent.std.a0=T) {
   .Object@input.data <- input.data
   .Object@use.truncated.dist = use.truncated.dist
   .Object@nStates = ncol(transition.graph)
 
-  parameter.length <- as.numeric(c(state.dependent.mean.a0, state.dependent.mean.a1, state.dependent.mean.AR1, state.dependent.mean.AR2, state.dependent.mean.AR3, state.dependent.std.a0)) * (.Object@nStates-1) + 1
-
-  # Set up model terms for mean and standard deviation.
-  .Object@parameters = new('parameters', c('mean.a0', 'mean.a1', 'mean.AR1', 'mean.AR2','mean.AR3','std.a0'), parameter.length)
+  # Set the number of parameter values per parameter name and set up model terms for mean and standard deviation and trend.
+  if (is.na(state.dependent.mean.trend)) {
+    parameter.length <- as.numeric(c(state.dependent.mean.a0, state.dependent.mean.a1, state.dependent.mean.AR1,state.dependent.mean.AR2,state.dependent.mean.AR3,
+                                     state.dependent.std.a0)) * (.Object@nStates-1) + 1
+    .Object@parameters = new('parameters', c('mean.a0', 'mean.a1', 'mean.AR1', 'mean.AR2','mean.AR3', 'std.a0'), parameter.length)
+  } else {
+    parameter.length <- as.numeric(c(state.dependent.mean.a0, state.dependent.mean.a1, state.dependent.mean.trend, state.dependent.mean.AR1,
+                                     state.dependent.mean.AR2, state.dependent.mean.AR3, state.dependent.std.a0)) * (.Object@nStates-1) + 1
+    .Object@parameters = new('parameters', c('mean.a0', 'mean.a1','mean.trend', 'mean.AR1', 'mean.AR2','mean.AR3','std.a0'), parameter.length)
+  }
 
   validObject(.Object)
   .Object
@@ -96,11 +102,15 @@ setMethod(f="getMean.AR3",signature=c("QhatModel.homo.normal.linear.AR3","data.f
 
             ncols.a1 = length(parameters$mean.a1)
             ncols.a0 = length(parameters$mean.a0)
+            ncols.trend = 0
+            if ('mean.trend' %in% names(parameters)) {
+              ncols.trend = length(parameters$mean.trend)
+            }
             ncols.AR1 = length(parameters$mean.AR1)
             ncols.AR2 = length(parameters$mean.AR2)
             ncols.AR3 = length(parameters$mean.AR3)
             nrows = length(data$Qhat.precipitation);
-            ncols.max = max(c(ncols.a0 ,ncols.a1,ncols.AR1,ncols.AR2,ncols.AR3))
+            ncols.max = max(c(ncols.a0 ,ncols.a1,ncols.trend,ncols.AR1,ncols.AR2,ncols.AR3))
             if (ncols.max > .Object@nStates)
                 stop(paste('The number of parameters for each term of the mean model must must equal 1 or the number of states of ',.Object@nStates))
 
@@ -138,11 +148,18 @@ setMethod(f="getMean.AR3",signature=c("QhatModel.homo.normal.linear.AR3","data.f
             } else if (mean.AR3<.Object@nStates) {
               stop(paste('The number of parameters for the AR3 term of the mean model must must equal 1 or the number of states of ',.Object@nStates))
             }
+            if (ncols.trend==1 || ncols.trend==.Object@nStates) {
+              trend.est = matrix(rep(parameters$mean.trend,each=nrows),nrows,.Object@nStates);
+            } else {
+              trend.est = matrix(rep(0,each=nrows),nrows,.Object@nStates);
+            }
+
+            time.vals = matrix(data$year - data$year[1],nrows,.Object@nStates)
             precip.data = matrix(data$Qhat.precipitation,nrows,.Object@nStates);
 
             # Calculate the mean with the AR1 componants
             a0.est <- 100 * a0.est
-            Qhat.model <- precip.data * a1.est + a0.est
+            Qhat.model <- precip.data * a1.est + a0.est + time.vals * trend.est
             Qhat.model[2,] <- Qhat.model[2,] + Qhat.model[1,] * AR1.est[2,]
             Qhat.model[3,] <- Qhat.model[3,] + Qhat.model[2,] * AR1.est[3,] + Qhat.model[1,] * AR2.est[3,]
             for (i in 4:nrows)

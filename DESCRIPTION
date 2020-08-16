@@ -1,21 +1,63 @@
 Package: hydroState
-Title: What the Package Does (one line, title case)
-Version: 0.0.0.9000
-Authors@R: person("First", "Last", email = "first.last@example.com", role = c("aut", "cre"))
-Description: What the package does (one paragraph).
+Title: Hidden Markov Modelling of hydrological state change
+Version: 0.1.0.0
+Authors@R: c(
+    person("Tim", "Peterson", email = "tim.peterson@monash.edu", role = c("aut", "cre"), comment = c(ORCID = "0000-0002-1885-0826"))) 
+Maintainer: Tim Peterson <tim.peterson@monash.edu>
 Depends: R (>= 3.4.2)
-Imports: rgenoud, sn
-License: What license is it under?
+Description: HydroState idenifies regime changes in streamflow runoff nor explained by varioations in precipitation. The package allows a flexible set of Hidden Markov Models of annual, seasonal or monthly streamflow runoff to be built that includes precipitation as a predictor of runoff. Suites of models can be build for a single site, ranging from from one to three states can be build and each with differing combinations of error models and auto-correlation terms, allowing the most parsimineous model (by AIC) to easily be idenified. The entire package is written in R S4 object oriented code.
+Imports: DEoptim, sn, truncnorm, diagram
+BugReports: https://github.com/peterson-tim-j/HydroState/issues
+URL: https://github.com/peterson-tim-j/HydroState
+License: GPL-3
 Encoding: UTF-8
 LazyData: true
-RoxygenNote: 6.0.1
+RoxygenNote: 7.0.2
+ByteCompile: true
 Collate: 
     'abstracts.R'
+    'parameters.R'
     'Qhat.boxcox.R'
     'Qhat.burbidge.R'
+    'Qhat.diff.seasonal.R'
+    'Qhat.log.R'
+    'Qhat.none.R'
     'QhatModel.homo.normal.linear.R'
     'QhatModel.homo.normal.linear.AR1.R'
+    'QhatModel.homo.gamma.linear.R'
+    'QhatModel.homo.gamma.linear.AR1.R'
+    'QhatModel.homo.normal.linear.AR1.SAR1.R'
+    'QhatModel.homo.gamma.linear.AR1.SAR1.R'
     'QhatModel.homo.normal.linear.AR2.R'
+    'QhatModel.homo.gamma.linear.AR2.R'
+    'QhatModel.homo.normal.linear.AR2.SAR1.R'
+    'QhatModel.homo.gamma.linear.AR2.SAR1.R'
+    'QhatModel.homo.normal.linear.AR3.R'
+    'QhatModel.homo.gamma.linear.AR3.R'
+    'QhatModel.homo.normal.linear.AR3.SAR1.R'
+    'QhatModel.homo.gamma.linear.AR3.SAR1.R'
+    'QhatModel.homo.normal.linear.SAR1.R'
+    'QhatModel.homo.gamma.linear.SAR1.R'
     'QhatModel.homo.skewedNormal.linear.R'
+    'QhatModel.homo.skewedNormal.linear.AR1.R'
+    'QhatModel.homo.skewedNormal.linear.AR1.SAR1.R'
+    'QhatModel.homo.skewedNormal.linear.AR2.R'
+    'QhatModel.homo.skewedNormal.linear.AR2.SAR1.R'
+    'QhatModel.homo.skewedNormal.linear.AR3.R'
+    'QhatModel.homo.skewedNormal.linear.AR3.SAR1.R'
+    'QhatModel.homo.skewedNormal.linear.SAR1.R'
+    'QhatModel.seasonal.homo.gamma.linear.R'
+    'QhatModel.seasonal.homo.gamma.linear.AR1.R'
+    'QhatModel.seasonal.homo.gamma.linear.AR2.R'
+    'QhatModel.seasonal.homo.gamma.linear.AR3.R'
+    'QhatModel.subAnnual.homo.gamma.linear.R'
+    'QhatModel.subAnnual.homo.gamma.linear.AR1.R'
+    'QhatModel.subAnnual.homo.gamma.linear.AR2.R'
+    'QhatModel.subAnnual.homo.gamma.linear.AR3.R'
     'markov.annualHomogeneous.R'
     'hydroState.R'
+    'hydroState.allModels.R'
+    'hydroState.seasonal.allModels.R'
+    'hydroState.subAnnual.allModels.R'
+    'markov.annualHomogeneous.flickering.R'
+    'plot.input.data.R'

@@ -27,7 +27,7 @@ setValidity("QhatModel.homo.gamma.linear", validObject)
 # Initialise object
 #setGeneric(name="initialize",def=function(.Object,input.data){standardGeneric("initialize")})
 setMethod("initialize","QhatModel.homo.gamma.linear", function(.Object, input.data, transition.graph=matrix(T,2,2),state.dependent.mean.a0=T,
-                                                                      state.dependent.mean.a1=F, state.dependent.std.a0=T) {
+                                                                      state.dependent.mean.a1=F, state.dependent.mean.trend=NA,state.dependent.std.a0=T) {
   .Object@use.truncated.dist <- F
   .Object@nStates = ncol(transition.graph)
 
@@ -91,8 +91,8 @@ setMethod(f="getDistributionPercentiles",
 
 # Get transition matrix with no input data.
 setMethod(f="getEmissionDensity",
-          signature=c("QhatModel.homo.gamma.linear","data.frame","logical"),
-          definition=function(.Object, data, getCumProb)
+          signature=c("QhatModel.homo.gamma.linear","data.frame"),
+          definition=function(.Object, data, cumProb.threshold.Qhat)
           {
 
             # Check Qhat is in data
@@ -120,15 +120,24 @@ setMethod(f="getEmissionDensity",
              # Initialise returned probs., P
             P <- matrix(NA, nrow(data),.Object@nStates)
 
-            # Calculate probabilities.
+            # Increase zero values to machine precision.
             data$Qhat.flow[data$Qhat.flow==0] = sqrt(.Machine$double.eps)
-            if (getCumProb) {
+
+            # Calculate probabilities.
+            if (!all(is.na(cumProb.threshold.Qhat))) {
+
+              if (length(cumProb.threshold.Qhat)!=nrow(data))
+                stop('The length of cumProb.threshold.Qhat must equal the number of rows of input data')
+
+              # Increase zero values to machine precision.
+              cumProb.threshold.Qhat[cumProb.threshold.Qhat==0] = sqrt(.Machine$double.eps)
+
               for (i in 1:.Object@nStates) {
                 for (j in 1:nrow(data)) {
-                  if (is.na(data$Qhat.flow[j])) {
+                  if (is.na(cumProb.threshold.Qhat[j])) {
                     P[j,i] <- NA
                   } else {
-                    P[j,i] <- pgamma(data$Qhat.flow[j], shape=markov.shape[j,i], scale=markov.scale[j,i])
+                    P[j,i] <- pgamma(cumProb.threshold.Qhat[j], shape=markov.shape[j,i], scale=markov.scale[j,i])
                   }
                 }
               }
