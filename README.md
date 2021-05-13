@@ -7,10 +7,11 @@ The package allows a flexible set of Hidden Markov Models of annual, seasonal or
 
 The package development was funded by the Victorian Government The Department of Environment, Land, Water and Planning _Climate and Water Initiate_ (https://www.water.vic.gov.au/climate-change/research/vicwaci). 
 
-The package was developed for the analysis of long-term streamflow data during and after meteorological drought. The package has been applied to 161 unregulated catchments across Victoria (Australia). The annual and monthly observed data is included in the package and is available using the following R commands:
+The package was developed for the analysis of long-term streamflow data during and after meteorological drought. The package has been applied to 161 unregulated catchments across Victoria (Australia). Stream gauge control information and annual and monthly observed data is included in the package and is available using the following R commands:
 ```R
 data(streamflow_annual)
 data(streamflow_monthly)
+data(streamflow_gaugeInfo)
 ```
 
 Below are examples for (i) building a single annual model with a pre-defined model structure and (ii) building 64 different annuals models and selecting the most parsimonious model (by AIC) - as was undertaken for the paper. Additional examples are provided in the _vignette folder_(https://github.com/peterson-tim-j/HydroState/tree/master/vignette).
