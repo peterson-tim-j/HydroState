@@ -1,0 +1,12 @@
+citHeader("To cite hydroState in publications, please use:")
+
+citEntry(entry = "article",
+  author  = "T. J. Peterson, M. Saft and M. C. Peel and A John",
+  title   = "Watersheds may not recover from drought",
+  journal = "Science",
+  year    = "2021",
+  volume = "NA",
+  page = "NA",
+  doi = "10.1126/science.abd5085",
+  textVersion = "Peterson TJ, Saft M, Peel MC & John A (2021), Watersheds may not recover from drought, Science, DOI: 10.1126/science.abd5085
+)
