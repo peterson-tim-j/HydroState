@@ -40,7 +40,5 @@ Collate:
     'markov.annualHomogeneous.R'
     'hydroState.R'
     'hydroState.allModels.R'
-    'hydroState.seasonal.allModels.R'
     'hydroState.subAnnual.allModels.R'
     'markov.annualHomogeneous.flickering.R'
-    'plot.input.data.R'
