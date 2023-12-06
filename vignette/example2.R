@@ -85,7 +85,7 @@ model = new('hydroState',input.data=streamflow_monthly, Qhat.object=Qhat, QhatMo
 # Fit the model
 model <- hydroState::fit(model,pop.size.perParameter = 10, max.generations=500)
 
-# Name the states names with 1990 being defined as a 'norma' runoff year.
+# Name the states names with 1990 being defined as a 'normal' runoff year.
 model <- setStateNames(model, 1990)
 
 # Plot Viterbi states
