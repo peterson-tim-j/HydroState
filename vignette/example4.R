@@ -1,5 +1,9 @@
 # This HydroState examples builds and calibrates many combinations of one and two state seasonal models
 # and then extracts the best model (by AIC) and plots the results.
+#
+# NOTE: the calibration settings on line 30 are very basic. In Peterson et al 2021, the following settings were used:
+# pop.size.perParameter = 75,max.generations = 10000,reltol=1e-8,steptol=50.
+# Uncomment line 31 (and comment out line 30) to use thse more robust settings.
 #----------------
 rm(list=ls())
 library(hydroState)
@@ -73,17 +77,20 @@ if (!do.Monthly.Analysis) {
 # Build all combinations of seasonal models for this gauge. Note, seasonal flickering between states is allowed.
 all.Models <- new('hydroState.subAnnual.allModels',as.character(gaugeID), streamflow_monthly, allow.flickering=T, build.3state.models=F)
 
-# Calibrate (using MLW) each of the models.
+# Calibrate each of the models.
+# NOTE: comment out line 30 and uncomment line 31 to apply more robust calibration settings.
 all.Models <- fit(all.Models, pop.size.perParameter=10, max.generations=500, doParallel=F)
+#all.Models <- fit(all.Models,pop.size.perParameter = 75,max.generations = 10000,reltol=1e-8,steptol=50, doParallel=F)
 
 # Select the best model (byt AIC)
-best.model = getAIC.bestModel(all.Models)
+best.Model = getAIC.bestModel(all.Models)
 
 # Name the states names with 1990 being defined as a 'norma' runoff year.
-best.model <- setStateNames(best.model, 1990)
+# The years after 1990 are the options used if there is no flow data for 1990.
+best.Model <- setStateNames(best.Model, c(1990, 1989, 1991, 1988, 1992))
 
 # Plot Viterbi states
-viterbi(best.model)
+viterbi(best.Model)
 
 # Plot pseduo residuals
-check.PseudoResiduals(best.model)
+check.PseudoResiduals(best.Model)
