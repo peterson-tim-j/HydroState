@@ -131,7 +131,7 @@ setMethod(f="getLogLikelihood", signature=c("markov.annualHomogeneous.flickering
             # that the state has not switched state after the first time step.
             P.forward <- getLogForwardProbabilities(.Object, data[1:2,], as.matrix(emission.probs[1:2,], ncol=nStates))
             if (all(!is.na(P.forward))) {
-              if (which(max(P.forward[,1])==P.forward[,1]) != which(max(P.forward[,2])==P.forward[,2]))
+              if (any(which(max(P.forward[,1])==P.forward[,1]) != which(max(P.forward[,2])==P.forward[,2])))
                 return(Inf)
             }
 
