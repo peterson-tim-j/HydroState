@@ -642,9 +642,9 @@ setMethod(f="plot.graph",signature="hydroState",definition=function(.Object, mai
 )
 
 #' @exportMethod viterbi
-setGeneric(name="viterbi",def=function(.Object, data, do.plot=NA, plot.percentiles=NA, plot.yearRange=NA) {standardGeneric("viterbi")})
-setMethod(f="viterbi",signature=c("hydroState","missing","missing","missing","missing"),
-          definition=function(.Object, data, do.plot=T, plot.percentiles = c(0.05, 0.5, 0.95), plot.yearRange=numeric())
+setGeneric(name="viterbi",def=function(.Object, data, do.plot=NA, plot.percentiles=NA, plot.yearRange=NA, plot.options=NA) {standardGeneric("viterbi")})
+setMethod(f="viterbi",signature=c("hydroState","missing","missing","missing","missing","missing"),
+          definition=function(.Object, data, do.plot=T, plot.percentiles = c(0.05, 0.5, 0.95), plot.yearRange=numeric(),plot.options = c("A","B","C","D"))
 {
 
   if (!validObject(.Object))
@@ -659,8 +659,39 @@ setMethod(f="viterbi",signature=c("hydroState","missing","missing","missing","mi
   return(states)
 }
 )
-setMethod(f="viterbi",signature=c("hydroState","missing","logical","missing","missing"),
-          definition=function(.Object, data, do.plot, plot.percentiles, plot.yearRange)
+setMethod(f="viterbi",signature=c("hydroState","missing","logical","missing","missing","character"),
+          definition=function(.Object, data, do.plot, plot.percentiles, plot.yearRange, plot.options)
+          {
+
+            if (!validObject(.Object))
+              stop('The model parameters produced an INVALID MODEL.')
+
+            # Get the transformed flow, Qhat, and add Qhat to the input data
+            data = getQhat(.Object@Qhat.object, .Object@input.data)
+
+            # Run the viterbi algorithm
+            states <- viterbi(.Object, data, do.plot, c(0.05, 0.5, 0.95), numeric(),plot.options)
+            return(states)
+          }
+)
+setMethod(f="viterbi",signature=c("hydroState","missing","logical","numeric","numeric","character"),
+          definition=function(.Object, data, do.plot=T, plot.percentiles = c(0.05, 0.5, 0.95), plot.yearRange=numeric(),plot.options = c("A","B","C","D"))
+{
+  if (!validObject(.Object))
+    stop('The model parameters produced an INVALID MODEL.')
+
+  # Get the transformed flow, Qhat, and add Qhat to the input data
+  data = getQhat(.Object@Qhat.object, .Object@input.data)
+  # data = cbind.data.frame(.Object@input.data,Qhat)
+
+  # Run the viterbi algorithm
+  states <- viterbi(.Object, data, do.plot, plot.percentiles, plot.yearRange,plot.options)
+  return(states)
+}
+)
+
+setMethod(f="viterbi",signature=c("hydroState","missing","logical","missing","missing","missing"),
+          definition=function(.Object, data, do.plot, plot.percentiles, plot.yearRange, plot.options)
           {
 
             if (!validObject(.Object))
@@ -674,23 +705,24 @@ setMethod(f="viterbi",signature=c("hydroState","missing","logical","missing","mi
             return(states)
           }
 )
-setMethod(f="viterbi",signature=c("hydroState","missing","logical","numeric","numeric"),
-          definition=function(.Object, data, do.plot=T, plot.percentiles = c(0.05, 0.5, 0.95), plot.yearRange=numeric())
-{
-  if (!validObject(.Object))
-    stop('The model parameters produced an INVALID MODEL.')
+setMethod(f="viterbi",signature=c("hydroState","missing","logical","numeric","numeric","missing"),
+          definition=function(.Object, data, do.plot=T, plot.percentiles = c(0.05, 0.5, 0.95), plot.yearRange=numeric(),plot.options = c("A","B","C","D"))
+          {
+            if (!validObject(.Object))
+              stop('The model parameters produced an INVALID MODEL.')
 
-  # Get the transformed flow, Qhat, and add Qhat to the input data
-  data = getQhat(.Object@Qhat.object, .Object@input.data)
-  # data = cbind.data.frame(.Object@input.data,Qhat)
+            # Get the transformed flow, Qhat, and add Qhat to the input data
+            data = getQhat(.Object@Qhat.object, .Object@input.data)
+            # data = cbind.data.frame(.Object@input.data,Qhat)
 
-  # Run the viterbi algorithm
-  states <- viterbi(.Object, data, do.plot, plot.percentiles, plot.yearRange)
-  return(states)
-}
+            # Run the viterbi algorithm
+            states <- viterbi(.Object, data, do.plot, plot.percentiles, plot.yearRange,plot.options)
+            return(states)
+          }
 )
-setMethod(f="viterbi",signature=c("hydroState","data.frame","logical","numeric","numeric"),
-          definition=function(.Object, data, do.plot=T, plot.percentiles = c(0.05, 0.5, 0.95), plot.yearRange=numeric())
+
+setMethod(f="viterbi",signature=c("hydroState","data.frame","logical","numeric","numeric","missing"),
+          definition=function(.Object, data, do.plot=T, plot.percentiles = c(0.05, 0.5, 0.95), plot.yearRange=numeric(),plot.options)
   {
 
   if (!validObject(.Object))
@@ -961,8 +993,8 @@ setMethod(f="viterbi",signature=c("hydroState","data.frame","logical","numeric",
     op <- par(no.readonly = T);
 
     # Change graphics settings
-    nrow.plots = 5
-    layout(matrix(c(1,2,2,2,3,3,4,5), 8, 1, byrow = TRUE))
+    nrow.plots = 4
+    layout(matrix(c(1,2,2,2,3,3,4,4), 8, 1, byrow = TRUE))
     par(mar = c(0.2,5,0.2,5))
 
 
@@ -1058,7 +1090,7 @@ setMethod(f="viterbi",signature=c("hydroState","data.frame","logical","numeric",
     # Plot the cummulative rainfall residual.
     #--------------
 
-    # Calculate the means and residuals
+    # # Calculate the means and residuals
     if (plot.units == 'yr') {
       P.mean = mean(data$precipitation)
       P.resid = data$precipitation - P.mean;
@@ -1071,35 +1103,35 @@ setMethod(f="viterbi",signature=c("hydroState","data.frame","logical","numeric",
        P.resid[filt] = data$precipitation[filt] - P.mean[i]
       }
     }
-
-    # # Plot the residuals
-    # plot(obsDates.asISO, P.resid,type='p',xlim=xlim, col='white', bg='white', pch=21, xlab='', ylab='')
+    #
+    # # # Plot the residuals
+    # # plot(obsDates.asISO, P.resid,type='p',xlim=xlim, col='white', bg='white', pch=21, xlab='', ylab='')
+    # # for (i in 1:nQhat) {
+    # #   points(obsDates.asISO[i], P.resid[i],col=state.colours[viterbiPath[i]], bg=state.colours[viterbiPath[i]], pch=21)
+    # # }
+    # # lines(obsDates.asISO, rep(0,length(obsDates.asISO)),col='grey')
+    # # mtext("Rainfall residual [mm]",side=2,line=3)
+    # # mtext('Year',side=1,line=2)
+    #
+    # # Calculate the cumulative residuals.
+    # P.cumResid = cumsum(P.resid)
+    #
+    # # Plot the cumm residuals
+    # plot(obsDates.asISO, P.cumResid, type='l',col='grey', lwd=1, xlim=xlim, xlab='', ylab='',xaxt='n')
+    # abline(v=xaxis.ticks, col = "lightgray", lty = "dotted",lwd = par("lwd"))
+    # grid(NA,NULL)
+    # legend('topright', legend=c('Cum. residual ',.Object@state.labels),
+    #        lty=c(1,NA,NA),pch=c(NA,21,21), col=c('grey',state.colours),
+    #        pt.bg=c(NA,state.colours), xjust=0, cex=1.5, bg='white')
+    #
+    # # Colour the points by the Viterbi state.
     # for (i in 1:nQhat) {
-    #   points(obsDates.asISO[i], P.resid[i],col=state.colours[viterbiPath[i]], bg=state.colours[viterbiPath[i]], pch=21)
+    #   points(obsDates.asISO[i], P.cumResid[i],col=state.colours[viterbiPath[i]], bg=state.colours[viterbiPath[i]], pch=21)
     # }
-    # lines(obsDates.asISO, rep(0,length(obsDates.asISO)),col='grey')
-    # mtext("Rainfall residual [mm]",side=2,line=3)
-    # mtext('Year',side=1,line=2)
-
-    # Calculate the cumulative residuals.
-    P.cumResid = cumsum(P.resid)
-
-    # Plot the cumm residuals
-    plot(obsDates.asISO, P.cumResid, type='l',col='grey', lwd=1, xlim=xlim, xlab='', ylab='',xaxt='n')
-    abline(v=xaxis.ticks, col = "lightgray", lty = "dotted",lwd = par("lwd"))
-    grid(NA,NULL)
-    legend('topright', legend=c('Cum. residual ',.Object@state.labels),
-           lty=c(1,NA,NA),pch=c(NA,21,21), col=c('grey',state.colours),
-           pt.bg=c(NA,state.colours), xjust=0, cex=1.5, bg='white')
-
-    # Colour the points by the Viterbi state.
-    for (i in 1:nQhat) {
-      points(obsDates.asISO[i], P.cumResid[i],col=state.colours[viterbiPath[i]], bg=state.colours[viterbiPath[i]], pch=21)
-    }
-    mtext("Cum. rainfall resid.",side=2,line=3)
-    mtext(paste("[mm]"),side=2,line=2, cex=0.85)
-    plot.range=par("usr")
-    text(plot.range[1]+diff(plot.range[1:2])*0.025, plot.range[3]+diff(par("usr")[3:4])*0.95, labels="D", font=1, cex=2,pos=1)
+    # mtext("Cum. rainfall resid.",side=2,line=3)
+    # mtext(paste("[mm]"),side=2,line=2, cex=0.85)
+    # plot.range=par("usr")
+    # text(plot.range[1]+diff(plot.range[1:2])*0.025, plot.range[3]+diff(par("usr")[3:4])*0.95, labels="D", font=1, cex=2,pos=1)
 
     # Plot the conditional state probability for each state
     #if (nStates>1) {
@@ -1125,7 +1157,7 @@ setMethod(f="viterbi",signature=c("hydroState","data.frame","logical","numeric",
              lty=c(1,1),pch=c(NA,NA), col=state.colours,lwd=1,
              xjust=0, cex=1.5, bg='white')
       plot.range=par("usr")
-      text(plot.range[1]+diff(plot.range[1:2])*0.025, plot.range[3]+diff(par("usr")[3:4])*0.95, labels="E", font=1, cex=2,pos=1)
+      text(plot.range[1]+diff(plot.range[1:2])*0.025, plot.range[3]+diff(par("usr")[3:4])*0.95, labels="D", font=1, cex=2,pos=1)
 
 
     #}
@@ -1137,8 +1169,509 @@ setMethod(f="viterbi",signature=c("hydroState","data.frame","logical","numeric",
   }
 
   # Return data
-  return(results)
+  return(as.data.frame(results))
   }
+)
+
+setMethod(f="viterbi",signature=c("hydroState","data.frame","logical","numeric","numeric","character"),
+          definition=function(.Object, data, do.plot=T, plot.percentiles = c(0.05, 0.5, 0.95), plot.yearRange=numeric(),plot.options = c())
+          {
+
+            if (!validObject(.Object))
+              stop('The model parameters produced an INVALID MODEL.')
+
+            # Handle monthly and yearly time steps
+            if (any(names(data)=="month")) {
+              obsDates.asISO = as.Date(ISOdate(data$year,data$month,1))
+              obsDates = cbind(data$year,data$month)
+              obsDates.Precip.asISO = as.Date(ISOdate(.Object@input.data$year,.Object@input.data$month,1))
+              plot.units = 'month'
+            } else {
+              obsDates.asISO = as.Date(ISOdate(data$year,1,1))
+              obsDates = data$year
+              obsDates.Precip.asISO = as.Date(ISOdate(.Object@input.data$year,1,1))
+              plot.units = 'yr'
+            }
+
+            # Get the transformed flow, Qhat
+            if (!any(names(data)=='Qhat.flow'))
+              stop('Input "data" must contain a column named "Qhat.flow".')
+
+            data.withNAs <- data
+            Qhat = data$Qhat.flow
+            nQhat = length(Qhat)
+
+            # get number of states
+            nStates = getNumStates(.Object@markov.model.object)
+
+            # Built filter for non NAs.
+            filt <- !is.na(data$Qhat.flow)
+
+            # Exit if modle has one state
+            if (nStates==1) {
+              viterbiPath <- rep(1,length(Qhat))
+
+              if (is.vector(obsDates)) {
+                results <- matrix(NA,length(filt), 3)
+                results[,1] <- obsDates
+                results[filt,2] <-viterbiPath[filt]
+                results[,3] <-data$flow
+                colnames(results) <- c('Year','Viterbi State Number', 'Obs. flow')
+              } else {
+                results <- matrix(NA,length(filt), 4)
+                results[,1:2] <- obsDates
+                results[filt,3] <-viterbiPath[filt]
+                results[,4] <-data$flow
+                colnames(results) <- c('Year','Month','Viterbi State Number', 'Obs. flow')
+              }
+            } else {
+              # Get transition probs.
+              transProbs = getTransitionProbabilities(.Object@markov.model.object)
+
+              # get emiision probs.
+              emissionProbs = getEmissionDensity(.Object@QhatModel.object, data, NA)
+
+              # Get initial states
+              startProbs = getInitialStateProbabilities(.Object@markov.model.object)
+              States = 1:nStates
+
+              # Set probs to zero if the is no obs. data
+              transProbs[is.na(transProbs)]       = 0
+              #emissionProbs[is.na(emissionProbs)] = 0
+              emissionProbs[!filt,] = 1
+              nQhat <- nrow(data)
+
+              # Set zero emmision probs to machine percision
+              for(state in States) {
+                filt.zeros = emissionProbs[,state]==0
+                emissionProbs[filt.zeros,state] = .Machine$double.eps
+              }
+
+              #Run Viterbi algorithm. Adapted from https://cran.r-project.org/web/packages/HMM
+              v <- array(NA,c(nStates,nQhat))
+              dimnames(v) <- list(states=States,index=1:nQhat)
+              # Init
+              for(state in States)
+              {
+                v[state,1] = log(startProbs[state] * emissionProbs[1,state])
+              }
+              # Iteration
+              for(k in 2:nQhat)
+              {
+                for(state in States)
+                {
+                  maxi = NULL
+                  for(previousState in States)
+                  {
+                    temp = v[previousState,k-1] + log(transProbs[previousState,state])
+                    maxi = max(maxi, temp)
+                  }
+                  v[state,k] = log(emissionProbs[k,state]) + maxi
+                }
+              }
+              # Traceback
+              viterbiPath = rep(NA,nQhat)
+              for(state in States)
+              {
+                if(max(v[,nQhat])==v[state,nQhat])
+                {
+                  viterbiPath[nQhat] = state
+                  break
+                }
+              }
+              for(k in (nQhat-1):1)
+              {
+                for(state in States)
+                {
+                  if(max(v[,k]+log(transProbs[,viterbiPath[k+1]]))
+                     ==v[state,k]+log(transProbs[state,viterbiPath[k+1]]))
+                  {
+                    viterbiPath[k] = state
+                    break
+                  }
+                }
+              }
+            }
+
+            # Caculate the flow at the percentile AND if the catchment was at the normal state.
+            # This requires the state names to be set.
+            #--------------
+            if (.Object@state.labels[1]!='') {
+
+              if (length(plot.percentiles)!=3)
+                stop('The input "percentiles" must contain only three values.')
+              plot.percentiles =  sort(plot.percentiles)
+
+              # Get the precentiles each state at each time point and remove rows with no obs Qhat
+              state.est = getDistributionPercentiles(.Object@QhatModel.object, data, plot.percentiles)
+
+              # Remove NAs from the input data and Qhat
+              data <- data[filt,]
+              Qhat <- Qhat[filt]
+              obsDates.withNAs <- obsDates
+              if (is.vector(obsDates)) {
+                obsDates <- obsDates[filt]
+              } else {
+                obsDates <- obsDates[filt,]
+              }
+              obsDates.asISO <- obsDates.asISO[filt]
+              viterbiPath <- viterbiPath[filt]
+              nQhat = sum(filt)
+              for (i in 1:3) {
+                state.est[[i]] <- as.matrix(state.est[[i]][filt,], ncol=nStates)
+              }
+
+              # Keep the state.ext for the 'Normal' flow state.
+              ind.stateNames.normal <- which(.Object@state.labels=='Normal')
+              state.est.normal <- matrix(0, nQhat,3)
+              for (i in 1:3) {
+                for (j in 1:nQhat) {
+                  state.est.normal[j,i] = state.est[[i]][j,ind.stateNames.normal]
+                }
+              }
+
+              # Create an index for if the catchment is in a normal flow state.
+              ind.flow.normal <- viterbiPath==ind.stateNames.normal
+
+              # Extract the percentile Qhat values for each percentile and each time step
+              viterbi.est =matrix(0, nQhat,3)
+
+              for (i in 1:3) {
+                for (j in 1:nQhat) {
+                  viterbi.est[j,i] = state.est[[i]][j,viterbiPath[j]]
+                }
+              }
+
+              # Back Transform Qhat models estimates to flow
+              flow.viterbi.est =matrix(0, nQhat,3)
+              flow.normal.est =matrix(0, nQhat,3)
+              for (i in 1:length(plot.percentiles)) {
+                data.tmp <- data.withNAs;
+                data.tmp$Qhat.flow <- NA
+                data.tmp$Qhat.flow[filt] = viterbi.est[,i]
+                flow.viterbi.est[,i] <- getQ.backTransformed(.Object@Qhat.object,data.tmp)$flow.modelled[filt]
+
+                data.tmp <- data.withNAs;
+                data.tmp$Qhat.flow <- NA
+                data.tmp$Qhat.flow[filt] = state.est.normal[,i]
+                flow.normal.est[,i] <- getQ.backTransformed(.Object@Qhat.object,data.tmp)$flow.modelled[filt]
+              }
+
+              # Get the conditional probabilities.
+              emissionProbs = getEmissionDensity(.Object@QhatModel.object, data, NA)
+              state.probs = getConditionalStateProbabilities(.Object@markov.model.object, data, emissionProbs)
+
+              # Collate returned data.
+              if (is.vector(obsDates)) {
+                results <- matrix(NA,length(filt), 9+2*nStates)
+                results[,1] <- obsDates.withNAs
+                results[filt,2] <-viterbiPath
+                results[,3] <-data.withNAs$flow
+                results[filt,4:9] <- cbind(flow.viterbi.est, flow.normal.est)
+                results[filt, 10:(10+nStates-1)] = t(state.probs)
+                results[filt, (10+nStates):(10+2*nStates-1)] = t(emissionProbs)
+                colnames(results) <- c('Year','Viterbi State Number', 'Obs. flow',
+                                       paste('Viterbi Flow -',plot.percentiles*100,'%ile',sep=''),
+                                       paste('Normal State Flow-',plot.percentiles*100,'%ile',sep=''),
+                                       paste('Conditional Prob.-',.Object@state.labels,sep=''),
+                                       paste('Emission Density-',.Object@state.labels,sep=''))
+              } else {
+                results <- matrix(NA,length(filt), 10+2*nStates)
+                results[,1:2] <- obsDates.withNAs
+                results[filt,3] <-viterbiPath
+                results[,4] <-data.withNAs$flow
+                results[filt,5:10] <- cbind(flow.viterbi.est, flow.normal.est)
+                results[filt, 11:(11+nStates-1)] = t(state.probs)
+                results[filt, (11+nStates):(11+2*nStates-1)] = t(emissionProbs)
+                colnames(results) <- c('Year','Month','Viterbi State Number', 'Obs. flow',
+                                       paste('Viterbi Flow -',plot.percentiles*100,'%ile',sep=''),
+                                       paste('Normal State Flow -',plot.percentiles*100,'%ile',sep=''),
+                                       paste('Conditional Prob.-',.Object@state.labels,sep=''),
+                                       paste('Emission Density-',.Object@state.labels,sep=''))
+              }
+
+            } else {
+              # Collate returned data.
+              if (is.vector(obsDates)) {
+                results <- matrix(NA,length(filt), 3)
+                results[,1] <- obsDates
+                results[filt,2] <-viterbiPath[filt]
+                results[,3] <-data$flow
+                colnames(results) <- c('Year','Viterbi State Number', 'Obs. flow')
+              } else {
+                results <- matrix(NA,length(filt), 4)
+                results[,1:2] <- obsDates
+                results[filt,3] <-viterbiPath[filt]
+                results[,4] <-data$flow
+                colnames(results) <- c('Year','Month','Viterbi State Number', 'Obs. flow')
+              }
+            }
+
+            # Do plotting
+            if (do.plot) {
+              if (length(.Object@state.labels)==1 && .Object@state.labels=='') {
+                warning('State names must be set for plotting.')
+                return(results)
+              }
+
+              # Define colours for the states (derived from command: brewer.pal(5,"Spectral"))
+              state.colours = rep("grey",nStates)
+              if (length(.Object@state.labels)==nStates) {
+                state.colours.all = c("#D7191C","#FDAE61", "#ABDDA4",'#7c9fb6',"#496c83")
+                for ( i in 1:nStates) {
+                  if (.Object@state.labels[i]=='Very low')
+                    state.colours[i] = state.colours.all[1]
+
+                  if (.Object@state.labels[i]=='Low')
+                    state.colours[i] = state.colours.all[2]
+
+                  if (.Object@state.labels[i]=='Normal')
+                    state.colours[i] = state.colours.all[3]
+
+                  if (.Object@state.labels[i]=='High')
+                    state.colours[i] = state.colours.all[4]
+
+                  if (.Object@state.labels[i]=='Very high')
+                    state.colours[i] = state.colours.all[5]
+                }
+
+              }
+
+              # Derive a matrix for the start and end of each bar for the plotting of the range in the percentiles
+              line.matrix <- cbind(viterbi.est[,1], viterbi.est[,3])
+              flow.line.matrix <- cbind(flow.viterbi.est[,1], flow.viterbi.est[,3])
+
+              # Get input grapics settings
+              op <- par(no.readonly = T);
+
+              # Change graphics settings
+              nrow.plots = length(plot.options)
+
+              if(nrow.plots == 4){
+                layout(matrix(c(1,1,2,2,3,3,4,4), 8, 1, byrow = TRUE))
+              }
+              if(nrow.plots == 3){
+                layout(matrix(c(1,1,2,2,2,3,3,3), 8, 1, byrow = TRUE))
+              }
+              if(nrow.plots == 2){
+                layout(matrix(c(1,1,1,1,2,2,2,2), 8, 1, byrow = TRUE))
+              }
+              if(nrow.plots == 1){
+                layout(matrix(c(1,1,1,1,1,1,1,1), 8, 1, byrow = TRUE))
+              }
+              par(mar = c(0.2,5,0.2,5))
+
+
+              # Calc axis limits.
+              ylim.flow <- c(0, ceiling(max( c(max(data$flow,na.rm=T),max(flow.viterbi.est,na.rm=T)))))
+              ylim.precip.max = max(ylim.flow)*3
+              ylim.precip <- c(-ylim.precip.max,0)
+
+              # Setup year range for plotitng
+              if (length(plot.yearRange)==2 && all(is.numeric(plot.yearRange)) && all(plot.yearRange>0) && all(plot.yearRange<=as.numeric(format(Sys.Date(), "%Y")))) {
+                xlim = as.Date(c(ISOdate(plot.yearRange[1],1,1), ISOdate(plot.yearRange[2],12,31)))
+              } else {
+                xlim = c(min(obsDates.asISO)-7, max(obsDates.asISO)+7)
+              }
+
+              if("A" %in% plot.options){
+                if(tail(plot.options, n=1) =="A"){
+                  par(mar = c(4,5,0.2,5))
+                }
+                # Plot obs precip
+                plot(obsDates.Precip.asISO, .Object@input.data$precipitation, type='s',col='grey', lwd=1,
+                     xlim=xlim, xlab='', ylab='', main='', xaxt='n')
+                mtext("Precip.",side=2,line=3)
+                mtext(paste("[mm/",plot.units,"]",sep=''),side=2,line=2, cex=0.85)
+
+                xaxis.ticks = as.Date(ISOdate(seq(1900,2020,by=10),1,1))
+                abline(v=xaxis.ticks, col = "lightgray", lty = "dotted",lwd = par("lwd"))
+                if(tail(plot.options, n=1) =="A"){
+                  axis(1,at= xaxis.ticks,labels=seq(1900,2020,by=10))
+                  mtext('Year',side=1,line=3)
+                }
+                grid(NA,NULL)
+                plot.range=par("usr")
+                text(plot.range[1]+diff(plot.range[1:2])*0.025, plot.range[3]+diff(par("usr")[3:4])*0.95, labels="A", font=1, cex=2,pos=1)
+              }
+
+              if("B" %in% plot.options){
+                if(tail(plot.options, n=1) =="B"){
+                  par(mar = c(4,5,0.2,5))
+                }
+
+                # Plot obs flow
+                plot(obsDates.asISO, data$flow, type='l',col='grey', lwd=1, ylim=ylim.flow, xlim=xlim,
+                     xlab='', ylab='',xaxt='n')
+                # ryticks.min = signif(1.2*max(data$precipitation,na.rm=T),1)
+                # ryticks = seq(-ryticks.min, 0, by=signif(ryticks.min/2,1))
+                # print(-1*(data$precipitation))
+                # twoord.plot(obsDates.asISO, data$flow,
+                #             obsDates.asISO, -1*(data$precipitation),
+                #             lylim=ylim.flow,rylim= ylim.precip,type=c("l","s"),
+                #             xlab="Year", ylab=paste("Flow [mm/",plot.units,"]",sep=''),rylab=paste("Precip [mm/",plot.units,"]",sep=''),
+                #             lytickpos=seq(0,max(ylim.flow), by=signif(max(ylim.flow)/5,1)), rytickpos=ryticks,
+                #             lcol='black',rcol='blue')
+
+
+
+                # Plot Markov states as boxes
+                for (i in 1:nQhat) {
+                  points(obsDates.asISO[i], flow.viterbi.est[i,2],col=state.colours[viterbiPath[i]], bg=state.colours[viterbiPath[i]], pch=21)
+                  lines(rep(obsDates.asISO[i],2), flow.line.matrix[i,],col=state.colours[viterbiPath[i]], lwd=1)
+
+                  # Plot the normal flow in years when the Viterbi state is not normal.
+                  if (!ind.flow.normal[i]) {
+                    points(obsDates.asISO[i], flow.normal.est[i,2],col=state.colours.all[3], bg=state.colours.all[3], pch=1)
+                    lines(rep(obsDates.asISO[i],2), c(flow.normal.est[i,1],flow.normal.est[i,3]),col=state.colours.all[3], lwd=1, lty=1)
+                  }
+                }
+
+
+                # Add axis labels and legend
+                mtext("Flow",side=2,line=3)
+                mtext(paste("[mm/",plot.units,"]"),side=2,line=2, cex=0.85)
+                #mtext('Year',side=1,line=2)
+                #legend('topleft', legend=.Object@state.labels, pch=21, col=state.colours, pt.bg=state.colours, xjust=0)
+                xaxis.ticks = as.Date(ISOdate(seq(1900,2020,by=10),1,1))
+                abline(v=xaxis.ticks, col = "lightgray", lty = "dotted",lwd = par("lwd"))
+                if(tail(plot.options, n=1) =="B"){
+                  axis(1,at= xaxis.ticks,labels=seq(1900,2020,by=10))
+                  mtext('Year',side=1,line=3)
+                }
+                grid(NA,NULL)
+                legend('topright', legend=c('Obs. flow',paste(.Object@state.labels,' (5th - 50th - 95th)',sep=''),'Est. normal (5th - 50th - 95th)'),
+                       lty=c(1,1,1,1),lwd=1,pch=c(NA,21,21,1), col=c('grey',state.colours,state.colours.all[3]),
+                       pt.bg=c(NA,state.colours,NA), xjust=0, cex=1.5, bg='white')
+                plot.range=par("usr")
+                text(plot.range[1]+diff(plot.range[1:2])*0.025, plot.range[3]+diff(par("usr")[3:4])*0.95, labels="B", font=1, cex=2,pos=1)
+              }
+
+              if("C" %in% plot.options){
+                if(tail(plot.options, n=1) =="C"){
+                  par(mar = c(4,5,0.2,5))
+                }
+                # Calc axis limits.
+                ylim.qhat <- c(floor(min( c(min(data$Qhat.flow,na.rm=T),min(viterbi.est,na.rm=T)))) ,
+                               ceiling(max( c(max(data$Qhat.flow,na.rm=T),max(viterbi.est,na.rm=T)))))
+
+                # Plot obs Qhat
+                plot(obsDates.asISO, data$Qhat.flow, type='l',col='grey', lwd=1,
+                     ylim=ylim.qhat, xlim=xlim, xlab='', ylab='',xaxt='n')
+
+                # Plot Markov states as boxes
+                for (i in 1:nQhat) {
+                  points(obsDates.asISO[i], viterbi.est[i,2],col=state.colours[viterbiPath[i]], bg=state.colours[viterbiPath[i]], pch=21)
+                  lines(rep(obsDates.asISO[i],2), line.matrix[i,],col=state.colours[viterbiPath[i]], lwd=1)
+                }
+
+                # Add axis labels
+                mtext("Transformed flow",side=2,line=3)
+                mtext(paste("[f(mm) /",plot.units,"]"),side=2,line=2, cex=0.85)
+                # mtext('Year',side=1,line=2)
+                xaxis.ticks = as.Date(ISOdate(seq(1900,2020,by=10),1,1))
+                abline(v=xaxis.ticks, col = "lightgray", lty = "dotted",lwd = par("lwd"))
+                if(tail(plot.options, n=1) =="C"){
+                  axis(1,at= xaxis.ticks,labels=seq(1900,2020,by=10))
+                  mtext('Year',side=1,line=3)
+                }
+                grid(NA,NULL)
+                plot.range=par("usr")
+                text(plot.range[1]+diff(plot.range[1:2])*0.025, plot.range[3]+diff(par("usr")[3:4])*0.95, labels="C", font=1, cex=2,pos=1)
+              }
+
+              # Plot the cummulative rainfall residual.
+              #--------------
+
+              # # Calculate the means and residuals
+              if (plot.units == 'yr') {
+                P.mean = mean(data$precipitation)
+                P.resid = data$precipitation - P.mean;
+              } else {
+                P.mean = rep(NA,length(.Object@QhatModel.object@subAnnual.Monthly.Steps))
+                P.resid = rep(NA, length(data$precipitation))
+                for (i in 1:length(.Object@QhatModel.object@subAnnual.Monthly.Steps)) {
+                  filt = data$month == .Object@QhatModel.object@subAnnual.Monthly.Steps[i]
+                  P.mean[i] =  mean(data$precipitation[filt])
+                  P.resid[filt] = data$precipitation[filt] - P.mean[i]
+                }
+              }
+              #
+              # # # Plot the residuals
+              # # plot(obsDates.asISO, P.resid,type='p',xlim=xlim, col='white', bg='white', pch=21, xlab='', ylab='')
+              # # for (i in 1:nQhat) {
+              # #   points(obsDates.asISO[i], P.resid[i],col=state.colours[viterbiPath[i]], bg=state.colours[viterbiPath[i]], pch=21)
+              # # }
+              # # lines(obsDates.asISO, rep(0,length(obsDates.asISO)),col='grey')
+              # # mtext("Rainfall residual [mm]",side=2,line=3)
+              # # mtext('Year',side=1,line=2)
+              #
+              # # Calculate the cumulative residuals.
+              # P.cumResid = cumsum(P.resid)
+              #
+              # # Plot the cumm residuals
+              # plot(obsDates.asISO, P.cumResid, type='l',col='grey', lwd=1, xlim=xlim, xlab='', ylab='',xaxt='n')
+              # abline(v=xaxis.ticks, col = "lightgray", lty = "dotted",lwd = par("lwd"))
+              # grid(NA,NULL)
+              # legend('topright', legend=c('Cum. residual ',.Object@state.labels),
+              #        lty=c(1,NA,NA),pch=c(NA,21,21), col=c('grey',state.colours),
+              #        pt.bg=c(NA,state.colours), xjust=0, cex=1.5, bg='white')
+              #
+              # # Colour the points by the Viterbi state.
+              # for (i in 1:nQhat) {
+              #   points(obsDates.asISO[i], P.cumResid[i],col=state.colours[viterbiPath[i]], bg=state.colours[viterbiPath[i]], pch=21)
+              # }
+              # mtext("Cum. rainfall resid.",side=2,line=3)
+              # mtext(paste("[mm]"),side=2,line=2, cex=0.85)
+              # plot.range=par("usr")
+              # text(plot.range[1]+diff(plot.range[1:2])*0.025, plot.range[3]+diff(par("usr")[3:4])*0.95, labels="D", font=1, cex=2,pos=1)
+
+              if("D" %in% plot.options){
+                if(tail(plot.options, n=1) =="D"){
+                  par(mar = c(4,5,0.2,5))
+                }
+                # Plot the conditional state probability for each state
+                # if (nStates>1) {
+                emissionProbs = getEmissionDensity(.Object@QhatModel.object, data, NA)
+                state.probs = getConditionalStateProbabilities(.Object@markov.model.object, data, emissionProbs)
+
+                # Plot bar graph
+                # par(mar = c(4,5,0.2,5))
+                plot(obsDates.asISO, state.probs[1,], type = 'l', xlim=xlim, col=state.colours[1],
+                     ylim=c(0,1),xlab='', ylab='', lwd=1, xaxt='n')
+                if (nStates>1) {
+                  for ( i in 2:nStates) {
+                    lines(obsDates.asISO, state.probs[i,], col=state.colours[i])
+                  }
+                }
+                mtext("State Prob.",side=2,line=3)
+                mtext(paste("[-]"),side=2,line=2, cex=0.85)
+
+                xaxis.ticks = as.Date(ISOdate(seq(1900,2020,by=10),1,1))
+                if(tail(plot.options, n=1) =="D"){
+                  axis(1,at= xaxis.ticks,labels=seq(1900,2020,by=10))
+                  mtext('Year',side=1,line=3)
+                }
+                abline(v=xaxis.ticks, col = "lightgray", lty = "dotted",lwd = par("lwd"))
+                grid(NA,NULL)
+                legend('bottomleft', legend=.Object@state.labels,
+                       lty=c(1,1),pch=c(NA,NA), col=state.colours,lwd=1,
+                       xjust=0, cex=1.5, bg='white')
+                plot.range=par("usr")
+                text(plot.range[1]+diff(plot.range[1:2])*0.025, plot.range[3]+diff(par("usr")[3:4])*0.95, labels="D", font=1, cex=2,pos=1)
+              }
+
+              #}
+
+              # Reset graphics options
+              #--------------
+              par(op)
+
+            }
+
+            # Return data
+            return(as.data.frame(results))
+          }
 )
 
 #' @exportMethod check.viterbi

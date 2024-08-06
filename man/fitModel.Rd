@@ -7,11 +7,11 @@
 fitModel(model.name = model, pop.size.perParameter = 10, max.generations = 500)
 }
 \arguments{
-\item{model.name}{is the name of the built hydroState model or 'all models'}
+\item{model.name}{name of the built hydroState model or name of the list containing all built models}
 
-\item{pop.size.perParameter}{is an integer that should be greater than or equal to the number of parameters in the model. The default is '10' and is sufficient for all models.}
+\item{pop.size.perParameter}{integer that should be greater than or equal to the number of parameters in the model. The default is '10' and is sufficient for all models.}
 
-\item{max.generations}{is an integer that will stop the optimizer when set number of generations are reached. The default is '500'.}
+\item{max.generations}{integer that will stop the optimizer when set number of generations are reached. The default is '500'.}
 }
 \value{
 A fitted hydroState model

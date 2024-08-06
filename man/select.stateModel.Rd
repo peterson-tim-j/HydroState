@@ -2,9 +2,9 @@
 % Please edit documentation in R/wrapper.R
 \name{select.stateModel}
 \alias{select.stateModel}
-\title{Select State Model}
+\title{\code{select.stateModel}}
 \usage{
-select.stateModel(
+\method{select}{stateModel}(
   input.data = data.frame(year = c(), flow = c(), precip = c()),
   parameters = list("a0", "a1", "std"),
   seasonal.parameters = list(),
@@ -27,15 +27,12 @@ select.stateModel(
 \item{transition.graph}{matrix given the number of states. Default is a 2-state matrix (2 by 2): matrix(TRUE,2,2)}
 }
 \value{
-A \code{stateModel} ready to be built in buildModel.
+A \code{stateModel}, QhatModel object, ready to for \code{buildModel}.
 }
 \description{
 \code{select.stateModel} provides various options for constructing the rainfall-runoff relationship. Every \code{stateModel} depends on a linear base model where precipitation is a function of streamflow. The default model is an annual analysis of this base linear model with state shifts expected in the intercept, \eqn{a_0}, and standard deviation, \eqn{std}, of the rainfall-runoff relationship. \code{select.stateModel} provides additional adjustments to this model with auto-correlations terms, seasonal parameters for a sub-annual analysis, and even other or multiple \code{state.shift.parameters}. The number of states and assumed error distribution can also be selected.
 }
 \details{
-\code{select.stateModel}
-
-
 There are a selection of items to consider when defining the rainfall-runoff relationship and investigating state shifts in this relationship. hydroState simulates runoff, \eqn{Q}, as being in one of finite states, \eqn{i}, at every time-step, \eqn{t}, depending on the distribution of states at prior time steps. This results in a runoff distribution for each state that can vary overtime (\eqn{\widehat{_tQ_i}}). The \code{stateModel} defines the relationship that is susceptible to state shifts with precipitation, \eqn{P_t}, as a predictor. This takes the form as a simple linear model \eqn{\widehat{_tQ_i} = f(P_t)}:
 
                    \eqn{\widehat{_tQ_i} = P_ta_0 + a_1}
@@ -55,6 +52,7 @@ Once the model parameters are chosen, the \code{state.shift.parameters} can be s
 
 The \code{error.distribution} of the model is chosen as either normal: "normal", truncated normal: "truc.normal", or Gaussian: "gauss" in order to reduce skew. The default is "truc.normal". The number of possible states in the rainfall-runoff relationship and transition between the states is selected with the transition.graph. The default is a 2-state model in a 2 by 2 matrix with a TRUE transition to and from each state.
 }
+\keyword{QhatModel}
 \keyword{linear-model}
 \keyword{rainfall-runoff}
 \keyword{stateModel}

@@ -4,10 +4,10 @@
 \alias{buildModelAll}
 \title{Builds all hydroState models}
 \usage{
-buildModelAll(site.ID = "", input.data = streamflow_annual)
+buildModelAll(ID = "", input.data = streamflow_annual)
 }
 \arguments{
-\item{site.ID}{is a character vector of a stream gauge identifier}
+\item{ID}{character vector of a stream gauge identifier}
 
 \item{input.data}{is a dataframe of annual, monthly, or daily, observations of runoff, precipitation, or concentration. For running seasonal models, monthly values are required.}
 }

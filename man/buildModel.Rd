@@ -6,9 +6,9 @@
 \usage{
 buildModel(
   input.data = data.frame(year = c(), flow = c(), precip = c()),
-  data.transform = "",
-  stateModel = "",
-  markovModel = ""
+  data.transform = NULL,
+  stateModel = NULL,
+  Markov = NULL
 )
 }
 \arguments{
@@ -18,7 +18,7 @@ buildModel(
 
 \item{stateModel}{a \code{QhatModel.object} from \code{select.stateModel}. If blank, the default selects a 2-state 'QhatModel.homo.normal.linear' model with a truncated normal error distribution, and allows the intercept 'a0' and standard deviation 'std' to shift as state dependent parameters.}
 
-\item{markovModel}{a \code{markov.model.object} from \code{select.markovModel}. If blank, the default selects a homogeneous Markov model without flickering.}
+\item{Markov}{a \code{markov.model.object} from \code{select.Markov}. If blank, the default selects a homogeneous Markov model without flickering.}
 }
 \value{
 A built hydroState model object ready to be fitted with \code{fitModel}
@@ -30,9 +30,7 @@ A built hydroState model object ready to be fitted with \code{fitModel}
 \code{buildModel}
 
 
-hydroState operates in S4, object oriented programming, and requires three objects to build a hydroState model. Each object can be selected from \code{select.transform}, \code{select.stateModel}, and \code{select.markovModel}; however, if no object is defined a default model is built.
-
-For an example of how to.. see vignette...
+hydroState operates in S4, object oriented programming, and requires three objects to build a hydroState model. Each object can be selected from \code{select.transform}, \code{select.stateModel}, and \code{select.Markov}; however, if no object is defined a default model is built as discussed in the arguments.
 }
 \keyword{build}
 \keyword{hydroState}

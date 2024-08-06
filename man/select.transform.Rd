@@ -4,7 +4,7 @@
 \alias{select.transform}
 \title{Transforms Observations}
 \usage{
-select.transform(
+\method{select}{transform}(
   func = "boxcox",
   input.data = data.frame(year = c(), flow = c(), precip = c())
 )
@@ -12,10 +12,10 @@ select.transform(
 \arguments{
 \item{func}{is the method of transformation. The default is 'boxcox'. Other options: 'log', 'burbidge', 'none'}
 
-\item{input.data}{dataframe of annual runoff and precipitation observations. For running seasonal models with seasonal.parameters, monthly data is required.}
+\item{input.data}{dataframe of annual or monthly runoff and precipitation observations.}
 }
 \value{
-A Qhat object with transformed observations ready for buildModel
+A Qhat object with transformed observations ready for \code{buildModel}
 }
 \description{
 Transforms observations to remove heteroscedasticity.

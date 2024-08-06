@@ -13,10 +13,10 @@
 #'
 #'
 #' @param func is the method of transformation. The default is 'boxcox'. Other options: 'log', 'burbidge', 'none'
-#' @param input.data dataframe of annual runoff and precipitation observations. For running seasonal models with seasonal.parameters, monthly data is required.
+#' @param input.data dataframe of annual or monthly runoff and precipitation observations.
 #'
 #' @return
-#' A Qhat object with transformed observations ready for buildModel
+#' A Qhat object with transformed observations ready for \code{buildModel}
 #'
 #' @keywords Qhat transform
 #'
@@ -39,7 +39,7 @@ select.transform <- function(func = 'boxcox', input.data=data.frame(year=c(), fl
 
 }
 
-#' Select State Model
+#'
 #'
 #' \code{select.stateModel}
 #'
@@ -74,14 +74,14 @@ select.transform <- function(func = 'boxcox', input.data=data.frame(year=c(), fl
 #' @param transition.graph matrix given the number of states. Default is a 2-state matrix (2 by 2): matrix(TRUE,2,2)
 #'
 #' @return
-#' A \code{stateModel} ready to be built in buildModel.
+#' A \code{stateModel}, QhatModel object, ready to for \code{buildModel}.
 #'
-#' @keywords stateModel linear-model rainfall-runoff
+#' @keywords stateModel linear-model rainfall-runoff QhatModel
 #'
 #'
 #' @export
 
-# Create QhatModel object # DO WE WANT TO GIVE THEM ACCESS TO CHANGE STATE IND/DEP, & TRUNCATED...?
+# Create QhatModel object
 select.stateModel <- function(input.data = data.frame(year=c(), flow=c(), precip=c()),
                               parameters = list('a0','a1','std'),
                               seasonal.parameters = list(),
@@ -414,10 +414,10 @@ select.stateModel <- function(input.data = data.frame(year=c(), flow=c(), precip
 
 
 
-#' \code{select.markovModel} selects a hidden Markov model
+#' \code{select.Markov} selects a hidden Markov model
 #'
 #' @description
-#' select.markovModel selects a hidden Markov model.
+#' select.Markov selects a hidden Markov model.
 #'
 #' @details
 #' There are several hidden Markov models to choose from with different forms. The default markov model is 'annualHomogeneous' where the transition between states only depends on a sequence of observed prior states.
@@ -425,10 +425,8 @@ select.stateModel <- function(input.data = data.frame(year=c(), flow=c(), precip
 #'
 #' For an example of how to.. see vignette...
 #'
-#'
-#'
-#' @param func is the Markov model defining the transition between states. The default is 'annualHomogeneous'. Other options include 'annualHomogeneous.flickering'.
-#' @param transition.graph is a matrix given the number of states. The default is a 2-state matrix (2 by 2): matrix(TRUE,2,2)
+#'@param func character sting with name of Markov model defining the transition between states. The default is 'annualHomogeneous'. Other options include 'annualHomogeneous.flickering'.
+#' @param transition.graph matrix given the number of states. Default is a 2-state matrix (2 by 2): matrix(TRUE,2,2)
 #'
 #' @return
 #' A Markov object with a selected Markov model
@@ -438,7 +436,7 @@ select.stateModel <- function(input.data = data.frame(year=c(), flow=c(), precip
 #'
 #' @export
 
-select.markovModel <- function(func = 'annualHomogeneous',
+select.Markov <- function(func = 'annualHomogeneous',
                         transition.graph = matrix(TRUE,2,2)){
 
   #Validate
@@ -463,14 +461,13 @@ select.markovModel <- function(func = 'annualHomogeneous',
 #' \code{buildModel} builds a hydrostate model with either a default \code{stateModel} or the \code{stateModel} can be specified with options from \code{select.stateModel}. After the model is built, the hydroState model is ready to be fitted with \code{fitModel}
 #'
 #' @details
-#' hydroState operates in S4, object oriented programming, and requires three objects to build a hydroState model. Each object can be selected from \code{select.transform}, \code{select.stateModel}, and \code{select.markovModel}; however, if no object is defined a default model is built.
+#' hydroState operates in S4, object oriented programming, and requires three objects to build a hydroState model. Each object can be selected from \code{select.transform}, \code{select.stateModel}, and \code{select.Markov}; however, if no object is defined a default model is built as discussed in the arguments.
 #'
-#' For an example of how to.. see vignette...
 #'
 #' @param input.data dataframe of annual runoff and precipitation observations. For running seasonal models with \code{seasonal.parameters}, monthly data is required.
 #' @param data.transform a \code{Qhat.object} with transformed observations from \code{select.transform}. If blank, the default uses 'boxcox' to transform observations.
 #' @param stateModel a \code{QhatModel.object} from \code{select.stateModel}. If blank, the default selects a 2-state 'QhatModel.homo.normal.linear' model with a truncated normal error distribution, and allows the intercept 'a0' and standard deviation 'std' to shift as state dependent parameters.
-#' @param markovModel a \code{markov.model.object} from \code{select.markovModel}. If blank, the default selects a homogeneous Markov model without flickering.
+#' @param Markov a \code{markov.model.object} from \code{select.Markov}. If blank, the default selects a homogeneous Markov model without flickering.
 #'
 #' @return
 #' A built hydroState model object ready to be fitted with \code{fitModel}
@@ -483,9 +480,9 @@ select.markovModel <- function(func = 'annualHomogeneous',
 
 
 buildModel <- function(input.data = data.frame(year=c(), flow=c(), precip=c()),
-                       data.transform = '',
-                       stateModel = '',
-                       markovModel = ''){
+                       data.transform = NULL,
+                       stateModel = NULL,
+                       Markov = NULL){
 
 
   #Validate input.data
@@ -497,7 +494,7 @@ buildModel <- function(input.data = data.frame(year=c(), flow=c(), precip=c()),
   }
 
 # If no inputs except input.data, just run default annual analysis
-  if(is.null(data.transform) && is.null(stateModel) && is.null(markovModel)){
+  if(is.null(data.transform) && is.null(stateModel) && is.null(Markov)){
 
     data.transform = select.transform(func = 'boxcox', input.data = input.data)
 
@@ -508,80 +505,88 @@ buildModel <- function(input.data = data.frame(year=c(), flow=c(), precip=c()),
                                    error.distribution = "truc.normal",
                                    transition.graph = matrix(TRUE, 2, 2))
 
-    markovModel = select.markovModel(func = 'annualHomogeneous',
+    Markov = select.Markov(func = 'annualHomogeneous',
                                      transition.graph = matrix(TRUE, 2, 2))
 
-    if(stateModel@nStates != nrow(markovModel@transition.graph)){
-      stop("number of possible states in stateModel and 'transition.graph' in markovModel are not equal")
+    if(stateModel@nStates != nrow(Markov@transition.graph)){
+      stop("number of possible states in stateModel and 'transition.graph' in Markov are not equal")
     }
 
-    return(new('hydroState',input.data, data.transform, stateModel, markovModel))
+    return(new('hydroState',input.data, data.transform, stateModel, Markov))
 
   }else{
 
-# if no stateModel or markovModel still run
-    if(is.null(data.transform) && !is.null(stateModel) && !is.null(markovModel)){
+# if no stateModel or Markov still run
+    if(is.null(data.transform) && !is.null(stateModel) && !is.null(Markov)){
 
       data.transform = select.transform(func = 'boxcox', input.data = input.data)
 
-      if(!is(stateModel,QhatModel)){
+      if(!is(stateModel,"QhatModel")){
         stop("'stateModel' must be a QhatModel object from select.stateModel")
       }
-      if(!is(markovModel,markov)){
-        stop("'markovModel' must be a markov object from select.markovModel")
+      if(!is(Markov,"markov")){
+        stop("'Markov' must be a markov object from select.Markov")
       }
 
-      if(stateModel@nStates != nrow(markovModel@transition.graph)){
-        stop("number of possible states in stateModel and 'transition.graph' in markovModel are not equal")
+      if(stateModel@nStates != nrow(Markov@transition.graph)){
+        stop("number of possible states in stateModel and 'transition.graph' in Markov are not equal")
       }
 
-      return(new('hydroState',input.data, data.transform, stateModel, markovModel))
+      if(!identical(stateModel@input.data,input.data)){
+        stop("input.data is not the same input.data in the stateModel")
+      }
+
+      return(new('hydroState',input.data, data.transform, stateModel, Markov))
     }
 
 # if no transform data and state model, still run
-    if(is.null(data.transform) && !is.null(stateModel) && is.null(markovModel)){
+    if(is.null(data.transform) && !is.null(stateModel) && is.null(Markov)){
 
       data.transform = select.transform(func = 'boxcox', input.data = input.data)
 
-      markovModel = select.markovModel(func = 'annualHomogeneous',
+      Markov = select.Markov(func = 'annualHomogeneous',
                                        transition.graph = matrix(TRUE,stateModel@nStates,stateModel@nStates))
 
-      if(!is(stateModel,QhatModel)){
+      if(!is(stateModel,"QhatModel")){
         stop("'stateModel' must be a QhatModel object from select.stateModel")
       }
 
-      if(stateModel@nStates != nrow(markovModel@transition.graph)){
-        stop("number of possible states in stateModel and 'transition.graph' in markovModel are not equal")
+      if(stateModel@nStates != nrow(Markov@transition.graph)){
+        stop("number of possible states in stateModel and 'transition.graph' in Markov are not equal")
       }
 
-      return(new('hydroState',input.data, data.transform, stateModel, markovModel))
+      if(!identical(stateModel@input.data,input.data)){
+        stop("input.data is not the same input.data in the stateModel")
+      }
+
+      return(new('hydroState',input.data, data.transform, stateModel, Markov))
     }
 
 # if no transform data or state model, still run
-    if(!is.null(data.transform) && !is.null(stateModel) && is.null(markovModel)){
+    if(!is.null(data.transform) && !is.null(stateModel) && is.null(Markov)){
 
-      if(!is(data.transform,Qhat)){
+      if(!is(data.transform,"Qhat")){
         stop("'data.transform' must be a Qhat object from select.transform")
       }
-      if(!is(stateModel,QhatModel)){
+      if(!is(stateModel,"QhatModel")){
         stop("'stateModel' must be a QhatModel object from select.stateModel")
       }
 
-      markovModel = select.markovModel(func = 'annualHomogeneous',
+      Markov = select.Markov(func = 'annualHomogeneous',
                                        transition.graph = matrix(TRUE,stateModel@nStates,stateModel@nStates))
 
-      if(stateModel@nStates != nrow(markovModel@transition.graph)){
-        stop("number of possible states in stateModel and 'transition.graph' in markovModel are not equal")
+      if(stateModel@nStates != nrow(Markov@transition.graph)){
+        stop("number of possible states in stateModel and 'transition.graph' in Markov are not equal")
       }
 
-      return(new('hydroState',input.data, data.transform, stateModel, markovModel))
+      return(new('hydroState',input.data, data.transform, stateModel, Markov))
     }
 
 # if no markov model, still run
-    if(is.null(data.transform) && is.null(stateModel) && !is.null(markovModel)){
+    if(is.null(data.transform) && is.null(stateModel) && !is.null(Markov)){
 
-      if(!is(markovModel,markov)){
-        stop("'markovModel' must be a markov object from select.markovModel")
+      if(!is(Markov,"markov")){
+        stop("'Markov' must be a markov object from select.Markov")
       }
 
       data.transform = select.transform(func = 'boxcox', input.data = input.data)
@@ -591,25 +596,25 @@ buildModel <- function(input.data = data.frame(year=c(), flow=c(), precip=c()),
                                      seasonal.parameters = list(),
                                      state.shift.parameters = list('a0','std'),
                                      error.distribution = "truc.normal",
-                                     transition.graph = markovModel@transition.graph)
+                                     transition.graph = Markov@transition.graph)
 
-      if(stateModel@nStates != nrow(markovModel@transition.graph)){
-        stop("number of possible states in stateModel and 'transition.graph' in markovModel are not equal")
+      if(stateModel@nStates != nrow(Markov@transition.graph)){
+        stop("number of possible states in stateModel and 'transition.graph' in Markov are not equal")
       }
 
 
-      return(new('hydroState',input.data, data.transform, stateModel, markovModel))
+      return(new('hydroState',input.data, data.transform, stateModel, Markov))
     }
 
     # if no state model, still run
-    if(!is.null(data.transform) && is.null(stateModel) && !is.null(markovModel)){
+    if(!is.null(data.transform) && is.null(stateModel) && !is.null(Markov)){
 
-      if(!is(data.transform,Qhat)){
+      if(!is(data.transform,"Qhat")){
         stop("'data.transform' must be a Qhat object from select.transform")
       }
 
-      if(!is(markovModel,markov)){
-        stop("'markovModel' must be a markov object from select.markovModel")
+      if(!is(Markov,"markov")){
+        stop("'Markov' must be a markov object from select.Markov")
       }
 
 
@@ -618,34 +623,46 @@ buildModel <- function(input.data = data.frame(year=c(), flow=c(), precip=c()),
                                      seasonal.parameters = list(),
                                      state.shift.parameters = list('a0','std'),
                                      error.distribution = "truc.normal",
-                                     transition.graph = markovModel@transition.graph)
+                                     transition.graph = Markov@transition.graph)
 
-      if(stateModel@nStates != nrow(markovModel@transition.graph)){
-        stop("number of possible states in stateModel and 'transition.graph' in markovModel are not equal")
+      if(stateModel@nStates != nrow(Markov@transition.graph)){
+        stop("number of possible states in stateModel and 'transition.graph' in Markov are not equal")
+      }
+
+      if(!identical(data.transform@input.data,input.data)){
+        stop("input.data is not the same input.data in the data.transform")
       }
 
 
-      return(new('hydroState',input.data, data.transform, stateModel, markovModel))
+      return(new('hydroState',input.data, data.transform, stateModel, Markov))
     }
 
   #if no anything, still run with inputs
-    if(!is.null(data.transform) && !is.null(stateModel) && !is.null(markovModel)){
+    if(!is.null(data.transform) && !is.null(stateModel) && !is.null(Markov)){
 
-      if(!is(data.transform,Qhat)){
+      if(!is(data.transform,"Qhat")){
         stop("'data.transform' must be a Qhat object from select.transform")
       }
 
-      if(!is(stateModel,QhatModel)){
+      if(!is(stateModel,"QhatModel")){
         stop("'stateModel' must be a QhatModel object from select.stateModel")
       }
-      if(!is(markovModel,markov)){
-        stop("'markovModel' must be a markov object from select.markovModel")
+      if(!is(Markov,"markov")){
+        stop("'Markov' must be a markov object from select.Markov")
       }
-      if(stateModel@nStates != nrow(markovModel@transition.graph)){
-        stop("number of possible states in stateModel and 'transition.graph' in markovModel are not equal")
+      if(stateModel@nStates != nrow(Markov@transition.graph)){
+        stop("number of possible states in stateModel and 'transition.graph' in Markov are not equal")
       }
 
-      return(new('hydroState',input.data, data.transform, stateModel, markovModel))
+      if(!identical(stateModel@input.data,input.data)){
+        stop("input.data is not the same input.data in the stateModel")
+      }
+
+      if(!identical(data.transform@input.data,input.data)){
+        stop("input.data is not the same input.data in the data.transform")
+      }
+
+      return(new('hydroState',input.data, data.transform, stateModel, Markov))
     }
   }
 }
@@ -663,7 +680,7 @@ buildModel <- function(input.data = data.frame(year=c(), flow=c(), precip=c()),
 #'
 #' For an example of how to.. see vignette...
 #'
-#' @param site.ID  is a character vector of a stream gauge identifier
+#' @param ID  character vector of a stream gauge identifier
 #' @param input.data is a dataframe of annual, monthly, or daily, observations of runoff, precipitation, or concentration. For running seasonal models, monthly values are required.
 #'
 #'
@@ -677,16 +694,16 @@ buildModel <- function(input.data = data.frame(year=c(), flow=c(), precip=c()),
 #'
 
 
-buildModelAll <- function(site.ID = '',
+buildModelAll <- function(ID = '',
                           input.data=streamflow_annual){
   # Validate
-  if(is.character(site.ID)){
+  if(is.character(ID)){
 
-    return(new('hydroState.allModels',site.ID, input.data, allow.flickering=F))
+    return(new('hydroState.allModels',ID, input.data, allow.flickering=F))
 
   }else{
 
-    stop('Please ensure site.ID is a character vector. See help')
+    stop('Please ensure ID is a character vector. See help')
 
   }
 
@@ -703,9 +720,9 @@ buildModelAll <- function(site.ID = '',
 #' After a hydroState model object is built, the model is ready to be fitted. The only required input is the given name of the built hydroState model object. \code{fitModel} works for one built model (\code{buildModel}) or all (\code{buildModelAll}). If fitting all models be sure to install and load the \link[parallelly]{parallelly} library.
 #'
 #'
-#' @param model.name is the name of the built hydroState model or 'all models'
-#' @param pop.size.perParameter is an integer that should be greater than or equal to the number of parameters in the model. The default is '10' and is sufficient for all models.
-#' @param max.generations is an integer that will stop the optimizer when set number of generations are reached. The default is '500'.
+#' @param model.name name of the built hydroState model or name of the list containing all built models
+#' @param pop.size.perParameter integer that should be greater than or equal to the number of parameters in the model. The default is '10' and is sufficient for all models.
+#' @param max.generations integer that will stop the optimizer when set number of generations are reached. The default is '500'.
 #'
 #' @return
 #' A fitted hydroState model
@@ -733,6 +750,98 @@ fitModel <- function(model.name = model,
 
 }
 
+#'Plot residuals
+#'
+#' \code{plot.residuals}
+#'
+#' @description
+#' The normal pseudo residuals are plotted for review to check for outliers and validate the fit of the model. It is recommended to ensure the model fit is valid before evaluating results (i.e. \code{plot.states}). Furthermore, to ensure the multi-state model performs better than the one-state model, it is recommended to visually compare \code{plot.resdiuals} of both models.
+#'
+#' @details
+#' \code{plot.residuals} produces five plots to review and validate the fitted hydroState model. A) Time-series of normal-pseudo residuals to ensure the residuals each year are within the confidence intervals. B) Auto-correlation function (ACF) of normal-pseudo residuals to ensure there is no serial correlation in residuals. Lag spikes should be below confidence interval at each lag (except 0). C) Histogram of uniform-pseudo residuals should show uniform distribution (equal frequency for each residual value) D) Histogram of normal-pseudo residuals should show normal distribution centered on zero and with no skew E) Quantile-Quantile (Q-Q) plot where normal-pseudo residuals vs. theoretical quantities should align on the diagonal line. The last plot contains the Akaike information criterion (AIC) and Shapiro-Wilk p-value. The AIC is an estimator to determine the most parsimonious, best performing model given the number of parameters. When comparing models, the lowest AIC is the best performing model. Shapiro-Wilks test for normality in the residuals and a p-value greater than 0.05 (chosen alpha level) indicates the residuals are normally distributed; the null hypothesis that the residuals are normally distributed is not rejected.
+#'
+#'
+#' @param model.name name of the fitted hydroState model object.
+#' @param do.pdf option to export residual plots as a pdf. Default is FALSE.
+#' @param ID character string of catchment identifier (i.e. gauge ID). Default is NULL. Only recommended when do.pdf = TRUE.
+#'
+#'
+#' @return
+#' Plots of residuals to evaluate model fit
+#'
+#' @keywords plot residuals
+#'
+#'
+#' @export
+#'
+
+
+plot.residuals <- function(model.name = model,
+                           do.pdf = FALSE,
+                           ID = NULL
+                             ){
+
+  if(do.pdf != TRUE){
+    return(check.PseudoResiduals(model.name, do.plot = T))
+  }
+
+  if(do.pdf == TRUE){
+
+    pdf(paste(ID,"_Residuals_",class(model@QhatModel.object)[1],"_states-",model@QhatModel.object@nStates,".pdf",sep=""), width = 8.5, height = 11)
+    check.PseudoResiduals(model.name, do.plot = T)
+    title(ID)
+    dev.off()
+    return(check.PseudoResiduals(model.name, do.plot = T))
+
+  }
+
+  if(do.plot != TRUE && do.pdf == TRUE){
+    pdf(paste(ID,"_Residuals_",class(model@QhatModel.object)[1],"_states-",model@QhatModel.object@nStates,".pdf",sep=""), width = 8.5, height = 11)
+    check.PseudoResiduals(model.name, do.plot = T)
+    title(ID)
+    dev.off()
+    return(check.PseudoResiduals(model.name, do.plot = F))
+  }
+
+  if(do.plot != TRUE && do.pdf != TRUE){
+    return(check.PseudoResiduals(model.name, do.plot = F))
+  }
+
+
+
+
+}
+
+#'Get residuals
+#'
+#' \code{get.residuals}
+#'
+#' @description
+#' The normal pseudo residuals are retrieved from the fitted model.
+#'
+#' @details
+#' \code{get.residuals} retrieves residuals from the fitted model and exports them as a data frame.
+#'
+#'
+#' @param model.name name of the fitted hydroState model object.
+#'
+#' @return
+#' Data frame of residuals for each time-step
+#'
+#' @keywords residuals
+#'
+#'
+#' @export
+#'
+
+
+get.residuals <- function(model.name = model){
+
+    return(check.PseudoResiduals(model.name, do.plot = F))
+
+}
+
+
 
 #'Sets state names given initial year
 #'
@@ -742,11 +851,11 @@ fitModel <- function(model.name = model,
 #' sets the state names for each time-step relative to the initial year given
 #'
 #' @details
-#' hydroState assigns names to the computed states. This requires choosing an initial year where the state value from that year will be named 'Normal'. Other state values will be given names relative to the state value in the initial year. The choice of the initial year does not affect results. It is really just a means to more easily interpret the difference in state values relative to each other. It is best to choose a year based on the question being asked. For example, in testing the impact of drought, a year before the beginning of the drought was selected as an initial year when conditions were condsidered 'Normal' (Peterson TJ, Saft M, Peel MC & John A (2021), Watersheds may not recover from drought, Science, DOI: \doi{10.1126/science.abd5085})
+#' hydroState assigns names to the computed states. This requires choosing an initial year where the state value from that year will be named 'Normal'. Other state values will be given names relative to the state value in the initial year. The choice of the initial year does not affect results. It is a means to more easily interpret the difference in state values relative to each other. It is best to choose a year based on the question being asked. For example, in testing the impact of drought, a year before the beginning of the drought, 1990, was selected as an initial year when conditions were considered 'Normal' (Peterson TJ, Saft M, Peel MC & John A (2021), Watersheds may not recover from drought, Science, DOI: \doi{10.1126/science.abd5085})
 #'
 #'
-#' @param model.name is the name of the fitted hydroState model object.
-#' @param initial.year is a year (YYYY). Default is first year in input.data.
+#' @param model.name name of the fitted hydroState model object.
+#' @param initial.year year (YYYY). Default is first year in input.data.
 #'
 #' @return
 #' A fitted hydroState model object with state names for each time-step
@@ -767,116 +876,309 @@ setInitialYear <- function(model.name = model,
 
 }
 
-#'Plot states
+
+#'plot States
 #'
-#' \code{plotStates}
+#' \code{plot.states}
 #'
 #' @description
-#' Plots results overtime
+#' \code{plot.states} produces several plots to visualize results of the states overtime. \code{setInitialYear} is required before \code{plot.states}.
 #'
 #' @details
-#' \code{plotStates} plots the results of the fitted hydroState model. Five plots are provided to visualize results at each time-step: A) observed precipitation, B) observed runoff with states, C) transformed runoff with states, D) cumulative rainfall residual, and E) the state probabilities (emission density). Ensure the figure pane is large enough to accommodate the size of the plot, else consider outputting as an image or pdf.
+#' \code{plot.states} produces plots of the results from the fitted hydroState model. The default produces four plots of the A) independent variable, B) dependent variable and states, C) transformed dependent variable and states, and D) conditional state probabilities for each state. These are plotted on the same page, and there is an option to export plots as a pdf to the current working directory. There are also options to only plot one of the four plots.
 #'
 #'
 #' @param model.name is the name of the fitted hydroState model object.
+#' @param ind.variable option to plot independent variable overtime. Default is TRUE.
+#' @param dep.variable option to plot dependent variable and states overtime. Default is TRUE.
+#' @param dep.variable.transformed option to plot transformed dependent variable and states overtime. Default is TRUE.
+#' @param cond.state.prob option to plot the conditional state probabilities overtime for each state. Default is TRUE.
+#' @param do.pdf option to export plots as a pdf. Default is FALSE.
+#' @param ID character string of catchment identifier (i.e. gauge ID). Default is NULL. Only recommended when do.pdf = TRUE.
+#'
 #'
 #' @return
-#' A plot of results with observations and states
+#' plots to evaluate rainfall-runoff states overtime along with observations and the conditional probabilities of each state. The data frame includes several items. These include the time-step (i.e. Year, Month), Viterbi State Number to differentiate states, observations (i.e. stream flow), flow values of the Viterbi state including the 5\% and 95\% confidence intervals, flow values of the normal state including the 5% and 95% confidence intervals, conditional probabilities for each state, and emission density for each state. The Viterbi state flow values are the results, the values of the most likely state at each time-step. The Normal state flow values are the values from the normal state at each time-step. When the most likely state is the Normal state for a time-step, the Viterbi flow state value equals the Normal flow state value. These Normal state values are interpreted as the results for a one-state model, if the multi-state model did not exist. This estimated Normal state can be seen in plot (B) relative to the other states. The Conditional Probabilities of each state show the likelihood of remaining in the given state based on previous states. When the conditional probability is closer to 1, there is a higher probability that hydroState remains in the state for the next time-step. The Emission Density of each state is the result of multiplying the conditional probabilities by the transition probabilities.
 #'
-#' @keywords plot states results names
+#' @keywords plot states results
 #'
 #'
 #' @export
 #'
 
 
-plotStates <- function(model.name = model){
+plot.states <- function(model.name = model,
+                        ind.variable = TRUE,
+                        dep.variable = TRUE,
+                        dep.variable.transformed = TRUE,
+                        cond.state.prob = TRUE,
+                        do.pdf = FALSE,
+                        ID = NULL
+                       ){
 
-  return(viterbi(model.name))
+    # plot everything, default, export as pdf too..
+    if(ind.variable == TRUE && dep.variable == TRUE && dep.variable.transformed == TRUE && cond.state.prob == TRUE){
+
+      if(do.pdf == TRUE){
+
+        pdf(paste(ID,"_Results_ABCD_",class(model@QhatModel.object)[1],"_states-",model@QhatModel.object@nStates,".pdf",sep=""), width = 8.5, height = 11)
+        viterbi(model.name, do.plot = T)
+        title(ID)
+        dev.off()
+        return(viterbi(model.name, do.plot = T))
+
+      } else {
+
+          return(viterbi(model.name, do.plot = T))
+
+      }
+
+    }
+
+    # plot only A
+    if(ind.variable == TRUE && dep.variable != TRUE && dep.variable.transformed != TRUE && cond.state.prob != TRUE){
+
+      if(do.pdf == TRUE){
+
+        pdf(paste(ID,"_Results_A_",class(model@QhatModel.object)[1],"_states-",model@QhatModel.object@nStates,".pdf",sep=""), width = 8.5, height = 11)
+        viterbi(model.name, do.plot = T, plot.options = c("A"))
+        title(ID)
+        dev.off()
+        return(viterbi(model.name, do.plot = T, plot.options = c("A")))
+
+      } else {
+
+            return(viterbi(model.name, do.plot = T, plot.options = c("A")))
+
+        }
+
+      }
+
+
+
+    # plot only A and B
+    if(ind.variable == TRUE && dep.variable == TRUE && dep.variable.transformed != TRUE && cond.state.prob != TRUE){
+
+      if(do.pdf == TRUE){
+
+        pdf(paste(ID,"_Results_AB_",class(model@QhatModel.object)[1],"_states-",model@QhatModel.object@nStates,".pdf",sep=""), width = 8.5, height = 11)
+        viterbi(model.name, do.plot = T, plot.options = c("A","B"))
+        title(ID)
+        dev.off()
+        return(viterbi(model.name, do.plot = T, plot.options = c("A","B")))
+
+      } else {
+        return(viterbi(model.name, do.plot = T, plot.options = c("A","B")))
+      }
+    }
+
+      # plot only A and B and C
+      if(ind.variable == TRUE && dep.variable == TRUE && dep.variable.transformed == TRUE && cond.state.prob != TRUE){
+
+        if(do.pdf == TRUE){
+
+          pdf(paste(ID,"_Results_ABC_",class(model@QhatModel.object)[1],"_states-",model@QhatModel.object@nStates,".pdf",sep=""), width = 8.5, height = 11)
+          viterbi(model.name, do.plot = T, plot.options = c("A","B","C"))
+          title(ID)
+          dev.off()
+          return(viterbi(model.name, do.plot = T, plot.options = c("A","B","C")))
+
+        } else {
+          return(viterbi(model.name, do.plot = T, plot.options = c("A","B","C")))
+        }
+      }
+
+    # plot only A and D
+    if(ind.variable == TRUE && dep.variable != TRUE && dep.variable.transformed != TRUE && cond.state.prob == TRUE){
+
+      if(do.pdf == TRUE){
+
+        pdf(paste(ID,"_Results_AD_",class(model@QhatModel.object)[1],"_states-",model@QhatModel.object@nStates,".pdf",sep=""), width = 8.5, height = 11)
+        viterbi(model.name, do.plot = T, plot.options = c("A","D"))
+        title(ID)
+        dev.off()
+        return(viterbi(model.name, do.plot = T, plot.options = c("A","D")))
+
+      } else {
+        return(viterbi(model.name, do.plot = T, plot.options = c("A","D")))
+      }
+    }
+
+    # plot only A and C
+    if(ind.variable == TRUE && dep.variable != TRUE && dep.variable.transformed == TRUE && cond.state.prob != TRUE){
+
+      if(do.pdf == TRUE){
+
+        pdf(paste(ID,"_Results_AC_",class(model@QhatModel.object)[1],"_states-",model@QhatModel.object@nStates,".pdf",sep=""), width = 8.5, height = 11)
+        viterbi(model.name, do.plot = T, plot.options = c("A","C"))
+        title(ID)
+        dev.off()
+        return(viterbi(model.name, do.plot = T, plot.options = c("A","C")))
+
+      } else {
+        return(viterbi(model.name, do.plot = T, plot.options = c("A","C")))
+      }
+    }
+
+    # plot only A , C, D
+    if(ind.variable == TRUE && dep.variable != TRUE && dep.variable.transformed == TRUE && cond.state.prob == TRUE){
+
+      if(do.pdf == TRUE){
+
+        pdf(paste(ID,"_Results_ACD_",class(model@QhatModel.object)[1],"_states-",model@QhatModel.object@nStates,".pdf",sep=""), width = 8.5, height = 11)
+        viterbi(model.name, do.plot = T, plot.options = c("A","C","D"))
+        title(ID)
+        dev.off()
+        return(viterbi(model.name, do.plot = T, plot.options = c("A","C","D")))
+
+      } else {
+        return(viterbi(model.name, do.plot = T, plot.options = c("A","C","D")))
+      }
+    }
+
+    # plot only B
+    if(ind.variable != TRUE && dep.variable == TRUE && dep.variable.transformed != TRUE && cond.state.prob != TRUE){
+
+      if(do.pdf == TRUE){
+
+        pdf(paste(ID,"_Results_B_",class(model@QhatModel.object)[1],"_states-",model@QhatModel.object@nStates,".pdf",sep=""), width = 8.5, height = 11)
+        viterbi(model.name, do.plot = T, plot.options = c("B"))
+        title(ID)
+        dev.off()
+        return(viterbi(model.name, do.plot = T, plot.options = c("B")))
+
+      } else {
+        return(viterbi(model.name, do.plot = T, plot.options = c("B")))
+      }
+    }
+
+    # plot only B and C
+    if(ind.variable != TRUE && dep.variable == TRUE && dep.variable.transformed == TRUE && cond.state.prob != TRUE){
+
+      if(do.pdf == TRUE){
+
+        pdf(paste(ID,"_Results_BC_",class(model@QhatModel.object)[1],"_states-",model@QhatModel.object@nStates,".pdf",sep=""), width = 8.5, height = 11)
+        viterbi(model.name, do.plot = T, plot.options = c("B","C"))
+        title(ID)
+        dev.off()
+        return(viterbi(model.name, do.plot = T, plot.options = c("B","C")))
+
+      } else {
+        return(viterbi(model.name, do.plot = T, plot.options = c("B","C")))
+      }
+    }
+
+    # plot only B and D
+    if(ind.variable != TRUE && dep.variable == TRUE && dep.variable.transformed != TRUE && cond.state.prob == TRUE){
+
+      if(do.pdf == TRUE){
+
+        pdf(paste(ID,"_Results_BD_",class(model@QhatModel.object)[1],"_states-",model@QhatModel.object@nStates,".pdf",sep=""), width = 8.5, height = 11)
+        viterbi(model.name, do.plot = T, plot.options = c("B","D"))
+        title(ID)
+        dev.off()
+        return(viterbi(model.name, do.plot = T, plot.options = c("B","D")))
+
+      } else {
+        return(viterbi(model.name, do.plot = T, plot.options = c("B","D")))
+      }
+    }
+
+    # plot only B,  C and D
+    if(ind.variable != TRUE && dep.variable == TRUE && dep.variable.transformed == TRUE && cond.state.prob == TRUE){
+
+      if(do.pdf == TRUE){
+
+        pdf(paste(ID,"_Results_BCD_",class(model@QhatModel.object)[1],"_states-",model@QhatModel.object@nStates,".pdf",sep=""), width = 8.5, height = 11)
+        viterbi(model.name, do.plot = T, plot.options = c("B","C","D"))
+        title(ID)
+        dev.off()
+        return(viterbi(model.name, do.plot = T, plot.options = c("B","C","D")))
+
+      } else {
+        return(viterbi(model.name, do.plot = T, plot.options = c("B","C","D")))
+      }
+    }
+
+    # plot only  C
+    if(ind.variable != TRUE && dep.variable != TRUE && dep.variable.transformed == TRUE && cond.state.prob != TRUE){
+
+      if(do.pdf == TRUE){
+
+        pdf(paste(ID,"_Results_C_",class(model@QhatModel.object)[1],"_states-",model@QhatModel.object@nStates,".pdf",sep=""), width = 8.5, height = 11)
+        viterbi(model.name, do.plot = T, plot.options = c("C"))
+        title(ID)
+        dev.off()
+        return(viterbi(model.name, do.plot = T, plot.options = c("C")))
+
+      } else {
+        return(viterbi(model.name, do.plot = T, plot.options = c("C")))
+      }
+    }
+
+    # plot only  C & D
+    if(ind.variable != TRUE && dep.variable != TRUE && dep.variable.transformed == TRUE && cond.state.prob == TRUE){
+
+      if(do.pdf == TRUE){
+
+        pdf(paste(ID,"_Results_CD_",class(model@QhatModel.object)[1],"_states-",model@QhatModel.object@nStates,".pdf",sep=""), width = 8.5, height = 11)
+        viterbi(model.name, do.plot = T, plot.options = c("C","D"))
+        title(ID)
+        dev.off()
+        return(viterbi(model.name, do.plot = T, plot.options = c("C","D")))
+
+      } else {
+        return(viterbi(model.name, do.plot = T, plot.options = c("C","D")))
+      }
+    }
+
+    # plot only   D
+    if(ind.variable != TRUE && dep.variable != TRUE && dep.variable.transformed != TRUE && cond.state.prob == TRUE){
+
+      if(do.pdf == TRUE){
+
+        pdf(paste(ID,"_Results_D_",class(model@QhatModel.object)[1],"_states-",model@QhatModel.object@nStates,".pdf",sep=""), width = 8.5, height = 11)
+        viterbi(model.name, do.plot = T, plot.options = c("D"))
+        title(ID)
+        dev.off()
+        return(viterbi(model.name, do.plot = T, plot.options = c("D")))
+
+      } else {
+        return(viterbi(model.name, do.plot = T, plot.options = c("D")))
+      }
+    }
+
 
 }
 
-
-#'Export states
+#'get states
 #'
-#' \code{exportStates}
+#' \code{get.states}
 #'
 #' @description
-#' exports results
+#' \code{get.states} retrieves results from the fitted \code{hydroState} model.
 #'
 #' @details
-#' \code{exportStates} exports the results of the fitted hydroState model as a matrix. Columns include: year, Viterbi state number, mean and 90pct confidence intervals of Viterbi and Normal state values, conditional probabilities, and emission density of each state. This function does not plot states.
+#' \code{plot.states} These results include the time-step (i.e. Year, Month), Viterbi State Number to differentiate states, observations (i.e. stream flow), flow values of the Viterbi state including the 5\% and 95\% confidence intervals, flow values of the normal state including the 5% and 95% confidence intervals, conditional probabilities for each state, and emission density for each state. The Viterbi state flow values are the results, the values of the most likely state at each time-step. The Normal state flow values are the values from the normal state at each time-step. When the most likely state is the Normal state for a time-step, the Viterbi flow state value equals the Normal flow state value. These Normal state values are interpreted as the results for a one-state model, if the multi-state model did not exist. This estimated Normal state can be seen in plot (B) relative to the other states. The Conditional Probabilities of each state show the likelihood of remaining in the given state based on previous states. When the conditional probability is closer to 1, there is a higher probability that hydroState remains in the state for the next time-step. The Emission Density of each state is the result of multiplying the conditional probabilities by the transition probabilities.
 #'
-#' @param model.name is the name of the fitted hydroState model object.
+#'
+#' @param model.name is the name of the fitted \code{hydroState} model object.
 #'
 #' @return
-#' A matrix of results with observations and information for each state
+#' data frame of results to evaluate the rainfall-runoff states overtime
 #'
-#' @keywords export states results Viterbi
+#' @keywords get states results
+#'
 #'
 #' @export
 #'
 
-exportStates <- function(model.name = model){
 
-  return(viterbi(model.name, do.plot = F))
+get.states <- function(model.name = model){
 
-}
-
-#'Plot residuals
-#'
-#' \code{plotResiduals}
-#'
-#' @description
-#' Plots residuals
-#'
-#' @details
-#' \code{plotResiduals} plots the residuals of the fitted hydroState model. Five plots are provided to visualize the residuals: A) time-series of normal-pseudo residuals, B) auto-correlation of normal-pseudo residuals, C) histogram of uniform-pseudo residuals, D) histogram of normal-pseudo residuals, and E) Q-Q plot of normal-pseudo residuals
-#'
-#'
-#' @param model.name is the name of the fitted hydroState model object.
-#'
-#' @return
-#' A plot of residuals
-#'
-#' @keywords plot residuals
-#'
-#'
-#' @export
-#'
-
-
-plotResiduals <- function(model.name = model){
-
-  return(check.PseudoResiduals(model.name))
+      return(viterbi(model.name, do.plot = F))
 
 }
 
 
-#'Export residuals
-#'
-#' \code{exportResiduals}
-#'
-#' @description
-#' export residuals
-#'
-#' @details
-#' \code{exportResiduals} exports the residuals of the fitted hydroState model. Ensure the figure pane is large enough to accommodate the size of the plot, else consider outputting as an image or pdf.
-#'
-#' @param model.name is the name of the fitted hydroState model object.
-#'
-#' @return
-#' A matrix of residuals
-#'
-#' @keywords export residuals
-#'
-#'
-#' @export
-#'
 
-
-exportResiduals <- function(model.name = model){
-
-  return(check.PseudoResiduals(model.name, do.plot = F))
-
-}
