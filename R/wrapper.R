@@ -21,13 +21,18 @@
 #' @keywords Qhat transform
 #'
 #'
-#' @export
+#' @export select.transform
 
 select.transform <- function(func = 'boxcox', input.data=data.frame(year=c(), flow=c(), precip=c())){
 
   #Validate
   func = paste('Qhat.',func,sep='')
   if(func %in% c('Qhat.none','Qhat.log','Qhat.burbidge','Qhat.boxcox')){
+
+    if('month' %in% colnames(input.data)){ # sort in ascending order by year and month
+      input.data = input.data[order(input.data[,'year'],input.data[,'month']),]
+    }
+
 
     return(new(func, input.data))
 
@@ -79,7 +84,7 @@ select.transform <- function(func = 'boxcox', input.data=data.frame(year=c(), fl
 #' @keywords stateModel linear-model rainfall-runoff QhatModel
 #'
 #'
-#' @export
+#' @export select.stateModel
 
 # Create QhatModel object
 select.stateModel <- function(input.data = data.frame(year=c(), flow=c(), precip=c()),
@@ -158,6 +163,11 @@ select.stateModel <- function(input.data = data.frame(year=c(), flow=c(), precip
   #Validate transition.graph
   if(!is.matrix(transition.graph)){
     stop("'transition.graph' must be a matrix")
+  }
+
+  # If monthly data, sort in ascending order by year and month
+  if('month' %in% colnames(input.data)){
+    input.data = input.data[order(input.data[,'year'],input.data[,'month']),]
   }
 
   # Curate state model
@@ -434,7 +444,7 @@ select.stateModel <- function(input.data = data.frame(year=c(), flow=c(), precip
 #' @keywords Markov HMM homogeneous
 #'
 #'
-#' @export
+#' @export select.Markov
 
 select.Markov <- function(func = 'annualHomogeneous',
                         transition.graph = matrix(TRUE,2,2)){
@@ -491,6 +501,11 @@ buildModel <- function(input.data = data.frame(year=c(), flow=c(), precip=c()),
   }
   if(!('year' %in% colnames(input.data))){
     stop("'input.data' must contain a 'year' column with an integer of years")
+  }
+
+  # If monthly data, sort in ascending order by year and month
+  if('month' %in% colnames(input.data)){
+    input.data = input.data[order(input.data[,'year'],input.data[,'month']),]
   }
 
 # If no inputs except input.data, just run default annual analysis
@@ -699,6 +714,11 @@ buildModelAll <- function(ID = '',
   # Validate
   if(is.character(ID)){
 
+    # If monthly data, sort in ascending order by year and month
+    if('month' %in% colnames(input.data)){
+      input.data = input.data[order(input.data[,'year'],input.data[,'month']),]
+    }
+
     return(new('hydroState.allModels',ID, input.data, allow.flickering=F))
 
   }else{
@@ -772,7 +792,7 @@ fitModel <- function(model.name = model,
 #' @keywords plot residuals
 #'
 #'
-#' @export
+#' @export plot.residuals
 #'
 
 
@@ -787,7 +807,7 @@ plot.residuals <- function(model.name = model,
 
   if(do.pdf == TRUE){
 
-    pdf(paste(ID,"_Residuals_",class(model@QhatModel.object)[1],"_states-",model@QhatModel.object@nStates,".pdf",sep=""), width = 8.5, height = 11)
+    pdf(paste(ID,"_Residuals_",class(model.name@QhatModel.object)[1],"_states-",model.name@QhatModel.object@nStates,".pdf",sep=""), width = 8.5, height = 11)
     check.PseudoResiduals(model.name, do.plot = T)
     title(ID)
     dev.off()
@@ -796,7 +816,7 @@ plot.residuals <- function(model.name = model,
   }
 
   if(do.plot != TRUE && do.pdf == TRUE){
-    pdf(paste(ID,"_Residuals_",class(model@QhatModel.object)[1],"_states-",model@QhatModel.object@nStates,".pdf",sep=""), width = 8.5, height = 11)
+    pdf(paste(ID,"_Residuals_",class(model.name@QhatModel.object)[1],"_states-",model.name@QhatModel.object@nStates,".pdf",sep=""), width = 8.5, height = 11)
     check.PseudoResiduals(model.name, do.plot = T)
     title(ID)
     dev.off()
@@ -831,7 +851,7 @@ plot.residuals <- function(model.name = model,
 #' @keywords residuals
 #'
 #'
-#' @export
+#' @export get.residuals
 #'
 
 
@@ -868,7 +888,7 @@ get.residuals <- function(model.name = model){
 
 
 setInitialYear <- function(model.name = model,
-                       initial.year = streamflow_annual$hy_year[1]){ #make go to first year of dataframe
+                       initial.year = input.data$year[1]){ #make go to first year of dataframe
 
   #set state names
   return(setStateNames(model.name, initial.year))
@@ -903,7 +923,7 @@ setInitialYear <- function(model.name = model,
 #' @keywords plot states results
 #'
 #'
-#' @export
+#' @export plot.states
 #'
 
 
@@ -921,15 +941,15 @@ plot.states <- function(model.name = model,
 
       if(do.pdf == TRUE){
 
-        pdf(paste(ID,"_Results_ABCD_",class(model@QhatModel.object)[1],"_states-",model@QhatModel.object@nStates,".pdf",sep=""), width = 8.5, height = 11)
-        viterbi(model.name, do.plot = T)
+        pdf(paste(ID,"_Results_ABCD_",class(model.name@QhatModel.object)[1],"_states-",model.name@QhatModel.object@nStates,".pdf",sep=""), width = 8.5, height = 11)
+        viterbi(model.name, do.plot = T, plot.options = c("A","B","C","D"))
         title(ID)
         dev.off()
-        return(viterbi(model.name, do.plot = T))
+        return(viterbi(model.name, do.plot = T, plot.options = c("A","B","C","D")))
 
       } else {
 
-          return(viterbi(model.name, do.plot = T))
+          return(viterbi(model.name, do.plot = T, plot.options = c("A","B","C","D")))
 
       }
 
@@ -940,7 +960,7 @@ plot.states <- function(model.name = model,
 
       if(do.pdf == TRUE){
 
-        pdf(paste(ID,"_Results_A_",class(model@QhatModel.object)[1],"_states-",model@QhatModel.object@nStates,".pdf",sep=""), width = 8.5, height = 11)
+        pdf(paste(ID,"_Results_A_",class(model.name@QhatModel.object)[1],"_states-",model.name@QhatModel.object@nStates,".pdf",sep=""), width = 8.5, height = 11)
         viterbi(model.name, do.plot = T, plot.options = c("A"))
         title(ID)
         dev.off()
@@ -961,7 +981,7 @@ plot.states <- function(model.name = model,
 
       if(do.pdf == TRUE){
 
-        pdf(paste(ID,"_Results_AB_",class(model@QhatModel.object)[1],"_states-",model@QhatModel.object@nStates,".pdf",sep=""), width = 8.5, height = 11)
+        pdf(paste(ID,"_Results_AB_",class(model.name@QhatModel.object)[1],"_states-",model.name@QhatModel.object@nStates,".pdf",sep=""), width = 8.5, height = 11)
         viterbi(model.name, do.plot = T, plot.options = c("A","B"))
         title(ID)
         dev.off()
@@ -977,7 +997,7 @@ plot.states <- function(model.name = model,
 
         if(do.pdf == TRUE){
 
-          pdf(paste(ID,"_Results_ABC_",class(model@QhatModel.object)[1],"_states-",model@QhatModel.object@nStates,".pdf",sep=""), width = 8.5, height = 11)
+          pdf(paste(ID,"_Results_ABC_",class(model.name@QhatModel.object)[1],"_states-",model.name@QhatModel.object@nStates,".pdf",sep=""), width = 8.5, height = 11)
           viterbi(model.name, do.plot = T, plot.options = c("A","B","C"))
           title(ID)
           dev.off()
@@ -993,7 +1013,7 @@ plot.states <- function(model.name = model,
 
       if(do.pdf == TRUE){
 
-        pdf(paste(ID,"_Results_AD_",class(model@QhatModel.object)[1],"_states-",model@QhatModel.object@nStates,".pdf",sep=""), width = 8.5, height = 11)
+        pdf(paste(ID,"_Results_AD_",class(model.name@QhatModel.object)[1],"_states-",model.name@QhatModel.object@nStates,".pdf",sep=""), width = 8.5, height = 11)
         viterbi(model.name, do.plot = T, plot.options = c("A","D"))
         title(ID)
         dev.off()
@@ -1009,7 +1029,7 @@ plot.states <- function(model.name = model,
 
       if(do.pdf == TRUE){
 
-        pdf(paste(ID,"_Results_AC_",class(model@QhatModel.object)[1],"_states-",model@QhatModel.object@nStates,".pdf",sep=""), width = 8.5, height = 11)
+        pdf(paste(ID,"_Results_AC_",class(model.name@QhatModel.object)[1],"_states-",model.name@QhatModel.object@nStates,".pdf",sep=""), width = 8.5, height = 11)
         viterbi(model.name, do.plot = T, plot.options = c("A","C"))
         title(ID)
         dev.off()
@@ -1025,7 +1045,7 @@ plot.states <- function(model.name = model,
 
       if(do.pdf == TRUE){
 
-        pdf(paste(ID,"_Results_ACD_",class(model@QhatModel.object)[1],"_states-",model@QhatModel.object@nStates,".pdf",sep=""), width = 8.5, height = 11)
+        pdf(paste(ID,"_Results_ACD_",class(model.name@QhatModel.object)[1],"_states-",model.name@QhatModel.object@nStates,".pdf",sep=""), width = 8.5, height = 11)
         viterbi(model.name, do.plot = T, plot.options = c("A","C","D"))
         title(ID)
         dev.off()
@@ -1041,7 +1061,7 @@ plot.states <- function(model.name = model,
 
       if(do.pdf == TRUE){
 
-        pdf(paste(ID,"_Results_B_",class(model@QhatModel.object)[1],"_states-",model@QhatModel.object@nStates,".pdf",sep=""), width = 8.5, height = 11)
+        pdf(paste(ID,"_Results_B_",class(model.name@QhatModel.object)[1],"_states-",model.name@QhatModel.object@nStates,".pdf",sep=""), width = 8.5, height = 11)
         viterbi(model.name, do.plot = T, plot.options = c("B"))
         title(ID)
         dev.off()
@@ -1057,7 +1077,7 @@ plot.states <- function(model.name = model,
 
       if(do.pdf == TRUE){
 
-        pdf(paste(ID,"_Results_BC_",class(model@QhatModel.object)[1],"_states-",model@QhatModel.object@nStates,".pdf",sep=""), width = 8.5, height = 11)
+        pdf(paste(ID,"_Results_BC_",class(model.name@QhatModel.object)[1],"_states-",model.name@QhatModel.object@nStates,".pdf",sep=""), width = 8.5, height = 11)
         viterbi(model.name, do.plot = T, plot.options = c("B","C"))
         title(ID)
         dev.off()
@@ -1073,7 +1093,7 @@ plot.states <- function(model.name = model,
 
       if(do.pdf == TRUE){
 
-        pdf(paste(ID,"_Results_BD_",class(model@QhatModel.object)[1],"_states-",model@QhatModel.object@nStates,".pdf",sep=""), width = 8.5, height = 11)
+        pdf(paste(ID,"_Results_BD_",class(model.name@QhatModel.object)[1],"_states-",model.name@QhatModel.object@nStates,".pdf",sep=""), width = 8.5, height = 11)
         viterbi(model.name, do.plot = T, plot.options = c("B","D"))
         title(ID)
         dev.off()
@@ -1089,7 +1109,7 @@ plot.states <- function(model.name = model,
 
       if(do.pdf == TRUE){
 
-        pdf(paste(ID,"_Results_BCD_",class(model@QhatModel.object)[1],"_states-",model@QhatModel.object@nStates,".pdf",sep=""), width = 8.5, height = 11)
+        pdf(paste(ID,"_Results_BCD_",class(model.name@QhatModel.object)[1],"_states-",model.name@QhatModel.object@nStates,".pdf",sep=""), width = 8.5, height = 11)
         viterbi(model.name, do.plot = T, plot.options = c("B","C","D"))
         title(ID)
         dev.off()
@@ -1105,7 +1125,7 @@ plot.states <- function(model.name = model,
 
       if(do.pdf == TRUE){
 
-        pdf(paste(ID,"_Results_C_",class(model@QhatModel.object)[1],"_states-",model@QhatModel.object@nStates,".pdf",sep=""), width = 8.5, height = 11)
+          pdf(paste(ID,"_Results_C_",class(model.name@QhatModel.object)[1],"_states-",model.name@QhatModel.object@nStates,".pdf",sep=""), width = 8.5, height = 11)
         viterbi(model.name, do.plot = T, plot.options = c("C"))
         title(ID)
         dev.off()
@@ -1121,7 +1141,7 @@ plot.states <- function(model.name = model,
 
       if(do.pdf == TRUE){
 
-        pdf(paste(ID,"_Results_CD_",class(model@QhatModel.object)[1],"_states-",model@QhatModel.object@nStates,".pdf",sep=""), width = 8.5, height = 11)
+        pdf(paste(ID,"_Results_CD_",class(model.name@QhatModel.object)[1],"_states-",model.name@QhatModel.object@nStates,".pdf",sep=""), width = 8.5, height = 11)
         viterbi(model.name, do.plot = T, plot.options = c("C","D"))
         title(ID)
         dev.off()
@@ -1137,7 +1157,7 @@ plot.states <- function(model.name = model,
 
       if(do.pdf == TRUE){
 
-        pdf(paste(ID,"_Results_D_",class(model@QhatModel.object)[1],"_states-",model@QhatModel.object@nStates,".pdf",sep=""), width = 8.5, height = 11)
+        pdf(paste(ID,"_Results_D_",class(model.name@QhatModel.object)[1],"_states-",model.name@QhatModel.object@nStates,".pdf",sep=""), width = 8.5, height = 11)
         viterbi(model.name, do.plot = T, plot.options = c("D"))
         title(ID)
         dev.off()
@@ -1159,7 +1179,7 @@ plot.states <- function(model.name = model,
 #' \code{get.states} retrieves results from the fitted \code{hydroState} model.
 #'
 #' @details
-#' \code{plot.states} These results include the time-step (i.e. Year, Month), Viterbi State Number to differentiate states, observations (i.e. stream flow), flow values of the Viterbi state including the 5\% and 95\% confidence intervals, flow values of the normal state including the 5% and 95% confidence intervals, conditional probabilities for each state, and emission density for each state. The Viterbi state flow values are the results, the values of the most likely state at each time-step. The Normal state flow values are the values from the normal state at each time-step. When the most likely state is the Normal state for a time-step, the Viterbi flow state value equals the Normal flow state value. These Normal state values are interpreted as the results for a one-state model, if the multi-state model did not exist. This estimated Normal state can be seen in plot (B) relative to the other states. The Conditional Probabilities of each state show the likelihood of remaining in the given state based on previous states. When the conditional probability is closer to 1, there is a higher probability that hydroState remains in the state for the next time-step. The Emission Density of each state is the result of multiplying the conditional probabilities by the transition probabilities.
+#' \code{get.states} These results include the time-step (i.e. Year, Month), Viterbi State Number to differentiate states, observations (i.e. stream flow), flow values of the Viterbi state including the 5\% and 95\% confidence intervals, flow values of the normal state including the 5% and 95% confidence intervals, conditional probabilities for each state, and emission density for each state. The Viterbi state flow values are the results, the values of the most likely state at each time-step. The Normal state flow values are the values from the normal state at each time-step. When the most likely state is the Normal state for a time-step, the Viterbi flow state value equals the Normal flow state value. These Normal state values are interpreted as the results for a one-state model, if the multi-state model did not exist. This estimated Normal state can be seen in plot (B) relative to the other states. The Conditional Probabilities of each state show the likelihood of remaining in the given state based on previous states. When the conditional probability is closer to 1, there is a higher probability that hydroState remains in the state for the next time-step. The Emission Density of each state is the result of multiplying the conditional probabilities by the transition probabilities.
 #'
 #'
 #' @param model.name is the name of the fitted \code{hydroState} model object.
@@ -1170,7 +1190,7 @@ plot.states <- function(model.name = model,
 #' @keywords get states results
 #'
 #'
-#' @export
+#' @export get.states
 #'
 
 

@@ -4,7 +4,7 @@
 \alias{select.stateModel}
 \title{\code{select.stateModel}}
 \usage{
-\method{select}{stateModel}(
+select.stateModel(
   input.data = data.frame(year = c(), flow = c(), precip = c()),
   parameters = list("a0", "a1", "std"),
   seasonal.parameters = list(),

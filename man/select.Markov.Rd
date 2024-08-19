@@ -4,7 +4,10 @@
 \alias{select.Markov}
 \title{\code{select.Markov} selects a hidden Markov model}
 \usage{
-\method{select}{Markov}(func = "annualHomogeneous", transition.graph = matrix(TRUE, 2, 2))
+select.Markov(
+  func = "annualHomogeneous",
+  transition.graph = matrix(TRUE, 2, 2)
+)
 }
 \arguments{
 \item{func}{character sting with name of Markov model defining the transition between states. The default is 'annualHomogeneous'. Other options include 'annualHomogeneous.flickering'.}

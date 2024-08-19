@@ -4,7 +4,7 @@
 \alias{select.transform}
 \title{Transforms Observations}
 \usage{
-\method{select}{transform}(
+select.transform(
   func = "boxcox",
   input.data = data.frame(year = c(), flow = c(), precip = c())
 )
