@@ -1,5 +1,5 @@
 ##' @include abstracts.R parameters.R
-##' @export
+## @export
 Qhat.boxcox <- setClass(
   # Set the name for the class
   "Qhat.boxcox",

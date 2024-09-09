@@ -1,5 +1,5 @@
 ##' @include abstracts.R QhatModel.homo.gamma.linear.R
-##' @export
+## @export
 QhatModel.subAnnual.homo.gamma.linear <- setClass(
   # Set the name for the class
   "QhatModel.subAnnual.homo.gamma.linear",
@@ -40,6 +40,7 @@ setValidity("QhatModel.subAnnual.homo.gamma.linear", validObject)
 setMethod("initialize","QhatModel.subAnnual.homo.gamma.linear", function(.Object, input.data, transition.graph=matrix(T,2,2),
                                                                       state.dependent.mean.a0=T,state.dependent.mean.a1=F, state.dependent.std.a0=T,
                                                                       subAnnual.dependent.mean.a0=T, subAnnual.dependent.mean.a1=F,subAnnual.dependent.std.a0=F) {
+  .Object@input.data <- input.data
   .Object@use.truncated.dist <- F
   .Object@nStates = ncol(transition.graph)
 
@@ -60,30 +61,58 @@ setGeneric(name="setSeasons",def=function(.Object, input.data) {standardGeneric(
 setMethod(f="setSeasons",signature=c("QhatModel.subAnnual.homo.gamma.linear",'data.frame'),
           definition=function(.Object, input.data)
 {
-  # Get the seasons from the input data.
-  subAnnual.Monthly.Steps = sort(unique(input.data$month))
-  subAnnual.Monthly.StepSize.min = rep(NA, length(subAnnual.Monthly.Steps))
-  subAnnual.Monthly.StepSize.max = rep(NA, length(subAnnual.Monthly.Steps))
 
-  # Loop though each unique month and calc. the time step size.
-  for (i in 1:length(subAnnual.Monthly.Steps)) {
-    step.sizes = diff(which(input.data$month==subAnnual.Monthly.Steps[i]))
-    subAnnual.Monthly.StepSize.min[i] = min(step.sizes)
-    subAnnual.Monthly.StepSize.max[i] = max(step.sizes)
+  # Set-up to run for all periods with continuous observations of independent variable (precipitation)
+  delta = getStartEndIndex(input.data)
+
+  subAnnual.Monthly.Steps = list()
+
+  for(j in 1:NROW(delta)){
+
+    data = input.data[delta[j,1]:delta[j,2],]
+
+  # # Get the probabiity of the observed Qhat for each state at each time point.
+  # emission.probs = lapply(1:NROW(delta), function(i) getEmissionDensity(.Object@QhatModel.object, data[delta[i,1]:delta[i,2],], NA))
+    if(delta[j,2] - delta[j,1] > 12){
+      # Get the seasons from the input data.
+      subAnnual.Monthly.Steps[[j]] = sort(unique(data$month))
+      subAnnual.Monthly.StepSize.min = rep(NA, length(subAnnual.Monthly.Steps[[j]]))
+      subAnnual.Monthly.StepSize.max = rep(NA, length(subAnnual.Monthly.Steps[[j]]))
+
+
+      # Loop though each unique month and calc. the time step size.
+      for (i in 1:length(subAnnual.Monthly.Steps[[j]])) {
+        step.sizes = diff(which(data$month==subAnnual.Monthly.Steps[[j]][i]))
+        subAnnual.Monthly.StepSize.min[i] = min(step.sizes)
+        subAnnual.Monthly.StepSize.max[i] = max(step.sizes)
+      }
+
+      # Check that there is only one time-step size for each month.
+      for (i in 1:length(subAnnual.Monthly.Steps[[j]])) {
+        if (subAnnual.Monthly.StepSize.min[i] != subAnnual.Monthly.StepSize.max[i])
+          stop(paste('The time steps for month', subAnnual.Monthly.Steps[[j]][i],'are not constant. Check input data.'))
+      }
+
+      # Check that each month has the same time step size.
+      if (length(unique(subAnnual.Monthly.StepSize.min))!=1 || length(unique(subAnnual.Monthly.StepSize.max))!=1)
+        warning(paste('The time step sizes differ across the year. Consider checking the input data.'))
+
+   }else{
+     subAnnual.Monthly.Steps[[j]] = sort(unique(data$month))
+     step.sizes = diff(subAnnual.Monthly.Steps[[j]])
+     subAnnual.Monthly.StepSize.min =  min(step.sizes)
+     subAnnual.Monthly.StepSize.max =  max(step.sizes)
+
+     if(!(subAnnual.Monthly.StepSize.min %in% c(1,-11)) || !(subAnnual.Monthly.StepSize.max %in% c(1,-11))){
+       warning(paste('The monthly time step size differ across the year. Consider checking the input data.'))
+     }
+   }
+
+
   }
-
-  # Check that there is only one time-step size for each month.
-  for (i in 1:length(subAnnual.Monthly.Steps)) {
-    if (subAnnual.Monthly.StepSize.min[i] != subAnnual.Monthly.StepSize.max[i])
-      error(paste('The time steps for month', subAnnual.Monthly.Steps[i],'are not constant. Check input data.'))
-  }
-
-  # Check that each month has the same time step size.
-  if (length(unique(subAnnual.Monthly.StepSize.min))!=1 || length(unique(subAnnual.Monthly.StepSize.max))!=1)
-      warning(paste('The time step sizes differ across the year. Consider checking the input data.'))
 
   #Assign the definitions of seasons to the object
-  .Object@subAnnual.Monthly.Steps = subAnnual.Monthly.Steps
+  .Object@subAnnual.Monthly.Steps = unlist(subAnnual.Monthly.Steps)
 
   return(.Object)
 }

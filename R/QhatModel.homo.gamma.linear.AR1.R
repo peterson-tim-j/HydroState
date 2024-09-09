@@ -1,5 +1,5 @@
 ##' @include abstracts.R QhatModel.homo.gamma.linear.R QhatModel.homo.normal.linear.AR1.R
-##' @export
+## @export
 QhatModel.homo.gamma.linear.AR1 <- setClass(
   # Set the name for the class
   "QhatModel.homo.gamma.linear.AR1",
@@ -27,6 +27,7 @@ setMethod("initialize","QhatModel.homo.gamma.linear.AR1", function(.Object,input
                                                                           state.dependent.mean.a1=F,state.dependent.mean.trend=NA, state.dependent.mean.AR1=F,
                                                                           state.dependent.std.a0=T) {
 
+  .Object@input.data <- input.data
   .Object@use.truncated.dist <- F
   .Object@nStates = ncol(transition.graph)
 

@@ -23,7 +23,7 @@ A fitted hydroState model
 \code{fitModel}
 
 
-After a hydroState model object is built, the model is ready to be fitted. The only required input is the given name of the built hydroState model object. \code{fitModel} works for one built model (\code{buildModel}) or all (\code{buildModelAll}). If fitting all models be sure to install and load the \link[parallelly]{parallelly} library.
+After a hydroState model object is built, the model is ready to be fitted. The only required input is the given name of the built hydroState model object. \code{fitModel} works for one built model (\code{buildModel}) or all (\code{buildModelAll}). If fitting all models be sure to install and load the \href{https://cran.r-project.org/web/packages/parallelly/index.html}{parallelly} library.
 }
 \keyword{fit}
 \keyword{hydroState}

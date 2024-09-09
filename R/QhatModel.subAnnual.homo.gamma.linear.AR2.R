@@ -1,5 +1,5 @@
 ##' @include abstracts.R QhatModel.subAnnual.homo.gamma.linear.R
-##' @export
+## @export
 QhatModel.subAnnual.homo.gamma.linear.AR2 <- setClass(
   # Set the name for the class
   "QhatModel.subAnnual.homo.gamma.linear.AR2",
@@ -28,6 +28,7 @@ setMethod("initialize","QhatModel.subAnnual.homo.gamma.linear.AR2", function(.Ob
                                                                          state.dependent.mean.a0=T,state.dependent.mean.a1=F, state.dependent.std.a0=T,
                                                                          state.dependent.mean.AR1=F, state.dependent.mean.AR2=F,
                                                                          subAnnual.dependent.mean.a0=T, subAnnual.dependent.mean.a1=F,subAnnual.dependent.std.a0=F) {
+  .Object@input.data <- input.data
   .Object@use.truncated.dist <- F
   .Object@nStates = ncol(transition.graph)
 

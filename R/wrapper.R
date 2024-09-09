@@ -22,6 +22,7 @@
 #'
 #'
 #' @export select.transform
+#' @importFrom methods new
 
 select.transform <- function(func = 'boxcox', input.data=data.frame(year=c(), flow=c(), precip=c())){
 
@@ -85,6 +86,7 @@ select.transform <- function(func = 'boxcox', input.data=data.frame(year=c(), fl
 #'
 #'
 #' @export select.stateModel
+#' @importFrom methods new
 
 # Create QhatModel object
 select.stateModel <- function(input.data = data.frame(year=c(), flow=c(), precip=c()),
@@ -435,7 +437,7 @@ select.stateModel <- function(input.data = data.frame(year=c(), flow=c(), precip
 #'
 #' For an example of how to.. see vignette...
 #'
-#'@param func character sting with name of Markov model defining the transition between states. The default is 'annualHomogeneous'. Other options include 'annualHomogeneous.flickering'.
+#' @param func character sting with name of Markov model defining the transition between states. The default is 'annualHomogeneous'. Other options include 'annualHomogeneous.flickering'.
 #' @param transition.graph matrix given the number of states. Default is a 2-state matrix (2 by 2): matrix(TRUE,2,2)
 #'
 #' @return
@@ -445,6 +447,7 @@ select.stateModel <- function(input.data = data.frame(year=c(), flow=c(), precip
 #'
 #'
 #' @export select.Markov
+#' @importFrom methods new
 
 select.Markov <- function(func = 'annualHomogeneous',
                         transition.graph = matrix(TRUE,2,2)){
@@ -486,6 +489,7 @@ select.Markov <- function(func = 'annualHomogeneous',
 #'
 #'
 #' @export
+#' @importFrom methods new
 #'
 
 
@@ -683,7 +687,7 @@ buildModel <- function(input.data = data.frame(year=c(), flow=c(), precip=c()),
 }
 
 
-#'Builds all hydroState models
+#' Builds all hydroState models # work in progress..
 #'
 #' \code{buildModelAll}
 #'
@@ -706,11 +710,11 @@ buildModel <- function(input.data = data.frame(year=c(), flow=c(), precip=c()),
 #'
 #'
 #' @export
-#'
+#' @importFrom methods new
 
 
 buildModelAll <- function(ID = '',
-                          input.data=streamflow_annual){
+                          input.data = data.frame(year=c(), flow=c(), precip=c())){
   # Validate
   if(is.character(ID)){
 
@@ -737,7 +741,7 @@ buildModelAll <- function(ID = '',
 #' \code{fitModel} fits hydrostate model(s) using global optimization by differential evolution \link[DEoptim]{DEoptim}.
 #'
 #' @details
-#' After a hydroState model object is built, the model is ready to be fitted. The only required input is the given name of the built hydroState model object. \code{fitModel} works for one built model (\code{buildModel}) or all (\code{buildModelAll}). If fitting all models be sure to install and load the \link[parallelly]{parallelly} library.
+#' After a hydroState model object is built, the model is ready to be fitted. The only required input is the given name of the built hydroState model object. \code{fitModel} works for one built model (\code{buildModel}) or all (\code{buildModelAll}). If fitting all models be sure to install and load the \href{https://cran.r-project.org/web/packages/parallelly/index.html}{parallelly} library.
 #'
 #'
 #' @param model.name name of the built hydroState model or name of the list containing all built models
@@ -751,7 +755,11 @@ buildModelAll <- function(ID = '',
 #'
 #'
 #' @export
-
+#' @import DEoptim
+#' @import methods
+#' @import stats
+#' @import truncnorm
+#' @importFrom utils relist
 fitModel <- function(model.name = model,
                      pop.size.perParameter = 10,
                      max.generations=500){
@@ -760,7 +768,7 @@ fitModel <- function(model.name = model,
   if(class(model.name) %in% c("hydroState", "hydroState.allModels", "hydroState.subAnnual.allModels")){
 
     # fit model
-    return(hydroState::fit(model.name, pop.size.perParameter = pop.size.perParameter, max.generations=max.generations))
+    return(fit(model.name, pop.size.perParameter = pop.size.perParameter, max.generations=max.generations))
 
   }else{
 
@@ -793,7 +801,11 @@ fitModel <- function(model.name = model,
 #'
 #'
 #' @export plot.residuals
-#'
+#' @importFrom stats acf
+#' @importFrom grDevices dev.off
+#' @importFrom grDevices pdf
+#' @import diagram
+#' @import graphics
 
 
 plot.residuals <- function(model.name = model,
@@ -924,7 +936,11 @@ setInitialYear <- function(model.name = model,
 #'
 #'
 #' @export plot.states
-#'
+#' @importFrom grDevices dev.off
+#' @importFrom grDevices pdf
+#' @import diagram
+#' @import graphics
+#' @importFrom utils tail
 
 
 plot.states <- function(model.name = model,

@@ -1,5 +1,5 @@
 ##' @include abstracts.R QhatModel.homo.normal.linear.R
-##' @export
+## @export
 QhatModel.homo.normal.linear.AR1 <- setClass(
   # Set the name for the class
   "QhatModel.homo.normal.linear.AR1",

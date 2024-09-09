@@ -1,5 +1,5 @@
 ##' @include abstracts.R QhatModel.homo.normal.linear.R parameters.R
-##' @export
+## @export
 QhatModel.homo.normal.linear.AR3 <- setClass(
   # Set the name for the class
   "QhatModel.homo.normal.linear.AR3",
@@ -170,7 +170,7 @@ setMethod(f="getMean.AR3",signature=c("QhatModel.homo.normal.linear.AR3","data.f
             # code transparency , the for loop was adopted. The idea comes from https://stackoverflow.com/questions/51312427/vectorizing-an-r-loop-with-backward-dependency
             # ind = 1:3
             # for (i in 1:.Object@nStates)
-            #   Qhat.model[,i] <- .Call(stats:::C_rfilter, as.double(Qhat.model[,i]), as.double(c(AR1.est[1,i],AR2.est[1,i],AR3.est[1,i])),
+            #   Qhat.model[,i] <- .Call(stats::C_rfilter, as.double(Qhat.model[,i]), as.double(c(AR1.est[1,i],AR2.est[1,i],AR3.est[1,i])),
             #                           c(rep(0,3), double(nrows)))[-ind]
 
             Qhat.model.NAs = matrix(NA,length(filt),.Object@nStates)

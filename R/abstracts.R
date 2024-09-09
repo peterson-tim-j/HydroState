@@ -1,49 +1,50 @@
-##' @export
+# @export
 ##'
 
 parameters <- setClass("parameters", package='hydroState')
 
-#' @exportMethod setParameters
+# @exportMethod setParameters
 setGeneric(name="setParameters",def=function(.Object,parameters) {standardGeneric("setParameters")})
 setMethod(f="setParameters",signature="parameters",  definition=function(.Object,parameters){})
 
-#' @exportMethod setParameters.fromTransformed
+# @exportMethod setParameters.fromTransformed
 setGeneric(name="setParameters.fromTransformed",def=function(.Object,parameters) {standardGeneric("setParameters.fromTransformed")})
 setMethod(f="setParameters.fromTransformed",signature="parameters",  definition=function(.Object,parameters){})
 
-#' @exportMethod getParameters
+# @exportMethod getParameters
 setGeneric(name="getParameters",def=function(.Object) {standardGeneric("getParameters")})
 setMethod(f="getParameters",signature="parameters",  definition=function(.Object){})
 
-#' @exportMethod getParameters.transformed
+# @exportMethod getParameters.transformed
 setGeneric(name="getParameters.transformed",def=function(.Object) {standardGeneric("getParameters.transformed")})
 setMethod(f="getParameters.transformed",signature="parameters",  definition=function(.Object){})
 
-#' @exportMethod getBounds.transformed
+# @exportMethod getBounds.transformed
 setGeneric(name="getBounds.transformed",def=function(.Object) {standardGeneric("getBounds.transformed")})
 setMethod(f="getBounds.transformed",signature="parameters",  definition=function(.Object){})
 
-#' @exportMethod getBounds
+# @exportMethod getBounds
 setGeneric(name="getBounds",def=function(.Object) {standardGeneric("getBounds")})
 setMethod(f="getBounds",signature="parameters",  definition=function(.Object){})
 
 Qhat <- setClass("Qhat", package='hydroState')
 
-#' @exportMethod getQhat
+# @exportMethod getQhat
 setGeneric(name="getQhat",def=function(.Object,data) {standardGeneric("getQhat")})
 setMethod(f="getQhat",signature="Qhat",  definition=function(.Object, data){})
 
-#' @exportMethod getQ.backTransformed
+# @exportMethod getQ.backTransformed
 setGeneric(name="getQ.backTransformed",def=function(.Object,data) {standardGeneric("getQ.backTransformed")})
 setMethod(f="getQ.backTransformed",signature="Qhat",  definition=function(.Object, data){})
 
 QhatModel <- setClass("QhatModel", package='hydroState')
 
-#' @exportMethod getEmissionDensity
+
+# @exportMethod getEmissionDensity
 setGeneric(name="getEmissionDensity",def=function(.Object, data, cumProb.threshold.Qhat=NA) {standardGeneric("getEmissionDensity")})
 setMethod(f="getEmissionDensity",signature="QhatModel",  definition=function(.Object, data, cumProb.threshold.Qhat=NA){})
 
-#' @exportMethod getDistributionPercentiles
+# @exportMethod getDistributionPercentiles
 setGeneric(name="getDistributionPercentiles",def=function(.Object, data, precentiles) {standardGeneric("getDistributionPercentiles")})
 setMethod(f="getDistributionPercentiles",signature="QhatModel",  definition=function(.Object, data, precentiles){})
 
@@ -62,15 +63,15 @@ setMethod(f="getDensityIncrements",signature="QhatModel",definition=function(.Ob
 
 markov <- setClass("markov", package='hydroState')
 
-#' @exportMethod getLogLikelihood
+# @exportMethod getLogLikelihood
 setGeneric(name="getLogLikelihood", def=function(.Object, data, emission.probs) {standardGeneric("getLogLikelihood")})
 setMethod(f="getLogLikelihood",signature="markov",  definition=function(.Object){})
 
-#' @exportMethod getTransitionProbabilities
+# @exportMethod getTransitionProbabilities
 setGeneric(name="getTransitionProbabilities",def=function(.Object) {standardGeneric("getTransitionProbabilities")})
 setMethod(f="getTransitionProbabilities",signature="markov",  definition=function(.Object){})
 
-#' @exportMethod getInitialStateProbabilities
+# @exportMethod getInitialStateProbabilities
 setGeneric(name="getInitialStateProbabilities",def=function(.Object) {standardGeneric("getInitialStateProbabilities")})
 setMethod(f="getInitialStateProbabilities",signature="markov",  definition=function(.Object){})
 

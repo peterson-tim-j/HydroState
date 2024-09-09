@@ -1,5 +1,5 @@
 ##' @include abstracts.R QhatModel.homo.skewedNormal.linear.R QhatModel.homo.normal.linear.AR1.R
-##' @export
+## @export
 QhatModel.homo.skewedNormal.linear.AR1 <- setClass(
   # Set the name for the class
   "QhatModel.homo.skewedNormal.linear.AR1",
@@ -25,7 +25,7 @@ setValidity("QhatModel.homo.skewedNormal.linear.AR1", validObject)
 #setGeneric(name="initialize",def=function(.Object,input.data){standardGeneric("initialize")})
 setMethod("initialize","QhatModel.homo.skewedNormal.linear.AR1", function(.Object,input.data, transition.graph=matrix(T,2,2),state.dependent.mean.a0=T, state.dependent.mean.a1=F,
                                                                           state.dependent.mean.AR1=F, state.dependent.std.a0=T, state.dependent.shape.a0=T) {
-
+  .Object@input.data <- input.data
   .Object@use.truncated.dist <- F
   .Object@nStates = ncol(transition.graph)
 

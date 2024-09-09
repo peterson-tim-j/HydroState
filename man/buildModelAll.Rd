@@ -2,9 +2,12 @@
 % Please edit documentation in R/wrapper.R
 \name{buildModelAll}
 \alias{buildModelAll}
-\title{Builds all hydroState models}
+\title{Builds all hydroState models # work in progress..}
 \usage{
-buildModelAll(ID = "", input.data = streamflow_annual)
+buildModelAll(
+  ID = "",
+  input.data = data.frame(year = c(), flow = c(), precip = c())
+)
 }
 \arguments{
 \item{ID}{character vector of a stream gauge identifier}

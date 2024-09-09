@@ -1,5 +1,5 @@
 ##' @include abstracts.R
-##' @export
+## @export
 Qhat.burbidge <- setClass(
   # Set the name for the class
   "Qhat.burbidge",

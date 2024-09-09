@@ -1,5 +1,5 @@
 ##' @include abstracts.R
-##' @export
+## @export
 parameters <- setClass(
   # Set the name for the class
   "parameters",

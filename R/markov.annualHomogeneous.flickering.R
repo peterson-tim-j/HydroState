@@ -1,5 +1,5 @@
 ##' @include abstracts.R parameters.R markov.annualHomogeneous.R
-##' @export
+## @export
 markov.annualHomogeneous.flickering <- setClass(
   # Set the name for the class
   "markov.annualHomogeneous.flickering",
@@ -55,7 +55,7 @@ setMethod(f="initialize",
 )
 
 # Get the flickering for each state.
-#' @exportMethod getStateFlicker
+# @exportMethod getStateFlicker
 setGeneric(name="getStateFlicker",def=function(.Object) {standardGeneric("getStateFlicker")})
 setMethod(f="getStateFlicker",signature=c("markov.annualHomogeneous.flickering"),definition=function(.Object)
 {
