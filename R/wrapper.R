@@ -8,12 +8,8 @@
 #' @details
 #' Often there is skew within hydrologic data. When defining relationships between observations, this skew results in an unequal variance in the residuals, heteroscedasticity. Transforming observations is often required with observations of streamflow, precipitation, and concentration. Qhat provides several options to transform observations. Since the degree of transformation is not typically known, 'boxcox' is the default. Other options include: 'log', 'burbidge', and of course, 'none' when no transformation is performed.
 #'
-#' For an example of how to transform observations.. see vignette...
-#'
-#'
-#'
 #' @param func is the method of transformation. The default is 'boxcox'. Other options: 'log', 'burbidge', 'none'
-#' @param input.data dataframe of annual or monthly runoff and precipitation observations.
+#' @param input.data dataframe of annual, seasonal, or monthly runoff and precipitation observations. Gaps with missing data in either streamflow or precipitation are permitted, and the handling of them is further discussed in \code{select.Markov}. Monthly data is required when using \code{seasonal.parameters} that assumes selected model parameters are better defined with a sinusoidal function.
 #'
 #' @return
 #' A Qhat object with transformed observations ready for \code{buildModel}
@@ -23,6 +19,20 @@
 #'
 #' @export select.transform
 #' @importFrom methods new
+#'
+#' @examples
+#' # Load data
+#' data(streamflow_annual)
+#'
+#' # Transform observations
+#' data.transform = select.transform(func = 'boxcox',input.data = streamflow_annual)
+#' #or
+#' data.transform = select.transform(func = 'log',input.data = streamflow_annual)
+#' #or
+#' data.transform = select.transform(func = 'burbidge',input.data = streamflow_annual)
+#' #or
+#' data.transform = select.transform(func = 'none',input.data = streamflow_annual)
+#'
 
 select.transform <- function(func = 'boxcox', input.data=data.frame(year=c(), flow=c(), precip=c())){
 
@@ -50,16 +60,16 @@ select.transform <- function(func = 'boxcox', input.data=data.frame(year=c(), fl
 #' \code{select.stateModel}
 #'
 #' @description
-#' \code{select.stateModel} provides various options for constructing the rainfall-runoff relationship. Every \code{stateModel} depends on a linear base model where precipitation is a function of streamflow. The default model is an annual analysis of this base linear model with state shifts expected in the intercept, \eqn{a_0}, and standard deviation, \eqn{std}, of the rainfall-runoff relationship. \code{select.stateModel} provides additional adjustments to this model with auto-correlations terms, seasonal parameters for a sub-annual analysis, and even other or multiple \code{state.shift.parameters}. The number of states and assumed error distribution can also be selected.
+#' \code{select.stateModel} provides various options for constructing the rainfall-runoff relationship. Every \code{stateModel} depends on a linear base model where streamflow is a function of precipitation. The default model is an annual analysis of this base linear model with state shifts expected in the intercept, \eqn{a_0}, and standard deviation, \eqn{std}, of the rainfall-runoff relationship. \code{select.stateModel} provides additional adjustments to this model with auto-correlations terms, seasonal parameters for a sub-annual analysis, and even evaluation of other \code{state.shift.parameters}. The number of states and assumed error distribution can also be selected.
 #'
 #' @details
 #' There are a selection of items to consider when defining the rainfall-runoff relationship and investigating state shifts in this relationship. hydroState simulates runoff, \eqn{Q}, as being in one of finite states, \eqn{i}, at every time-step, \eqn{t}, depending on the distribution of states at prior time steps. This results in a runoff distribution for each state that can vary overtime (\eqn{\widehat{_tQ_i}}). The \code{stateModel} defines the relationship that is susceptible to state shifts with precipitation, \eqn{P_t}, as a predictor. This takes the form as a simple linear model \eqn{\widehat{_tQ_i} = f(P_t)}:
 #'
-#'                    \eqn{\widehat{_tQ_i} = P_ta_0 + a_1}
+#' \eqn{\widehat{_tQ_i} = P_ta_1 + a_0}
 #'
 #' where \eqn{a_0} and \eqn{a_1} are constant parameters. These parameters and the model error, \eqn{std},  are required parameters for every \code{stateModel}. It is possible the relationship contains serial correlation and would be better defined with an auto-regressive term:
 #'
-#'                \eqn{\widehat{_tQ_i} = P_ta_0 + a_1 + AR1\widehat{_{t-1}Q}}
+#' \eqn{\widehat{_tQ_i} = P_ta_1 + a_0 + AR1\widehat{_{t-1}Q}}
 #'
 #' where \eqn{AR1} is the lag-1 auto-correlation term. Either, lag-1: \eqn{AR1}, lag-2: \eqn{AR2}, and lag-3: \eqn{AR3} auto-correlation coefficients are an option as additional parameters to better define the rainfall-runoff relationship.
 #' For sub-annual analysis, seasonal.parameters provides the option to assume a sinusoidal function better defines either of the constant parameters or error (\eqn{a_0, a_1, std}) throughout the year, i.e:
@@ -68,14 +78,14 @@ select.transform <- function(func = 'boxcox', input.data=data.frame(year=c(), fl
 #'
 #' where \eqn{M_t} is an integer month at \eqn{t}. Monthly streamflow and precipitation are required as input.data for the sub-annual analysis.
 #'
-#' Once the model parameters are chosen, the \code{state.shift.parameters} can be selected to investigate shifts based on any or all of the previously chosen parameters (\eqn{a_0, a_1, std, AR1, AR2, AR3}). The selected \code{state.shift.parameters} are state dependent where they are subject to shift in order to better explain the state of streamflow. The default \code{stateModel} evaluates shifts in the rainfall-runoff relationship with \eqn{a_0} as a state dependent parameter.
+#' Once the model parameters are chosen, the \code{state.shift.parameters} can be selected to investigate shifts based on any or all of the previously chosen parameters (\eqn{a_0, a_1, std, AR1, AR2, AR3}). The selected \code{state.shift.parameters} are state dependent where they are subject to shift in order to better explain the state of streamflow. The default \code{stateModel} evaluates shifts in the rainfall-runoff relationship with \eqn{a_0} \eqn{std} as state dependent parameters.
 #'
 #' The \code{error.distribution} of the model is chosen as either normal: "normal", truncated normal: "truc.normal", or Gaussian: "gauss" in order to reduce skew. The default is "truc.normal". The number of possible states in the rainfall-runoff relationship and transition between the states is selected with the transition.graph. The default is a 2-state model in a 2 by 2 matrix with a TRUE transition to and from each state.
 #'
-#' @param input.data dataframe of annual runoff and precipitation observations. For running seasonal models with seasonal.parameters, monthly data is required.
+#' @param input.data dataframe of annual, seasonal, or monthly runoff and precipitation observations. Gaps with missing data in either streamflow or precipitation are permitted, and the handling of them is further discussed in \code{select.Markov}. Monthly data is required when using \code{seasonal.parameters} that assumes selected model parameters are better defined with a sinusoidal function.
 #' @param parameters character list of parameters to construct state model. Required and default: \code{a0}, \code{a1}, \code{std}. Auto-correlation terms optional: \code{AR1}, \code{AR2}, or \code{AR3}.
 #' @param seasonal.parameters character list of one or all parameters (\code{a0}, \code{a1}, \code{std}) defined as a sinusoidal function to represent seasonal variation. Requires monthly data. Default is empty list.
-#' @param state.shift.parameters character list of one or all parameters (\code{a0}, \code{a1}, \code{std}, \code{AR1}, \code{AR2}, \code{AR3}) able to shift as dependent on state. Default is \code{a_0} and \code{std}.
+#' @param state.shift.parameters character list of one or all parameters (\code{a0}, \code{a1}, \code{std}, \code{AR1}, \code{AR2}, \code{AR3}) able to shift as dependent on state. Default is \code{a0} and \code{std}.
 #' @param error.distribution character name of the distribution in the HMM error. Default is "truc.normal". Others include: "normal" or "gauss"
 #' @param transition.graph matrix given the number of states. Default is a 2-state matrix (2 by 2): matrix(TRUE,2,2)
 #'
@@ -87,6 +97,38 @@ select.transform <- function(func = 'boxcox', input.data=data.frame(year=c(), fl
 #'
 #' @export select.stateModel
 #' @importFrom methods new
+#'
+#' @examples
+#'# load data
+#' data(streamflow_annual)
+#'
+#'# default annual state model, input.data only required
+#' stateModel.annual.default = select.stateModel(input.data = streamflow_annual)
+#'
+#'# annual state model with lag-3 auto-correlation, state shift parameter in slope 'a1'
+#'# and error 'std', residual distribution is 'normal' and 2-state model
+#' stateModel.annual.AR3 = select.stateModel(input.data = streamflow_annual,
+#'                              parameters = list('a0','a1','std','AR3'),
+#'                              state.shift.parameters = list('a1','std'),
+#'                              error.distribution = 'normal',
+#'                              transition.graph = matrix(TRUE,2,2))
+#'
+#'# #or
+#'
+#' # default monthly state model, input.data only required
+#' stateModel.monthly.default = select.stateModel(input.data = streamflow_monthly)
+#'
+#' # monthly state model with lag-1 auto-correlation, 'a0' explained as a seasonal function,
+#' # state shift parameter in intercept 'a0' and error 'std', residual distribution is 'gamma'
+#' # and 3-state model.
+#' # Note: only 'gamma' distribution available for monthly and seasonal analysis
+#' stateModel.monthly.AR1 = select.stateModel(input.data = streamflow_monthly,
+#'                              parameters = list('a0','a1','std','AR1'),
+#'                              seasonal.parameters = list('a0'),
+#'                              state.shift.parameters = list('a0','std'),
+#'                              error.distribution = 'gamma',
+#'                              transition.graph = matrix(TRUE,3,3))
+#'
 
 # Create QhatModel object
 select.stateModel <- function(input.data = data.frame(year=c(), flow=c(), precip=c()),
@@ -182,7 +224,7 @@ select.stateModel <- function(input.data = data.frame(year=c(), flow=c(), precip
     # Assume seasonal model if seasona paramaters
     if(length(seasonal.parameters) > 0){
 
-      # Add if statement here if error.distribution for seasonal accepts normal or truc.normal; gamma for now...
+      # Add if statement here if error.distribution for seasonal accepts normal or truc.normal; gamma for now
       func = paste('QhatModel.subAnnual.homo.',error.distribution,'.linear.',auto.term,sep='')
 
     }else{ # assume annual
@@ -203,7 +245,7 @@ select.stateModel <- function(input.data = data.frame(year=c(), flow=c(), precip
     # Assume seasonal model if seasonal paramaters
     if(length(seasonal.parameters) > 0){
 
-      # Add if statement here if error.distribution for seasonal accepts normal or truc.normal; gamma for now...
+      # Add if statement here if error.distribution for seasonal accepts normal or truc.normal; gamma for now
       func = paste('QhatModel.subAnnual.homo.',error.distribution,'.linear',sep='')
 
     }else{
@@ -254,7 +296,7 @@ select.stateModel <- function(input.data = data.frame(year=c(), flow=c(), precip
                      state.dependent.mean.trend=NA,
                      state.dependent.std.a0 = state.array[3]))
 
-        }else{ #gamma does not need use.truncated.dist input...
+        }else{ #gamma does not need use.truncated.dist input
 
           return(new(func, input.data, transition.graph,
                      state.dependent.mean.a0 = state.array[1],
@@ -429,13 +471,10 @@ select.stateModel <- function(input.data = data.frame(year=c(), flow=c(), precip
 #' \code{select.Markov} selects a hidden Markov model
 #'
 #' @description
-#' select.Markov selects a hidden Markov model.
+#' select.Markov selects a hidden Markov model and details are provided on how missing periods of data are handled
 #'
 #' @details
-#' There are several hidden Markov models to choose from with different forms. The default markov model is 'annualHomogeneous' where the transition between states only depends on a sequence of observed prior states.
-#'
-#'
-#' For an example of how to.. see vignette...
+#' There are several hidden Markov models to choose from with different forms. The default markov model is 'annualHomogeneous' where the transition matrix, the probability of shifting between states, is constant, time-invariant, and only depends on a sequence of observed prior states. When there is missing \code{input.data}, special care was taken to reduce the influence of the missing time periods while making the most of the given data without infilling. For time-periods where the dependent variable, streamflow, is missing, the transition probability for these missing periods is essentially ignored by setting the conditional probability of the missing time-steps equal to one. This results in the time-step after the missing period having the same probability of being in the given state as before the missing period. For time-periods where the independent variable is missing, precipitation, the missing periods are essentially ignored when fitting the models as the likelihood is calculated from only continuous periods with values for the independent variable. Since the log-likelihood is calculated for each continuous period, the sum of the log-likelihoods provides a total log-likelihood to fit models. Again, there is no infilling of missing data.
 #'
 #' @param func character sting with name of Markov model defining the transition between states. The default is 'annualHomogeneous'. Other options include 'annualHomogeneous.flickering'.
 #' @param transition.graph matrix given the number of states. Default is a 2-state matrix (2 by 2): matrix(TRUE,2,2)
@@ -448,6 +487,12 @@ select.stateModel <- function(input.data = data.frame(year=c(), flow=c(), precip
 #'
 #' @export select.Markov
 #' @importFrom methods new
+#'
+#' @examples
+#' # Select Markov model
+#' markovModel = select.Markov('annualHomogeneous', transition.graph=matrix(TRUE,2,2))
+#'
+#'
 
 select.Markov <- function(func = 'annualHomogeneous',
                         transition.graph = matrix(TRUE,2,2)){
@@ -474,10 +519,16 @@ select.Markov <- function(func = 'annualHomogeneous',
 #' \code{buildModel} builds a hydrostate model with either a default \code{stateModel} or the \code{stateModel} can be specified with options from \code{select.stateModel}. After the model is built, the hydroState model is ready to be fitted with \code{fitModel}
 #'
 #' @details
-#' hydroState operates in S4, object oriented programming, and requires three objects to build a hydroState model. Each object can be selected from \code{select.transform}, \code{select.stateModel}, and \code{select.Markov}; however, if no object is defined a default model is built as discussed in the arguments.
+#' hydroState operates in S4, object oriented programming, and requires three objects to build a hydroState model. Each object can be selected from \code{select.transform}, \code{select.stateModel}, and \code{select.Markov}; however, if no object is defined a default model is built with the following objects:
+#' \itemize{
+#' \item{1)} 'boxcox' \code{data.transform}
+#' \item{2)} \code{select.stateModel} with 2-states, a truncated normal error distribution, and allows the intercept 'a0' and standard deviation 'std' to shift as state dependent parameters
+#' \item{3)}  homogeneous Markov model without flickering in \code{select.Markov}.
+#' }
+#' To further review the default model and possible expansions, \code{select.stateModel} provides more details.
 #'
 #'
-#' @param input.data dataframe of annual runoff and precipitation observations. For running seasonal models with \code{seasonal.parameters}, monthly data is required.
+#' @param input.data dataframe of annual, seasonal, or monthly runoff and precipitation observations. Gaps with missing data in either streamflow or precipitation are permitted, and the handling of them is further discussed in \code{select.Markov}. Monthly data is required when using \code{seasonal.parameters} that assumes selected model parameters are better defined with a sinusoidal function.
 #' @param data.transform a \code{Qhat.object} with transformed observations from \code{select.transform}. If blank, the default uses 'boxcox' to transform observations.
 #' @param stateModel a \code{QhatModel.object} from \code{select.stateModel}. If blank, the default selects a 2-state 'QhatModel.homo.normal.linear' model with a truncated normal error distribution, and allows the intercept 'a0' and standard deviation 'std' to shift as state dependent parameters.
 #' @param Markov a \code{markov.model.object} from \code{select.Markov}. If blank, the default selects a homogeneous Markov model without flickering.
@@ -491,6 +542,38 @@ select.Markov <- function(func = 'annualHomogeneous',
 #' @export
 #' @importFrom methods new
 #'
+#' @examples
+#' # Load data
+#' data(streamflow_annual)
+#'
+#' ## Build default annual hydroState model
+#' model = buildModel(input.data = streamflow_annual)
+#'
+#' # OR
+#'
+#' ## Build annual hydroState model with specified objects
+#'
+#'   # Select data transformation. Transforms precipitation and flow in natural log-space
+#'   data.transform = select.transform(func = 'log',input.data = streamflow_annual)
+#'
+#'   # Select stateModel. Assume 2-state, normal error distribution, 1-lag of auto-correlation,
+#'   # and state dependent parameters in the slope 'a1' and standard deviation 'std'
+#'   stateModel.annual.AR1 = select.stateModel(input.data = streamflow_annual,
+#'                              parameters = list('a0','a1','std','AR1'),
+#'                              state.shift.parameters = list('a1','std'),
+#'                              error.distribution = 'normal',
+#'                              transition.graph = matrix(TRUE,2,2))
+#'
+#'   # Select Markov model
+#'   markovModel = select.Markov('annualHomogeneous', transition.graph=matrix(TRUE,2,2))
+#'
+#'   # Build hydroState model with objects
+#'   model = buildModel(input.data = streamflow_annual,
+#'                    data.transform = data.transform,
+#'                    stateModel = stateModel.annual.AR1,
+#'                    Markov = markovModel)
+#'
+
 
 
 buildModel <- function(input.data = data.frame(year=c(), flow=c(), precip=c()),
@@ -687,41 +770,61 @@ buildModel <- function(input.data = data.frame(year=c(), flow=c(), precip=c()),
 }
 
 
-#' Builds all hydroState models # work in progress..
+#' Builds all hydroState models
 #'
 #' \code{buildModelAll}
 #'
 #' @description
-#' \code{buildModelAll} builds all hydroState models
+#' \code{buildModelAll} builds all possible combinations of hydroState models
 #'
 #' @details
-#' All hydroState models are build with different QhatModel objects
+#' All possible combinations of hydroState models are built for each data transformations, auto-correlation lag, and residual distribution from 1 to 3 states for investigating only state changes in the 'a0' and 'std' parameters. Note: annual time-step only
 #'
-#' For an example of how to.. see vignette...
 #'
+#' @param input.data dataframe of annual, seasonal, or monthly runoff and precipitation observations. Gaps with missing data in either streamflow or precipitation are permitted, and the handling of them is further discussed in \code{select.Markov}. Monthly data is required when using \code{seasonal.parameters} that assumes selected model parameters are better defined with a sinusoidal function.
 #' @param ID  character vector of a stream gauge identifier
-#' @param input.data is a dataframe of annual, monthly, or daily, observations of runoff, precipitation, or concentration. For running seasonal models, monthly values are required.
 #'
 #'
 #' @return
-#' A list of built hydroState models with every combination of QhatModel, ready to be fitted
+#' A list of built hydroState models with every combination of objects ready to be fitted
 #'
 #' @keywords hydroState build all
 #'
 #'
 #' @export
 #' @importFrom methods new
+#'
+#' @examples
+#' # Load data
+#' data(streamflow_annual)
+#'
+#' # Build all annual models
+#' all.annual.models = buildModelAll(input.data = streamflow_annual, ID = '221201')
+#'
 
 
-buildModelAll <- function(ID = '',
-                          input.data = data.frame(year=c(), flow=c(), precip=c())){
+buildModelAll <- function(input.data = data.frame(year=c(), flow=c(), precip=c()),
+                          ID = ''){
+  #
+  if(is.null(ID)){
+    ID = ''
+  }
+
   # Validate
   if(is.character(ID)){
 
     # If monthly data, sort in ascending order by year and month
     if('month' %in% colnames(input.data)){
       input.data = input.data[order(input.data[,'year'],input.data[,'month']),]
+
+      # remove month column
+      input.data = input.data[,c("year","flow","precipitation")]
+
+      input.data = aggregate(input.data[c('flow','precipitation')], by=input.data['year'], sum)
+
+      message('Note: Monthly data inputted. flow and precipitation summed by year. All models built.')
     }
+
 
     return(new('hydroState.allModels',ID, input.data, allow.flickering=F))
 
@@ -738,7 +841,7 @@ buildModelAll <- function(ID = '',
 #' \code{fitModel}
 #'
 #' @description
-#' \code{fitModel} fits hydrostate model(s) using global optimization by differential evolution \link[DEoptim]{DEoptim}.
+#' \code{fitModel} fits hydrostate model(s) using global optimization by differential evolution \href{https://cran.r-project.org/web/packages/DEoptim/index.html}{DEoptim} library.
 #'
 #' @details
 #' After a hydroState model object is built, the model is ready to be fitted. The only required input is the given name of the built hydroState model object. \code{fitModel} works for one built model (\code{buildModel}) or all (\code{buildModelAll}). If fitting all models be sure to install and load the \href{https://cran.r-project.org/web/packages/parallelly/index.html}{parallelly} library.
@@ -760,6 +863,34 @@ buildModelAll <- function(ID = '',
 #' @import stats
 #' @import truncnorm
 #' @importFrom utils relist
+#'
+#' @examples
+#'
+#' # Load data
+#' data(streamflow_annual)
+#'
+#' ## Build default annual hydroState model
+#' model = buildModel(input.data = streamflow_annual)
+#'
+#' ## Fit built model
+#' model = fitModel(model)
+#'
+#' ## Fit all built models
+#' \dontrun{
+#'
+#' # Load data
+#' data(streamflow_annual)
+#'
+#' ## Build all annual models
+#' all.annual.models = buildModelAll(input.data = streamflow_annual, ID = '221201')
+#'
+#' ## Fit all
+#' model = fitModel(all.annual.models)
+#'
+#' }
+#'
+#'
+
 fitModel <- function(model.name = model,
                      pop.size.perParameter = 10,
                      max.generations=500){
@@ -786,7 +917,19 @@ fitModel <- function(model.name = model,
 #' The normal pseudo residuals are plotted for review to check for outliers and validate the fit of the model. It is recommended to ensure the model fit is valid before evaluating results (i.e. \code{plot.states}). Furthermore, to ensure the multi-state model performs better than the one-state model, it is recommended to visually compare \code{plot.resdiuals} of both models.
 #'
 #' @details
-#' \code{plot.residuals} produces five plots to review and validate the fitted hydroState model. A) Time-series of normal-pseudo residuals to ensure the residuals each year are within the confidence intervals. B) Auto-correlation function (ACF) of normal-pseudo residuals to ensure there is no serial correlation in residuals. Lag spikes should be below confidence interval at each lag (except 0). C) Histogram of uniform-pseudo residuals should show uniform distribution (equal frequency for each residual value) D) Histogram of normal-pseudo residuals should show normal distribution centered on zero and with no skew E) Quantile-Quantile (Q-Q) plot where normal-pseudo residuals vs. theoretical quantities should align on the diagonal line. The last plot contains the Akaike information criterion (AIC) and Shapiro-Wilk p-value. The AIC is an estimator to determine the most parsimonious, best performing model given the number of parameters. When comparing models, the lowest AIC is the best performing model. Shapiro-Wilks test for normality in the residuals and a p-value greater than 0.05 (chosen alpha level) indicates the residuals are normally distributed; the null hypothesis that the residuals are normally distributed is not rejected.
+#' \code{plot.residuals} produces five plots to review and validate the fitted hydroState model.
+#' \itemize{
+#'  \item{A)}{ Time-series of normal-pseudo residuals to ensure the residuals each year are within the confidence intervals.}
+#'  \item{B)}{ Auto-correlation function (ACF) of normal-pseudo residuals to ensure there is no serial correlation in residuals. Lag spikes should be below confidence interval at each lag (except 0).}
+#'  \item{C)}{ Histogram of uniform-pseudo residuals should show uniform distribution (equal frequency for each residual value)}
+#'  \item{D)}{ Histogram of normal-pseudo residuals should show normal distribution centered on zero and with no skew}
+#'  \item{E)}{ Quantile-Quantile (Q-Q) plot where normal-pseudo residuals vs. theoretical quantities should align on the diagonal line. The last plot contains the Akaike information criterion (AIC) and Shapiro-Wilk p-value. The AIC is an estimator to determine the most parsimonious, best performing model given the number of parameters. When comparing models, the lowest AIC is the best performing model. Shapiro-Wilks test for normality in the residuals and a p-value greater than 0.05 (chosen alpha level) indicates the residuals are normally distributed; the null hypothesis that the residuals are normally distributed is not rejected.}
+#'  }
+#'  It is recommended to export the residual plot as a PDF due to it's size. If the R plot windor is too small, two common errors can occur:
+#'  \itemize{
+#'  \item{"Error in plot.new() : figure margins too large":} reset plot window with "dev.off()", enlarge plot area and re-run \code{plot.residuals}.
+#'  \item{"Error in par(op) : invalid value specified for graphical parameter "pin"} if the R plot window is not reset with "dev.off", an additional \code{plot.residuals} attempt will result in this error.
+#'  }
 #'
 #'
 #' @param model.name name of the fitted hydroState model object.
@@ -806,6 +949,14 @@ fitModel <- function(model.name = model,
 #' @importFrom grDevices pdf
 #' @import diagram
 #' @import graphics
+#'
+#' @examples
+#' # Load fitted model
+#' data(model.annual.fitted)
+#'
+#' ## Plot residuals
+#' plot.residuals(model.name = model.annual.fitted)
+#'
 
 
 plot.residuals <- function(model.name = model,
@@ -865,6 +1016,14 @@ plot.residuals <- function(model.name = model,
 #'
 #' @export get.residuals
 #'
+#' @examples
+#' # Load fitted model
+#' data(model.annual.fitted)
+#'
+#' ## Get residuals in a dataframe
+#' get.residuals(model.name = model.annual.fitted)
+#'
+#'
 
 
 get.residuals <- function(model.name = model){
@@ -887,15 +1046,22 @@ get.residuals <- function(model.name = model){
 #'
 #'
 #' @param model.name name of the fitted hydroState model object.
-#' @param initial.year year (YYYY). Default is first year in input.data.
+#' @param initial.year integer with year (YYYY). Default is first year in input.data.
 #'
 #' @return
-#' A fitted hydroState model object with state names for each time-step
+#' A fitted hydroState model object with state names for each time-step ready for \code{plot.states}
 #'
 #' @keywords state names
 #'
-#'
 #' @export
+#'
+#' @examples
+#' # Load fitted model
+#' data(model.annual.fitted)
+#'
+#' ## Set initial year to set state names
+#' model.annual.fitted = setInitialYear(model.name = model.annual.fitted, initial.year = 1990)
+#'
 #'
 
 
@@ -917,7 +1083,14 @@ setInitialYear <- function(model.name = model,
 #' \code{plot.states} produces several plots to visualize results of the states overtime. \code{setInitialYear} is required before \code{plot.states}.
 #'
 #' @details
-#' \code{plot.states} produces plots of the results from the fitted hydroState model. The default produces four plots of the A) independent variable, B) dependent variable and states, C) transformed dependent variable and states, and D) conditional state probabilities for each state. These are plotted on the same page, and there is an option to export plots as a pdf to the current working directory. There are also options to only plot one of the four plots.
+#' \code{plot.states} produces four figures of the results from the fitted hydroState model. The default produces all four:
+#' \itemize{
+#'  \item{independent variable}: precipitation
+#'  \item{dependent variable and states}: streamflow observations, most likely state, and relative normal state estimate
+#'  \item{transformed dependent variable and states}: transformed streamflow observations and most likely state
+#'  \item{conditional state probabilities for each state}: probability of hydroState model remaining in given state
+#'  }
+#'  These are plotted on the same page, and there is an option to export plots as a pdf to the current working directory. There are also options to only plot one of the four plots.
 #'
 #'
 #' @param model.name is the name of the fitted hydroState model object.
@@ -930,7 +1103,7 @@ setInitialYear <- function(model.name = model,
 #'
 #'
 #' @return
-#' plots to evaluate rainfall-runoff states overtime along with observations and the conditional probabilities of each state. The data frame includes several items. These include the time-step (i.e. Year, Month), Viterbi State Number to differentiate states, observations (i.e. stream flow), flow values of the Viterbi state including the 5\% and 95\% confidence intervals, flow values of the normal state including the 5% and 95% confidence intervals, conditional probabilities for each state, and emission density for each state. The Viterbi state flow values are the results, the values of the most likely state at each time-step. The Normal state flow values are the values from the normal state at each time-step. When the most likely state is the Normal state for a time-step, the Viterbi flow state value equals the Normal flow state value. These Normal state values are interpreted as the results for a one-state model, if the multi-state model did not exist. This estimated Normal state can be seen in plot (B) relative to the other states. The Conditional Probabilities of each state show the likelihood of remaining in the given state based on previous states. When the conditional probability is closer to 1, there is a higher probability that hydroState remains in the state for the next time-step. The Emission Density of each state is the result of multiplying the conditional probabilities by the transition probabilities.
+#' plots to evaluate rainfall-runoff states overtime along with observations and the conditional probabilities of each state.
 #'
 #' @keywords plot states results
 #'
@@ -941,6 +1114,24 @@ setInitialYear <- function(model.name = model,
 #' @import diagram
 #' @import graphics
 #' @importFrom utils tail
+#'
+#' @examples
+#' # Load fitted model
+#' data(model.annual.fitted)
+#'
+#' ## Set initial year to set state names
+#' model.annual.fitted = setInitialYear(model.name = model.annual.fitted, initial.year = 1990)
+#'
+#' ## Plot all figures
+#' plot.states(model.name = model.annual.fitted)
+#'
+#' ## Plot only dependent variable transformed with markov states
+#' plot.states(model.name = model.annual.fitted,
+#'              ind.variable = FALSE,
+#'              dep.variable = FALSE,
+#'              dep.variable.transformed = TRUE,
+#'              cond.state.prob = FALSE)
+#'
 
 
 plot.states <- function(model.name = model,
@@ -952,7 +1143,7 @@ plot.states <- function(model.name = model,
                         ID = NULL
                        ){
 
-    # plot everything, default, export as pdf too..
+    # plot everything, default, export as pdf is option too..
     if(ind.variable == TRUE && dep.variable == TRUE && dep.variable.transformed == TRUE && cond.state.prob == TRUE){
 
       if(do.pdf == TRUE){
@@ -1194,8 +1385,16 @@ plot.states <- function(model.name = model,
 #' @description
 #' \code{get.states} retrieves results from the fitted \code{hydroState} model.
 #'
-#' @details
-#' \code{get.states} These results include the time-step (i.e. Year, Month), Viterbi State Number to differentiate states, observations (i.e. stream flow), flow values of the Viterbi state including the 5\% and 95\% confidence intervals, flow values of the normal state including the 5% and 95% confidence intervals, conditional probabilities for each state, and emission density for each state. The Viterbi state flow values are the results, the values of the most likely state at each time-step. The Normal state flow values are the values from the normal state at each time-step. When the most likely state is the Normal state for a time-step, the Viterbi flow state value equals the Normal flow state value. These Normal state values are interpreted as the results for a one-state model, if the multi-state model did not exist. This estimated Normal state can be seen in plot (B) relative to the other states. The Conditional Probabilities of each state show the likelihood of remaining in the given state based on previous states. When the conditional probability is closer to 1, there is a higher probability that hydroState remains in the state for the next time-step. The Emission Density of each state is the result of multiplying the conditional probabilities by the transition probabilities.
+#' @details These dataframe of results include:
+#' \itemize{
+#' \item{time-step:} year and possibly either season or month for subannual analysis
+#' \item{Viterbi State Number:} state number (i.e. 1, 2, or 3) to differentiate states
+#' \item{Obs. flow:} streamflow observations
+#' \item{Viterbi Flow:} flow values of the Viterbi state including the 5\% and 95\% confidence intervals. These are the most likely flow state values at each time-step of the given states.
+#' \item{Normal State Flow:} flow values of the normal state including the 5\% and 95\% confidence intervals. These Normal state flow values are the values from the normal state at each time-step. When the most likely state is the Normal state for a time-step, the Viterbi flow state value equals the Normal flow state value. This Normal state can be visualized relative to the most likely Viterbi state in the "dep.variable" plot from \code{plot.states}.
+#' \item{Conditional Prob:} conditional probabilities for each state show the probability of remaining in the given state. When the conditional probability is closer to 1, there is a higher probability that hydroState model remains in that state for the next time-step.
+#' \item{Emission Density:} emission density for each state is the result of multiplying the conditional probabilities by the transition probabilities at each timestep.
+#' }
 #'
 #'
 #' @param model.name is the name of the fitted \code{hydroState} model object.
@@ -1207,6 +1406,16 @@ plot.states <- function(model.name = model,
 #'
 #'
 #' @export get.states
+#'
+#' @examples
+#' # Load fitted model
+#' data(model.annual.fitted)
+#'
+#' ## Set initial year to set state names
+#' model.annual.fitted = setInitialYear(model.name = model.annual.fitted, initial.year = 1990)
+#'
+#' ## Get states
+#' model.annual.fitted.states = get.states(model.name = model.annual.fitted)
 #'
 
 

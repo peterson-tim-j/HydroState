@@ -22,7 +22,7 @@ streamflow_annual = streamflow_annual[filt,]
 # each Markov state.
 transition.graph=matrix(TRUE,2,2)
 Qhat = new('Qhat.log', input.data=streamflow_annual)
-QhatModel = new('QhatModel.homo.normal.linear.AR1', input.data=streamflow_annual, transition.graph=transition.graph)
+QhatModel = new('QhatModel.homo.normal.linear', input.data=streamflow_annual, transition.graph=transition.graph, state.dependent.mean.a1 = 1)
 markov = new('markov.annualHomogeneous', transition.graph=transition.graph)
 
 # Build HydroState object
@@ -35,7 +35,7 @@ model <- hydroState::fit(model,pop.size.perParameter = 10, max.generations=500)
 model <- setStateNames(model, 1990)
 
 # Plot Viterbi states
-viterbi(model)
+viterbi(model, do.plot = T)
 
 # Plot pseduo residuals
 check.PseudoResiduals(model)

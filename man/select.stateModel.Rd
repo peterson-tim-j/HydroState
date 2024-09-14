@@ -14,13 +14,13 @@ select.stateModel(
 )
 }
 \arguments{
-\item{input.data}{dataframe of annual runoff and precipitation observations. For running seasonal models with seasonal.parameters, monthly data is required.}
+\item{input.data}{dataframe of annual, seasonal, or monthly runoff and precipitation observations. Gaps with missing data in either streamflow or precipitation are permitted, and the handling of them is further discussed in \code{select.Markov}. Monthly data is required when using \code{seasonal.parameters} that assumes selected model parameters are better defined with a sinusoidal function.}
 
 \item{parameters}{character list of parameters to construct state model. Required and default: \code{a0}, \code{a1}, \code{std}. Auto-correlation terms optional: \code{AR1}, \code{AR2}, or \code{AR3}.}
 
 \item{seasonal.parameters}{character list of one or all parameters (\code{a0}, \code{a1}, \code{std}) defined as a sinusoidal function to represent seasonal variation. Requires monthly data. Default is empty list.}
 
-\item{state.shift.parameters}{character list of one or all parameters (\code{a0}, \code{a1}, \code{std}, \code{AR1}, \code{AR2}, \code{AR3}) able to shift as dependent on state. Default is \code{a_0} and \code{std}.}
+\item{state.shift.parameters}{character list of one or all parameters (\code{a0}, \code{a1}, \code{std}, \code{AR1}, \code{AR2}, \code{AR3}) able to shift as dependent on state. Default is \code{a0} and \code{std}.}
 
 \item{error.distribution}{character name of the distribution in the HMM error. Default is "truc.normal". Others include: "normal" or "gauss"}
 
@@ -30,16 +30,16 @@ select.stateModel(
 A \code{stateModel}, QhatModel object, ready to for \code{buildModel}.
 }
 \description{
-\code{select.stateModel} provides various options for constructing the rainfall-runoff relationship. Every \code{stateModel} depends on a linear base model where precipitation is a function of streamflow. The default model is an annual analysis of this base linear model with state shifts expected in the intercept, \eqn{a_0}, and standard deviation, \eqn{std}, of the rainfall-runoff relationship. \code{select.stateModel} provides additional adjustments to this model with auto-correlations terms, seasonal parameters for a sub-annual analysis, and even other or multiple \code{state.shift.parameters}. The number of states and assumed error distribution can also be selected.
+\code{select.stateModel} provides various options for constructing the rainfall-runoff relationship. Every \code{stateModel} depends on a linear base model where streamflow is a function of precipitation. The default model is an annual analysis of this base linear model with state shifts expected in the intercept, \eqn{a_0}, and standard deviation, \eqn{std}, of the rainfall-runoff relationship. \code{select.stateModel} provides additional adjustments to this model with auto-correlations terms, seasonal parameters for a sub-annual analysis, and even evaluation of other \code{state.shift.parameters}. The number of states and assumed error distribution can also be selected.
 }
 \details{
 There are a selection of items to consider when defining the rainfall-runoff relationship and investigating state shifts in this relationship. hydroState simulates runoff, \eqn{Q}, as being in one of finite states, \eqn{i}, at every time-step, \eqn{t}, depending on the distribution of states at prior time steps. This results in a runoff distribution for each state that can vary overtime (\eqn{\widehat{_tQ_i}}). The \code{stateModel} defines the relationship that is susceptible to state shifts with precipitation, \eqn{P_t}, as a predictor. This takes the form as a simple linear model \eqn{\widehat{_tQ_i} = f(P_t)}:
 
-                   \eqn{\widehat{_tQ_i} = P_ta_0 + a_1}
+\eqn{\widehat{_tQ_i} = P_ta_1 + a_0}
 
 where \eqn{a_0} and \eqn{a_1} are constant parameters. These parameters and the model error, \eqn{std},  are required parameters for every \code{stateModel}. It is possible the relationship contains serial correlation and would be better defined with an auto-regressive term:
 
-               \eqn{\widehat{_tQ_i} = P_ta_0 + a_1 + AR1\widehat{_{t-1}Q}}
+\eqn{\widehat{_tQ_i} = P_ta_1 + a_0 + AR1\widehat{_{t-1}Q}}
 
 where \eqn{AR1} is the lag-1 auto-correlation term. Either, lag-1: \eqn{AR1}, lag-2: \eqn{AR2}, and lag-3: \eqn{AR3} auto-correlation coefficients are an option as additional parameters to better define the rainfall-runoff relationship.
 For sub-annual analysis, seasonal.parameters provides the option to assume a sinusoidal function better defines either of the constant parameters or error (\eqn{a_0, a_1, std}) throughout the year, i.e:
@@ -48,9 +48,41 @@ For sub-annual analysis, seasonal.parameters provides the option to assume a sin
 
 where \eqn{M_t} is an integer month at \eqn{t}. Monthly streamflow and precipitation are required as input.data for the sub-annual analysis.
 
-Once the model parameters are chosen, the \code{state.shift.parameters} can be selected to investigate shifts based on any or all of the previously chosen parameters (\eqn{a_0, a_1, std, AR1, AR2, AR3}). The selected \code{state.shift.parameters} are state dependent where they are subject to shift in order to better explain the state of streamflow. The default \code{stateModel} evaluates shifts in the rainfall-runoff relationship with \eqn{a_0} as a state dependent parameter.
+Once the model parameters are chosen, the \code{state.shift.parameters} can be selected to investigate shifts based on any or all of the previously chosen parameters (\eqn{a_0, a_1, std, AR1, AR2, AR3}). The selected \code{state.shift.parameters} are state dependent where they are subject to shift in order to better explain the state of streamflow. The default \code{stateModel} evaluates shifts in the rainfall-runoff relationship with \eqn{a_0} \eqn{std} as state dependent parameters.
 
 The \code{error.distribution} of the model is chosen as either normal: "normal", truncated normal: "truc.normal", or Gaussian: "gauss" in order to reduce skew. The default is "truc.normal". The number of possible states in the rainfall-runoff relationship and transition between the states is selected with the transition.graph. The default is a 2-state model in a 2 by 2 matrix with a TRUE transition to and from each state.
+}
+\examples{
+# load data
+data(streamflow_annual)
+
+# default annual state model, input.data only required
+stateModel.annual.default = select.stateModel(input.data = streamflow_annual)
+
+# annual state model with lag-3 auto-correlation, state shift parameter in slope 'a1'
+# and error 'std', residual distribution is 'normal' and 2-state model
+stateModel.annual.AR3 = select.stateModel(input.data = streamflow_annual,
+                             parameters = list('a0','a1','std','AR3'),
+                             state.shift.parameters = list('a1','std'),
+                             error.distribution = 'normal',
+                             transition.graph = matrix(TRUE,2,2))
+
+# #or
+
+# default monthly state model, input.data only required
+stateModel.monthly.default = select.stateModel(input.data = streamflow_monthly)
+
+# monthly state model with lag-1 auto-correlation, 'a0' explained as a seasonal function,
+# state shift parameter in intercept 'a0' and error 'std', residual distribution is 'gamma'
+# and 3-state model.
+# Note: only 'gamma' distribution available for monthly and seasonal analysis
+stateModel.monthly.AR1 = select.stateModel(input.data = streamflow_monthly,
+                             parameters = list('a0','a1','std','AR1'),
+                             seasonal.parameters = list('a0'),
+                             state.shift.parameters = list('a0','std'),
+                             error.distribution = 'gamma',
+                             transition.graph = matrix(TRUE,3,3))
+
 }
 \keyword{QhatModel}
 \keyword{linear-model}

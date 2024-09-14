@@ -18,13 +18,16 @@ select.Markov(
 A Markov object with a selected Markov model
 }
 \description{
-select.Markov selects a hidden Markov model.
+select.Markov selects a hidden Markov model and details are provided on how missing periods of data are handled
 }
 \details{
-There are several hidden Markov models to choose from with different forms. The default markov model is 'annualHomogeneous' where the transition between states only depends on a sequence of observed prior states.
+There are several hidden Markov models to choose from with different forms. The default markov model is 'annualHomogeneous' where the transition matrix, the probability of shifting between states, is constant, time-invariant, and only depends on a sequence of observed prior states. When there is missing \code{input.data}, special care was taken to reduce the influence of the missing time periods while making the most of the given data without infilling. For time-periods where the dependent variable, streamflow, is missing, the transition probability for these missing periods is essentially ignored by setting the conditional probability of the missing time-steps equal to one. This results in the time-step after the missing period having the same probability of being in the given state as before the missing period. For time-periods where the independent variable is missing, precipitation, the missing periods are essentially ignored when fitting the models as the likelihood is calculated from only continuous periods with values for the independent variable. Since the log-likelihood is calculated for each continuous period, the sum of the log-likelihoods provides a total log-likelihood to fit models. Again, there is no infilling of missing data.
+}
+\examples{
+# Select Markov model
+markovModel = select.Markov('annualHomogeneous', transition.graph=matrix(TRUE,2,2))
 
 
-For an example of how to.. see vignette...
 }
 \keyword{HMM}
 \keyword{Markov}

@@ -65,4 +65,5 @@
 \alias{streamflow_annual}
 \alias{streamflow_gaugeInfo}
 \alias{streamflow_monthly}
+\alias{model.annual.fitted}
 \alias{viterbi}

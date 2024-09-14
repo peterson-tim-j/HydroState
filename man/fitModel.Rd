@@ -17,13 +17,40 @@ fitModel(model.name = model, pop.size.perParameter = 10, max.generations = 500)
 A fitted hydroState model
 }
 \description{
-\code{fitModel} fits hydrostate model(s) using global optimization by differential evolution \link[DEoptim]{DEoptim}.
+\code{fitModel} fits hydrostate model(s) using global optimization by differential evolution \href{https://cran.r-project.org/web/packages/DEoptim/index.html}{DEoptim} library.
 }
 \details{
 \code{fitModel}
 
 
 After a hydroState model object is built, the model is ready to be fitted. The only required input is the given name of the built hydroState model object. \code{fitModel} works for one built model (\code{buildModel}) or all (\code{buildModelAll}). If fitting all models be sure to install and load the \href{https://cran.r-project.org/web/packages/parallelly/index.html}{parallelly} library.
+}
+\examples{
+
+# Load data
+data(streamflow_annual)
+
+## Build default annual hydroState model
+model = buildModel(input.data = streamflow_annual)
+
+## Fit built model
+model = fitModel(model)
+
+## Fit all built models
+\dontrun{
+
+# Load data
+data(streamflow_annual)
+
+## Build all annual models
+all.annual.models = buildModelAll(input.data = streamflow_annual, ID = '221201')
+
+## Fit all
+model = fitModel(all.annual.models)
+
+}
+
+
 }
 \keyword{fit}
 \keyword{hydroState}

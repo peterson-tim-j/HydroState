@@ -1770,7 +1770,12 @@ setMethod(f="viterbi",signature=c("hydroState","data.frame","logical","numeric",
             }
 
             # Return data
-            return(as.data.frame(results))
+            if(do.plot){
+              return(invisible())
+            }else{
+              return(as.data.frame(results))
+            }
+
           }
 )
 
@@ -2032,7 +2037,11 @@ setMethod(f="check.PseudoResiduals",signature="hydroState",definition=function(.
       par(op)
     }
 
-    return(data)
+    if(do.plot){
+      return(invisible())
+    }else{
+      return(data)
+    }
 }
 )
 

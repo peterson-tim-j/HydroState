@@ -12,7 +12,7 @@ select.transform(
 \arguments{
 \item{func}{is the method of transformation. The default is 'boxcox'. Other options: 'log', 'burbidge', 'none'}
 
-\item{input.data}{dataframe of annual or monthly runoff and precipitation observations.}
+\item{input.data}{dataframe of annual, seasonal, or monthly runoff and precipitation observations. Gaps with missing data in either streamflow or precipitation are permitted, and the handling of them is further discussed in \code{select.Markov}. Monthly data is required when using \code{seasonal.parameters} that assumes selected model parameters are better defined with a sinusoidal function.}
 }
 \value{
 A Qhat object with transformed observations ready for \code{buildModel}
@@ -25,8 +25,20 @@ Transforms observations to remove heteroscedasticity.
 
 
 Often there is skew within hydrologic data. When defining relationships between observations, this skew results in an unequal variance in the residuals, heteroscedasticity. Transforming observations is often required with observations of streamflow, precipitation, and concentration. Qhat provides several options to transform observations. Since the degree of transformation is not typically known, 'boxcox' is the default. Other options include: 'log', 'burbidge', and of course, 'none' when no transformation is performed.
+}
+\examples{
+# Load data
+data(streamflow_annual)
 
-For an example of how to transform observations.. see vignette...
+# Transform observations
+data.transform = select.transform(func = 'boxcox',input.data = streamflow_annual)
+#or
+data.transform = select.transform(func = 'log',input.data = streamflow_annual)
+#or
+data.transform = select.transform(func = 'burbidge',input.data = streamflow_annual)
+#or
+data.transform = select.transform(func = 'none',input.data = streamflow_annual)
+
 }
 \keyword{Qhat}
 \keyword{transform}

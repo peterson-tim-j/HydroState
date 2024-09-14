@@ -12,7 +12,7 @@ buildModel(
 )
 }
 \arguments{
-\item{input.data}{dataframe of annual runoff and precipitation observations. For running seasonal models with \code{seasonal.parameters}, monthly data is required.}
+\item{input.data}{dataframe of annual, seasonal, or monthly runoff and precipitation observations. Gaps with missing data in either streamflow or precipitation are permitted, and the handling of them is further discussed in \code{select.Markov}. Monthly data is required when using \code{seasonal.parameters} that assumes selected model parameters are better defined with a sinusoidal function.}
 
 \item{data.transform}{a \code{Qhat.object} with transformed observations from \code{select.transform}. If blank, the default uses 'boxcox' to transform observations.}
 
@@ -30,7 +30,45 @@ A built hydroState model object ready to be fitted with \code{fitModel}
 \code{buildModel}
 
 
-hydroState operates in S4, object oriented programming, and requires three objects to build a hydroState model. Each object can be selected from \code{select.transform}, \code{select.stateModel}, and \code{select.Markov}; however, if no object is defined a default model is built as discussed in the arguments.
+hydroState operates in S4, object oriented programming, and requires three objects to build a hydroState model. Each object can be selected from \code{select.transform}, \code{select.stateModel}, and \code{select.Markov}; however, if no object is defined a default model is built with the following objects:
+\itemize{
+\item{1)} 'boxcox' \code{data.transform}
+\item{2)} \code{select.stateModel} with 2-states, a truncated normal error distribution, and allows the intercept 'a0' and standard deviation 'std' to shift as state dependent parameters
+\item{3)}  homogeneous Markov model without flickering in \code{select.Markov}.
+}
+To further review the default model and possible expansions, \code{select.stateModel} provides more details.
+}
+\examples{
+# Load data
+data(streamflow_annual)
+
+## Build default annual hydroState model
+model = buildModel(input.data = streamflow_annual)
+
+# OR
+
+## Build annual hydroState model with specified objects
+
+  # Select data transformation. Transforms precipitation and flow in natural log-space
+  data.transform = select.transform(func = 'log',input.data = streamflow_annual)
+
+  # Select stateModel. Assume 2-state, normal error distribution, 1-lag of auto-correlation,
+  # and state dependent parameters in the slope 'a1' and standard deviation 'std'
+  stateModel.annual.AR1 = select.stateModel(input.data = streamflow_annual,
+                             parameters = list('a0','a1','std','AR1'),
+                             state.shift.parameters = list('a1','std'),
+                             error.distribution = 'normal',
+                             transition.graph = matrix(TRUE,2,2))
+
+  # Select Markov model
+  markovModel = select.Markov('annualHomogeneous', transition.graph=matrix(TRUE,2,2))
+
+  # Build hydroState model with objects
+  model = buildModel(input.data = streamflow_annual,
+                   data.transform = data.transform,
+                   stateModel = stateModel.annual.AR1,
+                   Markov = markovModel)
+
 }
 \keyword{build}
 \keyword{hydroState}

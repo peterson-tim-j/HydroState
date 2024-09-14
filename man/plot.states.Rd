@@ -30,7 +30,7 @@
 \item{ID}{character string of catchment identifier (i.e. gauge ID). Default is NULL. Only recommended when do.pdf = TRUE.}
 }
 \value{
-plots to evaluate rainfall-runoff states overtime along with observations and the conditional probabilities of each state. The data frame includes several items. These include the time-step (i.e. Year, Month), Viterbi State Number to differentiate states, observations (i.e. stream flow), flow values of the Viterbi state including the 5\% and 95\% confidence intervals, flow values of the normal state including the 5% and 95% confidence intervals, conditional probabilities for each state, and emission density for each state. The Viterbi state flow values are the results, the values of the most likely state at each time-step. The Normal state flow values are the values from the normal state at each time-step. When the most likely state is the Normal state for a time-step, the Viterbi flow state value equals the Normal flow state value. These Normal state values are interpreted as the results for a one-state model, if the multi-state model did not exist. This estimated Normal state can be seen in plot (B) relative to the other states. The Conditional Probabilities of each state show the likelihood of remaining in the given state based on previous states. When the conditional probability is closer to 1, there is a higher probability that hydroState remains in the state for the next time-step. The Emission Density of each state is the result of multiplying the conditional probabilities by the transition probabilities.
+plots to evaluate rainfall-runoff states overtime along with observations and the conditional probabilities of each state.
 }
 \description{
 \code{plot.states} produces several plots to visualize results of the states overtime. \code{setInitialYear} is required before \code{plot.states}.
@@ -39,7 +39,32 @@ plots to evaluate rainfall-runoff states overtime along with observations and th
 \code{plot.states}
 
 
-\code{plot.states} produces plots of the results from the fitted hydroState model. The default produces four plots of the A) independent variable, B) dependent variable and states, C) transformed dependent variable and states, and D) conditional state probabilities for each state. These are plotted on the same page, and there is an option to export plots as a pdf to the current working directory. There are also options to only plot one of the four plots.
+\code{plot.states} produces four figures of the results from the fitted hydroState model. The default produces all four:
+\itemize{
+ \item{independent variable}: precipitation
+ \item{dependent variable and states}: streamflow observations, most likely state, and relative normal state estimate
+ \item{transformed dependent variable and states}: transformed streamflow observations and most likely state
+ \item{conditional state probabilities for each state}: probability of hydroState model remaining in given state
+ }
+ These are plotted on the same page, and there is an option to export plots as a pdf to the current working directory. There are also options to only plot one of the four plots.
+}
+\examples{
+# Load fitted model
+data(model.annual.fitted)
+
+## Set initial year to set state names
+model.annual.fitted = setInitialYear(model.name = model.annual.fitted, initial.year = 1990)
+
+## Plot all figures
+plot.states(model.name = model.annual.fitted)
+
+## Plot only dependent variable transformed with markov states
+plot.states(model.name = model.annual.fitted,
+             ind.variable = FALSE,
+             dep.variable = FALSE,
+             dep.variable.transformed = TRUE,
+             cond.state.prob = FALSE)
+
 }
 \keyword{plot}
 \keyword{results}

@@ -343,6 +343,8 @@ setMethod(f = "fit",signature="hydroState.allModels",definition=function(.Object
       if (nParams>=doParallel || doParallel==T) {
         model <- .Object@models[[i]]
         assign("model", model, envir=globalenv())
+
+
         model <- fit(model, DEstrategy=DEstrategy, pop.size.perParameter=pop.size.perParameter, max.generations=max.generations, reltol=reltol, steptol=steptol, print.iterations=print.iterations,
                      parallelType=1, packages = c('hydroState','truncnorm'),parVar=c('model'))
       } else {

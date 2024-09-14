@@ -21,4 +21,13 @@ The normal pseudo residuals are retrieved from the fitted model.
 
 \code{get.residuals} retrieves residuals from the fitted model and exports them as a data frame.
 }
+\examples{
+# Load fitted model
+data(model.annual.fitted)
+
+## Get residuals in a dataframe
+get.residuals(model.name = model.annual.fitted)
+
+
+}
 \keyword{residuals}

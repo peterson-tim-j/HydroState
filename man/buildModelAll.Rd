@@ -2,31 +2,37 @@
 % Please edit documentation in R/wrapper.R
 \name{buildModelAll}
 \alias{buildModelAll}
-\title{Builds all hydroState models # work in progress..}
+\title{Builds all hydroState models}
 \usage{
 buildModelAll(
-  ID = "",
-  input.data = data.frame(year = c(), flow = c(), precip = c())
+  input.data = data.frame(year = c(), flow = c(), precip = c()),
+  ID = ""
 )
 }
 \arguments{
-\item{ID}{character vector of a stream gauge identifier}
+\item{input.data}{dataframe of annual, seasonal, or monthly runoff and precipitation observations. Gaps with missing data in either streamflow or precipitation are permitted, and the handling of them is further discussed in \code{select.Markov}. Monthly data is required when using \code{seasonal.parameters} that assumes selected model parameters are better defined with a sinusoidal function.}
 
-\item{input.data}{is a dataframe of annual, monthly, or daily, observations of runoff, precipitation, or concentration. For running seasonal models, monthly values are required.}
+\item{ID}{character vector of a stream gauge identifier}
 }
 \value{
-A list of built hydroState models with every combination of QhatModel, ready to be fitted
+A list of built hydroState models with every combination of objects ready to be fitted
 }
 \description{
-\code{buildModelAll} builds all hydroState models
+\code{buildModelAll} builds all possible combinations of hydroState models
 }
 \details{
 \code{buildModelAll}
 
 
-All hydroState models are build with different QhatModel objects
+All possible combinations of hydroState models are built for each data transformations, auto-correlation lag, and residual distribution from 1 to 3 states for investigating only state changes in the 'a0' and 'std' parameters. Note: annual time-step only
+}
+\examples{
+# Load data
+data(streamflow_annual)
 
-For an example of how to.. see vignette...
+# Build all annual models
+all.annual.models = buildModelAll(input.data = streamflow_annual, ID = '221201')
+
 }
 \keyword{all}
 \keyword{build}

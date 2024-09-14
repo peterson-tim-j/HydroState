@@ -12,6 +12,7 @@ The package was developed for the analysis of long-term streamflow data during a
 data(streamflow_annual)
 data(streamflow_monthly)
 data(streamflow_gaugeInfo)
+data(fitted.model)
 ```
 
 Below are examples for (i) building a single annual model with a pre-defined model structure and (ii) building 64 different annuals models and selecting the most parsimonious model (by AIC) - as was undertaken for the paper. Additional examples are provided in the _vignette folder_(https://github.com/peterson-tim-j/HydroState/tree/master/vignette).
