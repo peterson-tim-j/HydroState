@@ -502,7 +502,8 @@ setMethod(f = "fit",signature="hydroState",definition=function(.Object,
                                                                reltol=1e-8,
                                                                steptol=50,
                                                                print.iterations = 25,
-                                                               use.initial.parameters=F,
+                                                               use.initial.parameters,
+                                                               doParallel,
                                                                ...)
 {
 
@@ -521,6 +522,10 @@ setMethod(f = "fit",signature="hydroState",definition=function(.Object,
   # Set population size
   NP = nvars*pop.size.perParameter
 
+
+  if(missing(doParallel))
+    doParallel = F
+
   # Create and initial population WITH the existing model parameters.
   # DEstrategy <- 3
   # DEstrategy <- 2
@@ -532,11 +537,24 @@ setMethod(f = "fit",signature="hydroState",definition=function(.Object,
     }
 
     # Set optimizer options
-    controls = list(initialpop=par.initial,reltol=reltol, steptol=steptol, itermax=max.generations, trace=print.iterations, NP=NP,
-                    c=0.01, strategy=DEstrategy, ...)
+    #if parallel
+    if (doParallel==T){
+      controls = list(initialpop=par.initial,reltol=reltol, steptol=steptol, itermax=max.generations, trace=print.iterations, NP=NP,
+                      c=0.01, strategy=DEstrategy, parallelType = "auto",...)
+    }else{
+      controls = list(initialpop=par.initial,reltol=reltol, steptol=steptol, itermax=max.generations, trace=print.iterations, NP=NP,
+                      c=0.01, strategy=DEstrategy, ...)
+    }
+
   } else {
-    controls = list(reltol=reltol, steptol=steptol, itermax=max.generations, trace=print.iterations, NP=NP, c=0.01,
-                    strategy=DEstrategy, ...)
+
+    if (doParallel==T){
+      controls = list(reltol=reltol, steptol=steptol, itermax=max.generations, trace=print.iterations, NP=NP, c=0.01,
+                      strategy=DEstrategy, parallelType = "auto", ...)
+    }else{
+      controls = list(reltol=reltol, steptol=steptol, itermax=max.generations, trace=print.iterations, NP=NP, c=0.01,
+                      strategy=DEstrategy, ...)
+    }
   }
 
 
@@ -572,6 +590,7 @@ setMethod(f = "fit",signature="hydroState",definition=function(.Object,
   return(.Object)
 }
 )
+
 
 
 # @exportMethod setStateNames

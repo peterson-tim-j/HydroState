@@ -4,7 +4,7 @@
 \alias{setInitialYear}
 \title{Sets state names given initial year}
 \usage{
-setInitialYear(model.name = model, initial.year = input.data$year[1])
+setInitialYear(model.name, initial.year)
 }
 \arguments{
 \item{model.name}{name of the fitted hydroState model object.}

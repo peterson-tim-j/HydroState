@@ -850,6 +850,7 @@ buildModelAll <- function(input.data = data.frame(year=c(), flow=c(), precip=c()
 #' @param model.name name of the built hydroState model or name of the list containing all built models
 #' @param pop.size.perParameter integer that should be greater than or equal to the number of parameters in the model. The default is '10' and is sufficient for all models.
 #' @param max.generations integer that will stop the optimizer when set number of generations are reached. The default is '500'.
+#' @param doParallel option to fit model using multiple cores in parallel (TRUE) or on a single core (FALSE). The default is FALSE
 #'
 #' @return
 #' A fitted hydroState model
@@ -891,15 +892,22 @@ buildModelAll <- function(input.data = data.frame(year=c(), flow=c(), precip=c()
 #'
 #'
 
-fitModel <- function(model.name = model,
+fitModel <- function(model.name,
                      pop.size.perParameter = 10,
-                     max.generations=500){
+                     max.generations=500,
+                     doParallel = F){
 
   # Validate
-  if(class(model.name) %in% c("hydroState", "hydroState.allModels", "hydroState.subAnnual.allModels")){
+  if(class(model.name)[1] %in% c("hydroState", "hydroState.allModels", "hydroState.subAnnual.allModels")){
+#
+    if(doParallel == T){
+      return(fit(model.name, pop.size.perParameter = pop.size.perParameter, max.generations=max.generations, use.initial.parameters=F, doParallel = T))
 
+    }else{
+      return(fit(model.name, pop.size.perParameter = pop.size.perParameter, max.generations=max.generations, use.initial.parameters=F, doParallel = F))
+
+    }
     # fit model
-    return(fit(model.name, pop.size.perParameter = pop.size.perParameter, max.generations=max.generations))
 
   }else{
 
@@ -959,7 +967,7 @@ fitModel <- function(model.name = model,
 #'
 
 
-plot.residuals <- function(model.name = model,
+plot.residuals <- function(model.name,
                            do.pdf = FALSE,
                            ID = NULL
                              ){
@@ -1026,7 +1034,7 @@ plot.residuals <- function(model.name = model,
 #'
 
 
-get.residuals <- function(model.name = model){
+get.residuals <- function(model.name){
 
     return(check.PseudoResiduals(model.name, do.plot = F))
 
@@ -1065,8 +1073,7 @@ get.residuals <- function(model.name = model){
 #'
 
 
-setInitialYear <- function(model.name = model,
-                       initial.year = input.data$year[1]){ #make go to first year of dataframe
+setInitialYear <- function(model.name, initial.year){ #make go to first year of dataframe
 
   #set state names
   return(setStateNames(model.name, initial.year))
@@ -1134,7 +1141,7 @@ setInitialYear <- function(model.name = model,
 #'
 
 
-plot.states <- function(model.name = model,
+plot.states <- function(model.name,
                         ind.variable = TRUE,
                         dep.variable = TRUE,
                         dep.variable.transformed = TRUE,
@@ -1419,7 +1426,7 @@ plot.states <- function(model.name = model,
 #'
 
 
-get.states <- function(model.name = model){
+get.states <- function(model.name){
 
       return(viterbi(model.name, do.plot = F))
 

@@ -4,7 +4,7 @@
 \alias{plot.residuals}
 \title{Plot residuals}
 \usage{
-\method{plot}{residuals}(model.name = model, do.pdf = FALSE, ID = NULL)
+\method{plot}{residuals}(model.name, do.pdf = FALSE, ID = NULL)
 }
 \arguments{
 \item{model.name}{name of the fitted hydroState model object.}

@@ -4,7 +4,12 @@
 \alias{fitModel}
 \title{Fit hydroState model}
 \usage{
-fitModel(model.name = model, pop.size.perParameter = 10, max.generations = 500)
+fitModel(
+  model.name,
+  pop.size.perParameter = 10,
+  max.generations = 500,
+  doParallel = F
+)
 }
 \arguments{
 \item{model.name}{name of the built hydroState model or name of the list containing all built models}
@@ -12,6 +17,8 @@ fitModel(model.name = model, pop.size.perParameter = 10, max.generations = 500)
 \item{pop.size.perParameter}{integer that should be greater than or equal to the number of parameters in the model. The default is '10' and is sufficient for all models.}
 
 \item{max.generations}{integer that will stop the optimizer when set number of generations are reached. The default is '500'.}
+
+\item{doParallel}{option to fit model using multiple cores in parallel (TRUE) or on a single core (FALSE). The default is FALSE}
 }
 \value{
 A fitted hydroState model

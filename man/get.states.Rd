@@ -4,7 +4,7 @@
 \alias{get.states}
 \title{get states}
 \usage{
-get.states(model.name = model)
+get.states(model.name)
 }
 \arguments{
 \item{model.name}{is the name of the fitted \code{hydroState} model object.}

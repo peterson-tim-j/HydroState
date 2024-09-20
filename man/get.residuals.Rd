@@ -4,7 +4,7 @@
 \alias{get.residuals}
 \title{Get residuals}
 \usage{
-get.residuals(model.name = model)
+get.residuals(model.name)
 }
 \arguments{
 \item{model.name}{name of the fitted hydroState model object.}

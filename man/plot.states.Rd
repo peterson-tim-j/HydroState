@@ -5,7 +5,7 @@
 \title{plot States}
 \usage{
 \method{plot}{states}(
-  model.name = model,
+  model.name,
   ind.variable = TRUE,
   dep.variable = TRUE,
   dep.variable.transformed = TRUE,

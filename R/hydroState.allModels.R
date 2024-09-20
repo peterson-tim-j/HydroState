@@ -295,13 +295,17 @@ setMethod(f = "fit",signature="hydroState.allModels",definition=function(.Object
                                                                          reltol=1e-8,
                                                                          steptol=50,
                                                                          print.iterations = 25,
-                                                                         doParallel=F,
+                                                                         use.initial.parameters=F,
+                                                                         doParallel,
                                                                          ...)
 {
 
   # Set the min and max numbe rof calibrations per model
   minTrialsPerModel=5
   maxTrialsPerModel=20
+
+  # if(is.NUll(doParallel))
+  #   doParallel == F
 
 
   model.names <- names(.Object@models)
@@ -340,15 +344,20 @@ setMethod(f = "fit",signature="hydroState.allModels",definition=function(.Object
       # Get number of params
       nParams = length(getParameters.asVector(.Object@models[[i]]))
 
-      if (nParams>=doParallel || doParallel==T) {
+      # hydroState b.c. ran parallel based on number of params... now just do parallel if user assigns it...
+      # if (nParams>=doParallel || doParallel==T) {
+      # print(doParallel)
+
+      if (doParallel==T) {
         model <- .Object@models[[i]]
-        assign("model", model, envir=globalenv())
+        assign("model", model, envir=new.env(parent = baseenv()))
 
 
         model <- fit(model, DEstrategy=DEstrategy, pop.size.perParameter=pop.size.perParameter, max.generations=max.generations, reltol=reltol, steptol=steptol, print.iterations=print.iterations,
-                     parallelType=1, packages = c('hydroState','truncnorm'),parVar=c('model'))
+                     parallelType= "auto", packages = list('hydroState','truncnorm'),parVar=list('model'), use.initial.parameters = use.initial.parameters,...)
       } else {
-        model <- fit(.Object@models[[i]], DEstrategy=DEstrategy, pop.size.perParameter=pop.size.perParameter, max.generations=max.generations, reltol=reltol, steptol=steptol, print.iterations=print.iterations)
+        model <- fit(.Object@models[[i]], DEstrategy=DEstrategy, pop.size.perParameter=pop.size.perParameter, max.generations=max.generations, reltol=reltol, steptol=steptol, print.iterations=print.iterations,
+                     use.initial.parameters = use.initial.parameters, ...)
       }
 
       # Store the best model to date int the object in case the reference maximum obj cannot be met.
