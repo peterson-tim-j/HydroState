@@ -502,8 +502,7 @@ setMethod(f = "fit",signature="hydroState",definition=function(.Object,
                                                                reltol=1e-8,
                                                                steptol=50,
                                                                print.iterations = 25,
-                                                               use.initial.parameters,
-                                                               doParallel,
+                                                               use.initial.parameters=F,
                                                                ...)
 {
 
@@ -522,10 +521,6 @@ setMethod(f = "fit",signature="hydroState",definition=function(.Object,
   # Set population size
   NP = nvars*pop.size.perParameter
 
-
-  if(missing(doParallel))
-    doParallel = F
-
   # Create and initial population WITH the existing model parameters.
   # DEstrategy <- 3
   # DEstrategy <- 2
@@ -537,24 +532,11 @@ setMethod(f = "fit",signature="hydroState",definition=function(.Object,
     }
 
     # Set optimizer options
-    #if parallel
-    if (doParallel==T){
-      controls = list(initialpop=par.initial,reltol=reltol, steptol=steptol, itermax=max.generations, trace=print.iterations, NP=NP,
-                      c=0.01, strategy=DEstrategy, parallelType = "auto",...)
-    }else{
-      controls = list(initialpop=par.initial,reltol=reltol, steptol=steptol, itermax=max.generations, trace=print.iterations, NP=NP,
-                      c=0.01, strategy=DEstrategy, ...)
-    }
-
+    controls = list(initialpop=par.initial,reltol=reltol, steptol=steptol, itermax=max.generations, trace=print.iterations, NP=NP,
+                    c=0.01, strategy=DEstrategy, ...)
   } else {
-
-    if (doParallel==T){
-      controls = list(reltol=reltol, steptol=steptol, itermax=max.generations, trace=print.iterations, NP=NP, c=0.01,
-                      strategy=DEstrategy, parallelType = "auto", ...)
-    }else{
-      controls = list(reltol=reltol, steptol=steptol, itermax=max.generations, trace=print.iterations, NP=NP, c=0.01,
-                      strategy=DEstrategy, ...)
-    }
+    controls = list(reltol=reltol, steptol=steptol, itermax=max.generations, trace=print.iterations, NP=NP, c=0.01,
+                    strategy=DEstrategy, ...)
   }
 
 
@@ -571,7 +553,7 @@ setMethod(f = "fit",signature="hydroState",definition=function(.Object,
   calib.results <- DEoptim(getNegLogLikelihood.fromTransformedVector,
                            lower = as.vector(Domains[,1]),
                            upper = as.vector(Domains[,2]),
-                           control=  controls, .Object=.Object)
+                           control=  controls, .Object=.Object, ...)
 
 
   # Add calibration outputs to the object
@@ -590,7 +572,6 @@ setMethod(f = "fit",signature="hydroState",definition=function(.Object,
   return(.Object)
 }
 )
-
 
 
 # @exportMethod setStateNames

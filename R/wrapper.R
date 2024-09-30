@@ -894,7 +894,7 @@ buildModelAll <- function(input.data = data.frame(year=c(), flow=c(), precip=c()
 
 fitModel <- function(model.name,
                      pop.size.perParameter = 10,
-                     max.generations=500,
+                     max.generations = 500,
                      doParallel = F){
 
   # Validate
@@ -973,6 +973,7 @@ plot.residuals <- function(model.name,
                              ){
 
   if(do.pdf != TRUE){
+    par(mar=c(4,4,1,1))
     return(check.PseudoResiduals(model.name, do.plot = T))
   }
 
