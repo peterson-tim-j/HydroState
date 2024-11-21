@@ -40,21 +40,21 @@ To further review the default model and possible expansions, \code{select.stateM
 }
 \examples{
 # Load data
-data(streamflow_annual)
+data(streamflow_annual_221201)
 
 ## Build default annual hydroState model
-model = buildModel(input.data = streamflow_annual)
+model = buildModel(input.data = streamflow_annual_221201)
 
 # OR
 
 ## Build annual hydroState model with specified objects
 
   # Select data transformation. Transforms precipitation and flow in natural log-space
-  data.transform = select.transform(func = 'log',input.data = streamflow_annual)
+  data.transform = select.transform(func = 'log',input.data = streamflow_annual_221201)
 
   # Select stateModel. Assume 2-state, normal error distribution, 1-lag of auto-correlation,
   # and state dependent parameters in the slope 'a1' and standard deviation 'std'
-  stateModel.annual.AR1 = select.stateModel(input.data = streamflow_annual,
+  stateModel.annual.AR1 = select.stateModel(input.data = streamflow_annual_221201,
                              parameters = list('a0','a1','std','AR1'),
                              state.shift.parameters = list('a1','std'),
                              error.distribution = 'normal',
@@ -64,7 +64,7 @@ model = buildModel(input.data = streamflow_annual)
   markovModel = select.Markov('annualHomogeneous', transition.graph=matrix(TRUE,2,2))
 
   # Build hydroState model with objects
-  model = buildModel(input.data = streamflow_annual,
+  model = buildModel(input.data = streamflow_annual_221201,
                    data.transform = data.transform,
                    stateModel = stateModel.annual.AR1,
                    Markov = markovModel)

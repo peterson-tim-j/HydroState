@@ -20,8 +20,6 @@ There is an additional option to construct all possible types of models using th
 -----------------------------------------------------------------------------------
 }
 
-
-
   \section{I. Build}{
 
     \tabular{ll}{
@@ -33,7 +31,6 @@ There is an additional option to construct all possible types of models using th
       ------------------------\tab------------------------------------------------
   }
   }
-
    \section{II. Fit}{
 
     \tabular{ll}{
@@ -41,7 +38,6 @@ There is an additional option to construct all possible types of models using th
       ------------------------\tab------------------------------------------------
   }
   }
-
   \section{III. Review}{
 
     \tabular{ll}{
@@ -50,7 +46,6 @@ There is an additional option to construct all possible types of models using th
       ------------------------\tab------------------------------------------------
   }
   }
-
   \section{IV. Evaluate}{
 
     \tabular{ll}{

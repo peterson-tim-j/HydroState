@@ -54,14 +54,14 @@ The \code{error.distribution} of the model is chosen as either normal: "normal",
 }
 \examples{
 # load data
-data(streamflow_annual)
+data(streamflow_annual_221201)
 
 # default annual state model, input.data only required
-stateModel.annual.default = select.stateModel(input.data = streamflow_annual)
+stateModel.annual.default = select.stateModel(input.data = streamflow_annual_221201)
 
 # annual state model with lag-3 auto-correlation, state shift parameter in slope 'a1'
 # and error 'std', residual distribution is 'normal' and 2-state model
-stateModel.annual.AR3 = select.stateModel(input.data = streamflow_annual,
+stateModel.annual.AR3 = select.stateModel(input.data = streamflow_annual_221201,
                              parameters = list('a0','a1','std','AR3'),
                              state.shift.parameters = list('a1','std'),
                              error.distribution = 'normal',
@@ -69,14 +69,17 @@ stateModel.annual.AR3 = select.stateModel(input.data = streamflow_annual,
 
 # #or
 
+# load data
+data(streamflow_monthly_221201)
+
 # default monthly state model, input.data only required
-stateModel.monthly.default = select.stateModel(input.data = streamflow_monthly)
+stateModel.monthly.default = select.stateModel(input.data = streamflow_monthly_221201)
 
 # monthly state model with lag-1 auto-correlation, 'a0' explained as a seasonal function,
 # state shift parameter in intercept 'a0' and error 'std', residual distribution is 'gamma'
 # and 3-state model.
 # Note: only 'gamma' distribution available for monthly and seasonal analysis
-stateModel.monthly.AR1 = select.stateModel(input.data = streamflow_monthly,
+stateModel.monthly.AR1 = select.stateModel(input.data = streamflow_monthly_221201,
                              parameters = list('a0','a1','std','AR1'),
                              seasonal.parameters = list('a0'),
                              state.shift.parameters = list('a0','std'),

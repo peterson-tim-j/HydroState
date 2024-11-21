@@ -18,7 +18,7 @@ fitModel(
 
 \item{max.generations}{integer that will stop the optimizer when set number of generations are reached. The default is '500'.}
 
-\item{doParallel}{option to fit model using multiple cores in parallel (TRUE) or on a single core (FALSE). The default is FALSE}
+\item{doParallel}{TRUE/FALSE to perform fitting in parallel on all computer cores. Default is FALSE}
 }
 \value{
 A fitted hydroState model
@@ -30,15 +30,32 @@ A fitted hydroState model
 \code{fitModel}
 
 
-After a hydroState model object is built, the model is ready to be fitted. The only required input is the given name of the built hydroState model object. \code{fitModel} works for one built model (\code{buildModel}) or all (\code{buildModelAll}). If fitting all models be sure to install and load the \href{https://cran.r-project.org/web/packages/parallelly/index.html}{parallelly} library.
+After a hydroState model object is built, the model is ready to be fitted through minimizing the negative log-likelihood function. The likelihood is estimated recursively across each time-step, for each continous period of observations, and the sum of the negative log-likelihood is minimized too calibrate the model parameters. The only required input is the given name of the built hydroState model object. \code{fitModel} works for one built model (\code{buildModel}) or all (\code{buildModelAll}). If fitting all models be sure to install and load the \href{https://cran.r-project.org/web/packages/parallelly/index.html}{parallelly} library. Details on the likelihood function is as follows:
+
+The likelihood function is estimated as:
+
+\eqn{L_{T} = \delta P(x_{1}) + \Gamma \delta P(x_{2})...\Gamma \delta P(x_{T})1'}
+
+where:
+\itemize{
+ \item{\eqn{\delta}}{ is the initial state distribution, the initial probability of being in each state: \eqn{\delta = \begin{pmatrix} \delta_{1} \\ 1- \delta_{1} \end{pmatrix}}}
+ \item{\eqn{P(x)}}{ is the \eqn{m} x \eqn{m} diagonal emissions matrix of the probability density for each state using a lower tail truncated Gaussian distribution or a two-parameter Gamma distribution}
+   \itemize{
+   \item{}{ \eqn{f_{Gau}(x=\widehat{_{obs}q_{t}}; \mu = \widehat{_{t}q_{i}}, \sigma = \sigma_{i}, a = 0) = \frac{\phi(\frac{x-\mu}{\sigma})}{\sigma(1-\Phi(\frac{a-\mu}{\sigma}))}}}
+   \item{}{ \eqn{f_{Gam}(x = \widehat{_{obs}q_{t}};k = \frac{\widehat{_{t}q_{i}}^2}{\sigma_{i}^2}, \theta = \frac{\sigma_{i}^2}{\widehat{_{t}q_{i}}}) = \frac{x^{k-1}e^{\frac{x}{\theta}}}{\theta^{k}\Gamma(k)}}}
+   \item{}{ where \eqn{\phi} is the probability density function for the standard normal distribution, \eqn{\Phi} is the cumulative distribution function for the standard normal distribution, \eqn{k} is the shape parameter, \eqn{\theta} is the scale parameter, and \eqn{\Gamma(k)} is the gamma function.
+   For more details, refer to pg. 8-17 in the \href{https://www.science.org/doi/10.1126/science.abd5085#supplementary-materials}{Supplementary Materials} of "Watersheds may not recover from drought".}}
+ \item{\eqn{\Gamma} is the transition matrix}
+ \item{\eqn{T} is the number of time-steps.}
+ }
 }
 \examples{
 
 # Load data
-data(streamflow_annual)
+data(streamflow_annual_221201)
 
 ## Build default annual hydroState model
-model = buildModel(input.data = streamflow_annual)
+model = buildModel(input.data = streamflow_annual_221201)
 
 ## Fit built model
 model = fitModel(model)
@@ -47,10 +64,10 @@ model = fitModel(model)
 \dontrun{
 
 # Load data
-data(streamflow_annual)
+data(streamflow_annual_221201)
 
 ## Build all annual models
-all.annual.models = buildModelAll(input.data = streamflow_annual, ID = '221201')
+all.annual.models = buildModelAll(input.data = streamflow_annual_221201, ID = '221201')
 
 ## Fit all
 model = fitModel(all.annual.models)

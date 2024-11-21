@@ -326,14 +326,31 @@ setMethod(f="getTransitionProbabilities",
 )
 
 # Get start and end indices for independent variable
-# @exportMethod getStartEndIndex
-setGeneric(name = "getStartEndIndex", def = function(data) {standardGeneric("getStartEndIndex")})
-setMethod(f="getStartEndIndex", signature = c(data = "data.frame"), definition = function(data){
+
+#' @exportMethod getStartEndIndex
+setGeneric(name = "getStartEndIndex", def = function(.Object,data,...) {standardGeneric("getStartEndIndex")})
+setMethod(f="getStartEndIndex", signature = c(.Object = "hydroState", data = "data.frame"), definition = function(.Object,data){
 
           # # Get the transformed flow, Qhat
           # data = .Object@input.data
+          if('day' %in% colnames(data)){
 
-          if('month' %in% colnames(data)){
+            end.index = which(diff(as.Date(lubridate::make_datetime(data$year, data$month, data$day, tz = "Australia/Melbourne"))) != 1)
+
+            if(length(end.index) > 1){ # if more than one continous period
+              end.index[NROW(end.index) + 1] = sum(is.finite(data$precipitation))
+            } else {
+              end.index = sum(is.finite(data$precipitation))
+            }
+
+            start.index = rep(NA,length(end.index))
+            start.index[1] = 1
+
+            if(length(start.index) > 1){
+              start.index[2:NROW(end.index)] = end.index[1:(NROW(end.index)-1)] + 1
+            }
+
+          }else if('month' %in% colnames(data)){
 
             end.index = which(diff(data$month) != 1 & diff(data$month) != -11)
 
@@ -401,29 +418,29 @@ setMethod(f="getNegLogLikelihood",signature=c(.Object="hydroState",parameters='m
             # Get the transformed flow, Qhat
             data = getQhat(.Object@Qhat.object, .Object@input.data)
 
-            # Set-up to run for all periods with continuous observations of independent variable (precipitation)
-            delta = getStartEndIndex(data)
-
             # Add Qhat to the input data
             #data = cbind.data.frame(.Object@input.data,Qhat=Qhat)
 
             # Get the probabiity of the observed Qhat for each state at each time point.
-            emission.probs = lapply(1:NROW(delta), function(i) getEmissionDensity(.Object@QhatModel.object, data[delta[i,1]:delta[i,2],], NA))
-            # emission.probs = getEmissionDensity(.Object@QhatModel.object, data, NA)
+            # emission.probs = lapply(1:NROW(delta), function(i) getEmissionDensity(.Object@QhatModel.object, data[delta[i,1]:delta[i,2],], NA))
+            emission.probs = getEmissionDensity(.Object@QhatModel.object, data, NA)
 
 
 
-            if (all(is.na(unlist(emission.probs))) || max(unlist(emission.probs), na.rm=T)==0) {
-              return(Inf)
-            }
-            # if (all(is.na((emission.probs))) || max((emission.probs), na.rm=T)==0) {
+            # if (all(is.na(unlist(emission.probs))) || max(unlist(emission.probs), na.rm=T)==0) {
             #   return(Inf)
             # }
+            if (all(is.na((emission.probs))) || max((emission.probs), na.rm=T)==0) {
+              return(Inf)
+            }
+
+            # Set-up to run for all periods with continuous observations of independent variable (precipitation)
+            delta = getStartEndIndex(.Object,data)
 
 
             # Get the markov likelihod and return. Importantly, the object QhatBar is passed so that
             # the markov object can get the model estimates of the transformed flow mean, standard deviation etc.
-            nll <- lapply(1:NROW(delta), function(i) getLogLikelihood(.Object@markov.model.object, data[delta[i,1]:delta[i,2],], emission.probs[[i]]))
+            nll <- lapply(1:NROW(delta), function(i) getLogLikelihood(.Object@markov.model.object, data[delta[i,1]:delta[i,2],], emission.probs[delta[i,1]:delta[i,2],]))
             # nll <- getLogLikelihood(.Object@markov.model.object, data, emission.probs)
 
             nll <- sum(unlist(nll))
@@ -718,7 +735,7 @@ setMethod(f="plot.graph",signature="hydroState",definition=function(.Object, mai
 }
 )
 
-# @exportMethod viterbi
+#' @exportMethod viterbi
 setGeneric(name="viterbi",def=function(.Object, data, do.plot=NA, plot.percentiles=NA, plot.yearRange=NA, plot.options=NA) {standardGeneric("viterbi")})
 setMethod(f="viterbi",signature=c("hydroState","missing","missing","missing","missing","missing"),
           definition=function(.Object, data, do.plot=T, plot.percentiles = c(0.05, 0.5, 0.95), plot.yearRange=numeric(),plot.options = c("A","B","C","D"))
@@ -1274,6 +1291,7 @@ setMethod(f="viterbi",signature=c("hydroState","data.frame","logical","numeric",
               plot.units = 'year'
             }
 
+            message(obsDates.Precip.asISO[1:27])
             # Get the transformed flow, Qhat
             if (!any(names(data)=='Qhat.flow'))
               stop('Input "data" must contain a column named "Qhat.flow".')
@@ -1418,7 +1436,7 @@ setMethod(f="viterbi",signature=c("hydroState","data.frame","logical","numeric",
               # Extract the percentile Qhat values for each percentile and each time step
               viterbi.est =matrix(0, nQhat,3)
 
-              for (i in 1:3) {
+              for (i in 1:3) { # code for baseflow
                 for (j in 1:nQhat) {
                   viterbi.est[j,i] = state.est[[i]][j,viterbiPath[j]]
                 }
@@ -1489,7 +1507,7 @@ setMethod(f="viterbi",signature=c("hydroState","data.frame","logical","numeric",
               }
             }
 
-            # Do plotting
+            # Do plotting  ### filter to adjust index if water year so plotting is not messed up?
             if (do.plot) {
               if (length(.Object@state.labels)==1 && .Object@state.labels=='') {
                 warning('State names must be set for plotting.')
@@ -1555,17 +1573,19 @@ setMethod(f="viterbi",signature=c("hydroState","data.frame","logical","numeric",
               } else {
                 xlim = c(min(obsDates.asISO), max(obsDates.asISO))
               }
+              message(paste("xlim = ", xlim,sep=""))
 
               if("A" %in% plot.options){
                 if(tail(plot.options, n=1) =="A"){
                   par(mar = c(4,5,0.2,5))
                 }
                 # Plot obs precip
+                message(paste("obsDates.asISO.withNAs= ", obsDates.asISO.withNAssep=""))
                 pframe = padr::pad(data.frame(obsDates.asISO.withNAs, .Object@input.data$precipitation), interval = plot.units)
                 plot(pframe, type='s',col='grey', lwd=1,
                      xlim=xlim, xlab='', ylab='', main='', xaxt='n')
-                mtext("Precip.",side=2,line=3)
-                mtext(paste("[mm/",plot.units,"]",sep=''),side=2,line=2, cex=0.85)
+                mtext("Precip.",side=2,line=3, cex = 0.7)
+                mtext(paste("[mm/",plot.units,"]",sep=''),side=2,line=2, cex=0.6)
 
                 xaxis.ticks = as.Date(ISOdate(seq(1900,2020,by=10),1,1))
                 abline(v=xaxis.ticks, col = "lightgray", lty = "dotted",lwd = par("lwd"))
@@ -1613,8 +1633,8 @@ setMethod(f="viterbi",signature=c("hydroState","data.frame","logical","numeric",
 
 
                 # Add axis labels and legend
-                mtext("Flow",side=2,line=3)
-                mtext(paste("[mm/",plot.units,"]"),side=2,line=2, cex=0.85)
+                mtext("Flow",side=2,line=3, cex = 0.7)
+                mtext(paste("[mm/",plot.units,"]"),side=2,line=2, cex=0.6)
                 #mtext('Year',side=1,line=2)
                 #legend('topleft', legend=.Object@state.labels, pch=21, col=state.colours, pt.bg=state.colours, xjust=0)
                 xaxis.ticks = as.Date(ISOdate(seq(1900,2020,by=10),1,1))
@@ -1659,8 +1679,8 @@ setMethod(f="viterbi",signature=c("hydroState","data.frame","logical","numeric",
                 }
 
                 # Add axis labels
-                mtext("Transformed flow",side=2,line=3)
-                mtext(paste("[f(mm) /",plot.units,"]"),side=2,line=2, cex=0.85)
+                mtext("Transformed flow",side=2,line=3, cex = 0.7)
+                mtext(paste("[f(mm) /",plot.units,"]"),side=2,line=2, cex=0.6)
                 # mtext('Year',side=1,line=2)
                 xaxis.ticks = as.Date(ISOdate(seq(1900,2020,by=10),1,1))
                 abline(v=xaxis.ticks, col = "lightgray", lty = "dotted",lwd = par("lwd"))
@@ -1744,8 +1764,8 @@ setMethod(f="viterbi",signature=c("hydroState","data.frame","logical","numeric",
                     lines(obsDates.asISO, state.probs[i,], col=state.colours[i])
                   }
                 }
-                mtext("State Prob.",side=2,line=3)
-                mtext(paste("[-]"),side=2,line=2, cex=0.85)
+                mtext("State Prob.",side=2,line=3, cex = 0.7)
+                mtext(paste("[-]"),side=2,line=2, cex=0.6)
 
                 xaxis.ticks = as.Date(ISOdate(seq(1900,2020,by=10),1,1))
                 if(tail(plot.options, n=1) =="D"){

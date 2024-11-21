@@ -1,0 +1,104 @@
+---
+title: "Seasonal and monthly models"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Seasonal and monthly models}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(hydroState)
+```
+
+## Adjusting the default state model
+hydroState provides a suite of options to adjust the default state model when model residuals do not meet the checks in `plot.residuals` (uniform and normally distributed with no trends or auto-correlation). This vignette presents some of these options by working through an example using monthly data.  
+
+## Load required data
+Seasonal and monthly rainfall-runoff models require a data frame with catchment average runoff and precipitation for each month. Load the data into the environment. Ensure there are four columns named "year", "month", "flow", and "precipitation", and verify the units for flow and precipitation are the same ('mm', 'in', etc.). Note, hydroState operates with the order the `input.data` is given. Avoid labeling months in water years, use calender years. 
+```r
+load("data/streamflow_monthly_221201.rda")
+data(streamflow.monthly.221201)
+
+# check input data
+head(streamflow_monthly_221201)
+#>   year month      flow precipitation
+#> 1 1922     5  2.521175      47.81208
+#> 2 1922     6  2.412904      56.06649
+#> 3 1922     7 15.337419     186.79810
+#> 4 1922     8 25.799507      73.82219
+#> 5 1922     9 26.012962     107.27834
+#> 6 1922    10 13.654558      59.42736
+```
+
+## Select the state model
+For seasonal and monthly models, there are additional options when selecting a state model. A default state model can be built that is identical to the default annual model except on a monthly time-step OR the state model can be adjusted using `select.stateModel`. In addition to the options presented in the ([adjust.state.model](https://github.com/peterson-tim-j/HydroState/tree/master/vignettes/adjust.state.model/adjust.state.model.html)) vignette, the seasonal and monthly models can assume parameters within the rainfall-runoff relationship vary seasonally throughout the year. This is avaliable within the `seasonal.parameters` selection of `select.stateModel`. This assumes a `parameter` is best modeled as a sinusoidal function representing seasonal trends. The input accepts any default parameter: `a_1`, `a_0`, or `std`. Typically, assuming seasonal trends in only the intercept, `a_0`, explains trends in the residuals of the model. For further details, see help page for `select.stateModel`.
+
+For comparing the default state model and adjusted model, the default state model is first defined. Then an adjusted state model is created.  
+
+```r
+# Default state model
+default.state.model = select.stateModel(input.data = streamflow_monthly_221201,
+                              parameters = list('a0','a1','std'),
+                              error.distribution = 'gauss')
+
+# Adjusted state model assuming lag-1 auto-correlation and seasonal forcing in 'a0'
+AR1.state.model = select.stateModel(input.data = streamflow_monthly_221201,
+                              parameters = list('a0','a1','std','AR1'),
+                              seasonal.parameters = list('a0')
+                              error.distribution = 'gauss')
+
+```
+
+## Build a hydroState model with select state model
+Build the hydroState model with a specified state model from above rather than using the default.
+
+```r
+# Build hydroState model with specified state model
+AR1.model.monthly = buildModel(input.data = streamflow_monthly_221201,
+                    stateModel = AR1.state.model)
+```
+
+## Fit the model
+Fit the built model with `fitModel`.
+```r
+AR1.model.monthly = fitModel(AR1.model, pop.size.perParameter = 10, max.generations = 500)
+```
+
+## Review the residuals
+Review the model's residuals from figures using `plot.residuals` to ensure they are uniform and normally distributed with no trends or auto-correlation. A large plot with five figures (A-E) is produced and each is discussed below. There is also an option to export the plot as a PDF with '`do.pdf` = T' and label plots with the site ID (i.e. `ID` = 221201'). Alternatively, the residuals can be reviewed without plotting using `get.residuals` which returns a data frame of the normal pseudo residuals at each time-step. 
+
+A)  Time-series of normal-pseudo residuals to ensure the residuals each year are within the confidence intervals.
+B)  Auto-correlation function (ACF) of normal-pseudo residuals to ensure there is no serial correlation in residuals. Lag spikes should be below confidence interval at each lag (except 0).
+C)  Histogram of uniform-pseudo residuals should show uniform distribution (equal frequency for each residual value)
+D)  Histogram of normal-pseudo residuals should show normal distribution centered on zero and with no skew
+E)  Quantile-Quantile (Q-Q) plot where normal-pseudo residuals vs. theoretical quantities should align on the diagonal line. The last plot contains the Akaike information criterion (AIC) and Shapiro-Wilk p-value. The AIC is an estimator to determine the most parsimonious, best performing model given the number of parameters. When comparing models, the lowest AIC is the best performing model. Shapiro-Wilks test for normality in the residuals and a p-value greater than 0.05 (chosen alpha level) indicates the residuals are normally distributed
+
+
+```r
+# review residual plots
+plot.residuals(AR1.model.monthly, do.pdf = F, ID ='221201')
+
+# get residual values
+model.residuals = get.residuals(AR1.model.monthly)
+```
+
+## Evaluate the state-shifts
+Set the state names relative to a year in the record using `setInitialYear`. This provides a name for the states so they are easier to interpret in the following figures. Then plot the state-shifts overtime using `plot.states`. In this example, 1990 is chosen as the year of reference. All four plots within the function are shown here, but either plot or combination of plots can be selected. Alternatively, the states can be reviewed without plotting using `get.states` which returns a data frame of states at each time-step.
+
+```r
+# set the reference year to name the states
+AR1.model.monthly = setInitialYear(AR1.model.monthly, 1990)
+
+# plot all four plots
+model.states = plot.states(AR1.model.monthly)
+
+```
+

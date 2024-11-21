@@ -28,10 +28,10 @@ All possible combinations of hydroState models are built for each data transform
 }
 \examples{
 # Load data
-data(streamflow_annual)
+data(streamflow_annual_221201)
 
 # Build all annual models
-all.annual.models = buildModelAll(input.data = streamflow_annual, ID = '221201')
+all.annual.models = buildModelAll(input.data = streamflow_annual_221201, ID = '221201')
 
 }
 \keyword{all}

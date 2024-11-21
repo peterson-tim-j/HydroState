@@ -62,8 +62,10 @@
 \alias{setParameters.fromTransformed}
 \alias{setParameters.fromTransformed.asVector}
 \alias{setStateNames}
-\alias{streamflow_annual}
+\alias{streamflow_annual_221201}
+\alias{streamflow_annual_407211}
 \alias{streamflow_gaugeInfo}
-\alias{streamflow_monthly}
-\alias{model.annual.fitted}
+\alias{streamflow_monthly_221201}
+\alias{streamflow_daily_221201}
+\alias{model.annual.fitted.221201}
 \alias{viterbi}

@@ -34,7 +34,7 @@ validObject <- function(object) {
 setValidity("QhatModel.homo.normal.linear", validObject)
 
 # Initialise object
-#setGeneric(name="initialize",def=function(.Object,input.data){standardGeneric("initialize")})
+# setGeneric(name="initialize",def=function(.Object,input.data, ...){standardGeneric("initialize")})
 setMethod("initialize","QhatModel.homo.normal.linear", function(.Object, input.data, use.truncated.dist=T, transition.graph=matrix(T,2,2),
                                                                 state.dependent.mean.a0=T, state.dependent.mean.a1=F, state.dependent.mean.trend=NA, state.dependent.std.a0=T) {
 

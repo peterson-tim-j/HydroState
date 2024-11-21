@@ -22,16 +22,16 @@
 #'
 #' @examples
 #' # Load data
-#' data(streamflow_annual)
+#' data(streamflow_annual_221201)
 #'
 #' # Transform observations
-#' data.transform = select.transform(func = 'boxcox',input.data = streamflow_annual)
+#' data.transform = select.transform(func = 'boxcox',input.data = streamflow_annual_221201)
 #' #or
-#' data.transform = select.transform(func = 'log',input.data = streamflow_annual)
+#' data.transform = select.transform(func = 'log',input.data = streamflow_annual_221201)
 #' #or
-#' data.transform = select.transform(func = 'burbidge',input.data = streamflow_annual)
+#' data.transform = select.transform(func = 'burbidge',input.data = streamflow_annual_221201)
 #' #or
-#' data.transform = select.transform(func = 'none',input.data = streamflow_annual)
+#' data.transform = select.transform(func = 'none',input.data = streamflow_annual_221201)
 #'
 
 select.transform <- function(func = 'boxcox', input.data=data.frame(year=c(), flow=c(), precip=c())){
@@ -40,8 +40,11 @@ select.transform <- function(func = 'boxcox', input.data=data.frame(year=c(), fl
   func = paste('Qhat.',func,sep='')
   if(func %in% c('Qhat.none','Qhat.log','Qhat.burbidge','Qhat.boxcox')){
 
-    if('month' %in% colnames(input.data)){ # sort in ascending order by year and month
+    # If monthly data, sort in ascending order by year and month
+    if('month' %in% colnames(input.data)){
       input.data = input.data[order(input.data[,'year'],input.data[,'month']),]
+    }else if('day' %in% colnames(input.data)){
+      input.data = input.data[order(input.data[,'year'],input.data[,'month'],input.data[,'day']),]
     }
 
 
@@ -100,14 +103,14 @@ select.transform <- function(func = 'boxcox', input.data=data.frame(year=c(), fl
 #'
 #' @examples
 #'# load data
-#' data(streamflow_annual)
+#' data(streamflow_annual_221201)
 #'
 #'# default annual state model, input.data only required
-#' stateModel.annual.default = select.stateModel(input.data = streamflow_annual)
+#' stateModel.annual.default = select.stateModel(input.data = streamflow_annual_221201)
 #'
 #'# annual state model with lag-3 auto-correlation, state shift parameter in slope 'a1'
 #'# and error 'std', residual distribution is 'normal' and 2-state model
-#' stateModel.annual.AR3 = select.stateModel(input.data = streamflow_annual,
+#' stateModel.annual.AR3 = select.stateModel(input.data = streamflow_annual_221201,
 #'                              parameters = list('a0','a1','std','AR3'),
 #'                              state.shift.parameters = list('a1','std'),
 #'                              error.distribution = 'normal',
@@ -115,14 +118,17 @@ select.transform <- function(func = 'boxcox', input.data=data.frame(year=c(), fl
 #'
 #'# #or
 #'
+#'# load data
+#' data(streamflow_monthly_221201)
+#'
 #' # default monthly state model, input.data only required
-#' stateModel.monthly.default = select.stateModel(input.data = streamflow_monthly)
+#' stateModel.monthly.default = select.stateModel(input.data = streamflow_monthly_221201)
 #'
 #' # monthly state model with lag-1 auto-correlation, 'a0' explained as a seasonal function,
 #' # state shift parameter in intercept 'a0' and error 'std', residual distribution is 'gamma'
 #' # and 3-state model.
 #' # Note: only 'gamma' distribution available for monthly and seasonal analysis
-#' stateModel.monthly.AR1 = select.stateModel(input.data = streamflow_monthly,
+#' stateModel.monthly.AR1 = select.stateModel(input.data = streamflow_monthly_221201,
 #'                              parameters = list('a0','a1','std','AR1'),
 #'                              seasonal.parameters = list('a0'),
 #'                              state.shift.parameters = list('a0','std'),
@@ -212,6 +218,8 @@ select.stateModel <- function(input.data = data.frame(year=c(), flow=c(), precip
   # If monthly data, sort in ascending order by year and month
   if('month' %in% colnames(input.data)){
     input.data = input.data[order(input.data[,'year'],input.data[,'month']),]
+  }else if('day' %in% colnames(input.data)){
+    input.data = input.data[order(input.data[,'year'],input.data[,'month'],input.data[,'day']),]
   }
 
   # Curate state model
@@ -544,21 +552,21 @@ select.Markov <- function(func = 'annualHomogeneous',
 #'
 #' @examples
 #' # Load data
-#' data(streamflow_annual)
+#' data(streamflow_annual_221201)
 #'
 #' ## Build default annual hydroState model
-#' model = buildModel(input.data = streamflow_annual)
+#' model = buildModel(input.data = streamflow_annual_221201)
 #'
 #' # OR
 #'
 #' ## Build annual hydroState model with specified objects
 #'
 #'   # Select data transformation. Transforms precipitation and flow in natural log-space
-#'   data.transform = select.transform(func = 'log',input.data = streamflow_annual)
+#'   data.transform = select.transform(func = 'log',input.data = streamflow_annual_221201)
 #'
 #'   # Select stateModel. Assume 2-state, normal error distribution, 1-lag of auto-correlation,
 #'   # and state dependent parameters in the slope 'a1' and standard deviation 'std'
-#'   stateModel.annual.AR1 = select.stateModel(input.data = streamflow_annual,
+#'   stateModel.annual.AR1 = select.stateModel(input.data = streamflow_annual_221201,
 #'                              parameters = list('a0','a1','std','AR1'),
 #'                              state.shift.parameters = list('a1','std'),
 #'                              error.distribution = 'normal',
@@ -568,7 +576,7 @@ select.Markov <- function(func = 'annualHomogeneous',
 #'   markovModel = select.Markov('annualHomogeneous', transition.graph=matrix(TRUE,2,2))
 #'
 #'   # Build hydroState model with objects
-#'   model = buildModel(input.data = streamflow_annual,
+#'   model = buildModel(input.data = streamflow_annual_221201,
 #'                    data.transform = data.transform,
 #'                    stateModel = stateModel.annual.AR1,
 #'                    Markov = markovModel)
@@ -590,9 +598,11 @@ buildModel <- function(input.data = data.frame(year=c(), flow=c(), precip=c()),
     stop("'input.data' must contain a 'year' column with an integer of years")
   }
 
-  # If monthly data, sort in ascending order by year and month
+  # If monthly data, sort in ascending order by year and month... need to make an assumptions about water year...
   if('month' %in% colnames(input.data)){
     input.data = input.data[order(input.data[,'year'],input.data[,'month']),]
+  }else if('day' %in% colnames(input.data)){
+    input.data = input.data[order(input.data[,'year'],input.data[,'month'],input.data[,'day']),]
   }
 
 # If no inputs except input.data, just run default annual analysis
@@ -796,10 +806,10 @@ buildModel <- function(input.data = data.frame(year=c(), flow=c(), precip=c()),
 #'
 #' @examples
 #' # Load data
-#' data(streamflow_annual)
+#' data(streamflow_annual_221201)
 #'
 #' # Build all annual models
-#' all.annual.models = buildModelAll(input.data = streamflow_annual, ID = '221201')
+#' all.annual.models = buildModelAll(input.data = streamflow_annual_221201, ID = '221201')
 #'
 
 
@@ -823,7 +833,19 @@ buildModelAll <- function(input.data = data.frame(year=c(), flow=c(), precip=c()
       input.data = aggregate(input.data[c('flow','precipitation')], by=input.data['year'], sum)
 
       message('Note: Monthly data inputted. flow and precipitation summed by year. All models built.')
+
+    }else if('day' %in% colnames(input.data)){
+      input.data = input.data[order(input.data[,'year'],input.data[,'month'],input.data[,'day']),]
+
+      # remove day and month column
+      input.data = input.data[,c("year","flow","precipitation")]
+
+      input.data = aggregate(input.data[c('flow','precipitation')], by=input.data['year'], sum)
+
+      message('Note: Daily data inputted. flow and precipitation summed by year. All models built.')
+
     }
+
 
 
     return(new('hydroState.allModels',ID, input.data, allow.flickering=F))
@@ -844,13 +866,29 @@ buildModelAll <- function(input.data = data.frame(year=c(), flow=c(), precip=c()
 #' \code{fitModel} fits hydrostate model(s) using global optimization by differential evolution \href{https://cran.r-project.org/web/packages/DEoptim/index.html}{DEoptim} library.
 #'
 #' @details
-#' After a hydroState model object is built, the model is ready to be fitted. The only required input is the given name of the built hydroState model object. \code{fitModel} works for one built model (\code{buildModel}) or all (\code{buildModelAll}). If fitting all models be sure to install and load the \href{https://cran.r-project.org/web/packages/parallelly/index.html}{parallelly} library.
+#' After a hydroState model object is built, the model is ready to be fitted through minimizing the negative log-likelihood function. The likelihood is estimated recursively across each time-step, for each continous period of observations, and the sum of the negative log-likelihood is minimized too calibrate the model parameters. The only required input is the given name of the built hydroState model object. \code{fitModel} works for one built model (\code{buildModel}) or all (\code{buildModelAll}). If fitting all models be sure to install and load the \href{https://cran.r-project.org/web/packages/parallelly/index.html}{parallelly} library. Details on the likelihood function is as follows:
 #'
+#' The likelihood function is estimated as:
+#'
+#' \eqn{L_{T} = \delta P(x_{1}) + \Gamma \delta P(x_{2})...\Gamma \delta P(x_{T})1'}
+#'
+#' where:
+#' \itemize{
+#'  \item{\eqn{\delta}}{ is the initial state distribution, the initial probability of being in each state: \eqn{\delta = \begin{pmatrix} \delta_{1} \\ 1- \delta_{1} \end{pmatrix}}}
+#'  \item{\eqn{P(x)}}{ is the \eqn{m} x \eqn{m} diagonal emissions matrix of the probability density for each state using a lower tail truncated Gaussian distribution or a two-parameter Gamma distribution}
+#'    \itemize{
+#'    \item{}{ \eqn{f_{Gau}(x=\widehat{_{obs}q_{t}}; \mu = \widehat{_{t}q_{i}}, \sigma = \sigma_{i}, a = 0) = \frac{\phi(\frac{x-\mu}{\sigma})}{\sigma(1-\Phi(\frac{a-\mu}{\sigma}))}}}
+#'    \item{}{ \eqn{f_{Gam}(x = \widehat{_{obs}q_{t}};k = \frac{\widehat{_{t}q_{i}}^2}{\sigma_{i}^2}, \theta = \frac{\sigma_{i}^2}{\widehat{_{t}q_{i}}}) = \frac{x^{k-1}e^{\frac{x}{\theta}}}{\theta^{k}\Gamma(k)}}}
+#'    \item{}{ where \eqn{\phi} is the probability density function for the standard normal distribution, \eqn{\Phi} is the cumulative distribution function for the standard normal distribution, \eqn{k} is the shape parameter, \eqn{\theta} is the scale parameter, and \eqn{\Gamma(k)} is the gamma function.
+#'    For more details, refer to pg. 8-17 in the \href{https://www.science.org/doi/10.1126/science.abd5085#supplementary-materials}{Supplementary Materials} of "Watersheds may not recover from drought".}}
+#'  \item{\eqn{\Gamma} is the transition matrix}
+#'  \item{\eqn{T} is the number of time-steps.}
+#'  }
 #'
 #' @param model.name name of the built hydroState model or name of the list containing all built models
 #' @param pop.size.perParameter integer that should be greater than or equal to the number of parameters in the model. The default is '10' and is sufficient for all models.
 #' @param max.generations integer that will stop the optimizer when set number of generations are reached. The default is '500'.
-#' @param doParallel option to fit model using multiple cores in parallel (TRUE) or on a single core (FALSE). The default is FALSE
+#' @param doParallel TRUE/FALSE to perform fitting in parallel on all computer cores. Default is FALSE
 #'
 #' @return
 #' A fitted hydroState model
@@ -868,10 +906,10 @@ buildModelAll <- function(input.data = data.frame(year=c(), flow=c(), precip=c()
 #' @examples
 #'
 #' # Load data
-#' data(streamflow_annual)
+#' data(streamflow_annual_221201)
 #'
 #' ## Build default annual hydroState model
-#' model = buildModel(input.data = streamflow_annual)
+#' model = buildModel(input.data = streamflow_annual_221201)
 #'
 #' ## Fit built model
 #' model = fitModel(model)
@@ -880,10 +918,10 @@ buildModelAll <- function(input.data = data.frame(year=c(), flow=c(), precip=c()
 #' \dontrun{
 #'
 #' # Load data
-#' data(streamflow_annual)
+#' data(streamflow_annual_221201)
 #'
 #' ## Build all annual models
-#' all.annual.models = buildModelAll(input.data = streamflow_annual, ID = '221201')
+#' all.annual.models = buildModelAll(input.data = streamflow_annual_221201, ID = '221201')
 #'
 #' ## Fit all
 #' model = fitModel(all.annual.models)
@@ -904,7 +942,7 @@ fitModel <- function(model.name,
       return(fit(model.name, pop.size.perParameter = pop.size.perParameter, max.generations=max.generations, use.initial.parameters=F, doParallel = T))
 
     }else{
-      return(fit(model.name, pop.size.perParameter = pop.size.perParameter, max.generations=max.generations, use.initial.parameters=F, doParallel = F))
+      return(fit(model.name, pop.size.perParameter = pop.size.perParameter, max.generations=max.generations, use.initial.parameters=F))
 
     }
     # fit model

@@ -28,16 +28,16 @@ Often there is skew within hydrologic data. When defining relationships between 
 }
 \examples{
 # Load data
-data(streamflow_annual)
+data(streamflow_annual_221201)
 
 # Transform observations
-data.transform = select.transform(func = 'boxcox',input.data = streamflow_annual)
+data.transform = select.transform(func = 'boxcox',input.data = streamflow_annual_221201)
 #or
-data.transform = select.transform(func = 'log',input.data = streamflow_annual)
+data.transform = select.transform(func = 'log',input.data = streamflow_annual_221201)
 #or
-data.transform = select.transform(func = 'burbidge',input.data = streamflow_annual)
+data.transform = select.transform(func = 'burbidge',input.data = streamflow_annual_221201)
 #or
-data.transform = select.transform(func = 'none',input.data = streamflow_annual)
+data.transform = select.transform(func = 'none',input.data = streamflow_annual_221201)
 
 }
 \keyword{Qhat}

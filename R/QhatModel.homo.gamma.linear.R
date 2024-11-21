@@ -10,7 +10,7 @@ QhatModel.homo.gamma.linear <- setClass(
 
     # Set the default values for the slots. (optional)
   prototype=list(
-    input.data = data.frame(year=c(0),month=c(0),precipitation=c(0)),
+    input.data = data.frame(),
     nStates = Inf,
     use.truncated.dist=F,
     parameters = new('parameters',c('mean.a0', 'mean.a1','std.a0'),c(1,1,1))
