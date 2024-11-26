@@ -6,6 +6,8 @@ hydroState.allModels <- setClass(
 
   package='hydroState',
 
+  # contains=c('hydroState'),
+
   # Define the slots
   slots = c(
     siteID= 'character',
@@ -296,7 +298,7 @@ setMethod(f = "fit",signature="hydroState.allModels",definition=function(.Object
                                                                          steptol=50,
                                                                          print.iterations = 25,
                                                                          use.initial.parameters=F,
-                                                                         doParallel,
+                                                                         doParallel=F,
                                                                          ...)
 {
 
@@ -350,14 +352,15 @@ setMethod(f = "fit",signature="hydroState.allModels",definition=function(.Object
 
       if (doParallel==T) {
         model <- .Object@models[[i]]
-        assign("model", model, envir=new.env(parent = baseenv()))
+        assign("model", model, envir=globalenv())
+                 #new.env(parent = baseenv()))
 
-
-        model <- fit(model, DEstrategy=DEstrategy, pop.size.perParameter=pop.size.perParameter, max.generations=max.generations, reltol=reltol, steptol=steptol, print.iterations=print.iterations,
-                     parallelType= "auto", packages = list('hydroState','truncnorm'),parVar=list('model'), use.initial.parameters = use.initial.parameters,...)
+        # error occurs after calling this...
+        model <- fit(model, DEstrategy=DEstrategy, pop.size.perParameter=pop.size.perParameter, max.generations=max.generations, Domains=Domains, reltol=reltol, steptol=steptol, print.iterations=print.iterations,
+                     use.initial.parameters = use.initial.parameters, parallelType= "auto", packages = list('hydroState','truncnorm'),parVar=list('model'))
       } else {
         model <- fit(.Object@models[[i]], DEstrategy=DEstrategy, pop.size.perParameter=pop.size.perParameter, max.generations=max.generations, reltol=reltol, steptol=steptol, print.iterations=print.iterations,
-                     use.initial.parameters = use.initial.parameters, ...)
+                     use.initial.parameters = use.initial.parameters,  doParallel = F, ...)
       }
 
       # Store the best model to date int the object in case the reference maximum obj cannot be met.

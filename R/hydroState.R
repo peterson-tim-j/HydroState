@@ -79,14 +79,14 @@ setMethod(f="initialize",signature="hydroState",definition=function(.Object, inp
           if (!any(names(input.data)=='year'))
             stop('The input input.data must contain the column "year".')
 
-          if (length(diff(which(!is.finite(input.data$precipitation)))) >= 1)
-            message(paste('The independent varaible contains gaps: ', sum(!is.finite(input.data$precipitation)), ' timesteps.',' Model built ignoring gaps.',sep=""))
+          # if (length(diff(which(!is.finite(input.data$precipitation)))) >= 1)
+          #   message(paste('The independent varaible (precip.) contains gaps at ', sum(!is.finite(input.data$precipitation)), ' timesteps.',' Model built ignoring gaps.',sep=""))
 
           if (all(!is.finite(input.data$flow)))
             stop('The input input.data$flow does not contain any finite values".')
 
           if (max(diff(unique(input.data$year)), na.rm = TRUE) !=1){
-            message(paste('There are missing years: ',sum(ifelse(diff(na.omit(unique(input.data$year))) !=1, diff(na.omit(unique(input.data$year))), 0)), ' years.',' Model built ignoring missing years.', sep=""))
+            message(paste('There are ',sum(ifelse(diff(na.omit(unique(input.data$year))) !=1, diff(na.omit(unique(input.data$year))), 0)), ' years missing.',' Model built ignoring missing years.', sep=""))
           }
 
           if (any(!is.numeric(input.data$flow)))
@@ -328,8 +328,8 @@ setMethod(f="getTransitionProbabilities",
 # Get start and end indices for independent variable
 
 #' @exportMethod getStartEndIndex
-setGeneric(name = "getStartEndIndex", def = function(.Object,data,...) {standardGeneric("getStartEndIndex")})
-setMethod(f="getStartEndIndex", signature = c(.Object = "hydroState", data = "data.frame"), definition = function(.Object,data){
+setGeneric(name = "getStartEndIndex", def = function(data,...) {standardGeneric("getStartEndIndex")})
+setMethod(f="getStartEndIndex", signature = c(data = "data.frame"), definition = function(data){
 
           # # Get the transformed flow, Qhat
           # data = .Object@input.data
@@ -352,9 +352,14 @@ setMethod(f="getStartEndIndex", signature = c(.Object = "hydroState", data = "da
 
           }else if('month' %in% colnames(data)){
 
-            end.index = which(diff(data$month) != 1 & diff(data$month) != -11)
+            # check if data is monthly or seasonal by finding the longest sequence of years (12 = monthly, 4 = seasonal)
+            if(with(rle(data$year), max(lengths)) > 4){
+              end.index = which(diff(data$month) != 1 & diff(data$month) != -11)
+            }else{
+              end.index = which(diff(data$month) != 3 & diff(data$month) != -9)
+            }
 
-            if(length(end.index) > 1){ # if more than one continous period
+            if(length(end.index) > 1){ # if more than one continuous period
               end.index[NROW(end.index) + 1] = sum(is.finite(data$precipitation))
             } else {
               end.index = sum(is.finite(data$precipitation))
@@ -435,7 +440,7 @@ setMethod(f="getNegLogLikelihood",signature=c(.Object="hydroState",parameters='m
             }
 
             # Set-up to run for all periods with continuous observations of independent variable (precipitation)
-            delta = getStartEndIndex(.Object,data)
+            delta = getStartEndIndex(data)
 
 
             # Get the markov likelihod and return. Importantly, the object QhatBar is passed so that
@@ -510,6 +515,7 @@ setGeneric(name="fit",def=function(.Object,
                                    steptol=NA,
                                    print.iterations=NA,
                                    use.initial.parameters=NA,
+                                   doParallel=NA,
                                    ...) {standardGeneric("fit")})
 setMethod(f = "fit",signature="hydroState",definition=function(.Object,
                                                                DEstrategy=3,
@@ -520,6 +526,7 @@ setMethod(f = "fit",signature="hydroState",definition=function(.Object,
                                                                steptol=50,
                                                                print.iterations = 25,
                                                                use.initial.parameters=F,
+                                                               doParallel = F,
                                                                ...)
 {
 
@@ -549,11 +556,23 @@ setMethod(f = "fit",signature="hydroState",definition=function(.Object,
     }
 
     # Set optimizer options
-    controls = list(initialpop=par.initial,reltol=reltol, steptol=steptol, itermax=max.generations, trace=print.iterations, NP=NP,
-                    c=0.01, strategy=DEstrategy, ...)
+    #if parallel
+    if (doParallel==T){
+      controls = list(initialpop=par.initial,reltol=reltol, steptol=steptol, itermax=max.generations, trace=print.iterations, NP=NP,
+                      c=0.01, strategy=DEstrategy, parallelType = "auto",...)
+    }else{
+      controls = list(initialpop=par.initial,reltol=reltol, steptol=steptol, itermax=max.generations, trace=print.iterations, NP=NP,
+                      c=0.01, strategy=DEstrategy)
+    }
   } else {
-    controls = list(reltol=reltol, steptol=steptol, itermax=max.generations, trace=print.iterations, NP=NP, c=0.01,
-                    strategy=DEstrategy, ...)
+    if (doParallel==T){
+      controls = list(reltol=reltol, steptol=steptol, itermax=max.generations, trace=print.iterations, NP=NP, c=0.01,
+                      strategy=DEstrategy, parallelType = "auto", ...)
+    }else{
+      controls = list(reltol=reltol, steptol=steptol, itermax=max.generations, trace=print.iterations, NP=NP, c=0.01,
+                      strategy=DEstrategy)
+      message("controls here")
+    }
   }
 
 
@@ -570,7 +589,7 @@ setMethod(f = "fit",signature="hydroState",definition=function(.Object,
   calib.results <- DEoptim(getNegLogLikelihood.fromTransformedVector,
                            lower = as.vector(Domains[,1]),
                            upper = as.vector(Domains[,2]),
-                           control=  controls, .Object=.Object, ...)
+                           control=  controls, .Object=.Object)
 
 
   # Add calibration outputs to the object
@@ -1106,6 +1125,7 @@ setMethod(f="viterbi",signature=c("hydroState","data.frame","logical","numeric",
     }
 
     # Plot obs precip
+    # pframe = padr::thicken(padr::pad(data.frame(obsDates.asISO.withNAs, .Object@input.data$precipitation), interval = plot.units), "3 month")
     pframe = padr::pad(data.frame(obsDates.asISO.withNAs, .Object@input.data$precipitation), interval = plot.units)
     plot(pframe, type='s',col='grey', lwd=1,
          xlim=xlim, xlab='', ylab='', main='', xaxt='n')
@@ -1291,7 +1311,7 @@ setMethod(f="viterbi",signature=c("hydroState","data.frame","logical","numeric",
               plot.units = 'year'
             }
 
-            message(obsDates.Precip.asISO[1:27])
+            # message(obsDates.Precip.asISO[1:27])
             # Get the transformed flow, Qhat
             if (!any(names(data)=='Qhat.flow'))
               stop('Input "data" must contain a column named "Qhat.flow".')
@@ -1573,16 +1593,33 @@ setMethod(f="viterbi",signature=c("hydroState","data.frame","logical","numeric",
               } else {
                 xlim = c(min(obsDates.asISO), max(obsDates.asISO))
               }
-              message(paste("xlim = ", xlim,sep=""))
+              # message(paste("xlim = ", xlim,sep=""))
+
+              # if seasonal observations, adjust plot type...
+              if(plot.units == "month"){
+                if(with(rle(data$year), max(lengths)) > 4){
+                  plot.type = "s"
+                }else{
+                  plot.type = "p"
+                }
+              }else{
+                plot.type = "s"
+              }
 
               if("A" %in% plot.options){
                 if(tail(plot.options, n=1) =="A"){
                   par(mar = c(4,5,0.2,5))
                 }
                 # Plot obs precip
-                message(paste("obsDates.asISO.withNAs= ", obsDates.asISO.withNAssep=""))
+
                 pframe = padr::pad(data.frame(obsDates.asISO.withNAs, .Object@input.data$precipitation), interval = plot.units)
-                plot(pframe, type='s',col='grey', lwd=1,
+                if(plot.units == "month"){ #if seasonal... adjust to get plot with connecting lines..
+                  if(with(rle(data$year), max(lengths)) <= 4){
+                    pframe$.Object.input.data.precipitation = zoo::na.approx(object = replace(pframe$.Object.input.data.precipitation, is.na(pframe$.Object.input.data.precipitation), NA), maxgap = 2)
+                  }
+                }
+
+                plot(pframe, type="s",col='grey', lwd=1,
                      xlim=xlim, xlab='', ylab='', main='', xaxt='n')
                 mtext("Precip.",side=2,line=3, cex = 0.7)
                 mtext(paste("[mm/",plot.units,"]",sep=''),side=2,line=2, cex=0.6)
@@ -1605,7 +1642,13 @@ setMethod(f="viterbi",signature=c("hydroState","data.frame","logical","numeric",
 
                 # Plot obs flow
                 pframe = padr::pad(data.frame(obsDates.asISO.withNAs, data.withNAs$flow), interval = plot.units)
-                plot(pframe, type='l',col='grey', lwd=1, ylim=ylim.flow, xlim=xlim,
+                if(plot.units == "month"){ #if seasonal... adjust to get plot with connecting lines..
+                  if(with(rle(data$year), max(lengths)) <= 4){
+                    pframe$data.withNAs.flow = zoo::na.approx(object = replace(pframe$data.withNAs.flow, is.na(pframe$data.withNAs.flow), NA), maxgap = 2)
+                  }
+                }
+
+                plot(pframe, type="l", col='grey', lwd=1, ylim=ylim.flow, xlim=xlim,
                      xlab='', ylab='',xaxt='n')
                 # ryticks.min = signif(1.2*max(data$precipitation,na.rm=T),1)
                 # ryticks = seq(-ryticks.min, 0, by=signif(ryticks.min/2,1))
@@ -1669,7 +1712,13 @@ setMethod(f="viterbi",signature=c("hydroState","data.frame","logical","numeric",
 
                 # Plot obs Qhat
                 pframe = padr::pad(data.frame(obsDates.asISO.withNAs, data.tmp$Qhat.flow), interval = plot.units)
-                plot(pframe, type='l',col='grey', lwd=1,
+                if(plot.units == "month"){ #if seasonal... adjust to get plot with connecting lines..
+                  if(with(rle(data$year), max(lengths)) <= 4){
+                    pframe$data.tmp.Qhat.flow = zoo::na.approx(object = replace(pframe$data.tmp.Qhat.flow, is.na(pframe$data.tmp.Qhat.flow), NA), maxgap = 2)
+                  }
+                }
+
+                plot(pframe, type="l",col='grey', lwd=1,
                      ylim=ylim.qhat, xlim=xlim, xlab='', ylab='',xaxt='n')
 
                 # Plot Markov states as boxes

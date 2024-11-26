@@ -50,16 +50,18 @@ plots to evaluate rainfall-runoff states overtime along with observations and th
 }
 \examples{
 # Load fitted model
-data(model.annual.fitted)
+data(model.annual.fitted.221201)
 
 ## Set initial year to set state names
-model.annual.fitted = setInitialYear(model.name = model.annual.fitted, initial.year = 1990)
+model.annual.fitted.221201 =
+                  setInitialYear(model.name = model.annual.fitted.221201,
+                  initial.year = 1990)
 
 ## Plot all figures
-plot.states(model.name = model.annual.fitted)
+plot.states(model.name = model.annual.fitted.221201)
 
 ## Plot only dependent variable transformed with markov states
-plot.states(model.name = model.annual.fitted,
+plot.states(model.name = model.annual.fitted.221201,
              ind.variable = FALSE,
              dep.variable = FALSE,
              dep.variable.transformed = TRUE,

@@ -25,10 +25,12 @@ hydroState assigns names to the computed states. This requires choosing an initi
 }
 \examples{
 # Load fitted model
-data(model.annual.fitted)
+data(model.annual.fitted.221201)
 
 ## Set initial year to set state names
-model.annual.fitted = setInitialYear(model.name = model.annual.fitted, initial.year = 1990)
+model.annual.fitted.221201 =
+                setInitialYear(model.name = model.annual.fitted.221201,
+                               initial.year = 1990)
 
 
 }

@@ -18,42 +18,67 @@ knitr::opts_chunk$set(
 library(hydroState)
 ```
 
-## Adjusting the default state model
-hydroState provides a suite of options to adjust the default state model when model residuals do not meet the checks in `plot.residuals` (uniform and normally distributed with no trends or auto-correlation). This vignette presents some of these options by working through an example using monthly data.  
+## Sub-annual models
+Seasonal and monthly models provide further insight into the state of the relationship throughout the year, but with this more sensitive analysis, there is often more seasonal variation and auto-correlation. hydroState provides additional options to explain this variation with statistically adequate models. These options are located within the `stateModel`. The seasonal variation can be explained with a sinusoidal function for a particular parameter through identifying `seasonal.parameters` in `select.stateModel`. The selection of auto-correlation terms are within `parameters`: `AR1`,`AR2`, or `AR3`. This vignette provides an example of a analysis on a monthly time-step with the intercept, `a_0`, as a `seasonal.parameters`.
 
 ## Load required data
-Seasonal and monthly rainfall-runoff models require a data frame with catchment average runoff and precipitation for each month. Load the data into the environment. Ensure there are four columns named "year", "month", "flow", and "precipitation", and verify the units for flow and precipitation are the same ('mm', 'in', etc.). Note, hydroState operates with the order the `input.data` is given. Avoid labeling months in water years, use calender years. 
+Seasonal and monthly rainfall-runoff models require a data frame with catchment average runoff and precipitation for each month. Load the data into the environment. Ensure there are four columns named "year", "month", "flow", and "precipitation", and verify the units for flow and precipitation are the same ('mm', 'in', etc.). 
+
+Note, hydroState parses the `input.data` given in sequential order by year, month, and day (1950-01-01, 1950-01-02 or 1978-11, 1978-12, 1980-01, etc). Avoid re-labeling months in water-years for seasonal and monthly `input.data'. Use calender years. 
+
 ```r
-load("data/streamflow_monthly_221201.rda")
-data(streamflow.monthly.221201)
+data(streamflow_monthly_221201)
 
 # check input data
 head(streamflow_monthly_221201)
 #>   year month      flow precipitation
-#> 1 1922     5  2.521175      47.81208
-#> 2 1922     6  2.412904      56.06649
-#> 3 1922     7 15.337419     186.79810
-#> 4 1922     8 25.799507      73.82219
-#> 5 1922     9 26.012962     107.27834
-#> 6 1922    10 13.654558      59.42736
+#> 1 1922     3  2.521175      47.81208
+#> 2 1922     4  2.412904      56.06649
+#> 3 1922     5 15.337419     186.79810
+#> 4 1922     6 25.799507      73.82219
+#> 5 1922     7 26.012962     107.27834
+#> 6 1922     8 13.654558      59.42736
+
+```
+
+For a seasonal analysis, hydroState provides an additional `set.seasons` function to adjust the monthly data into seasons. The flow and precipitation are summed every three months and shown in the last month of the season.  The number of months in each season is included. An example of this is shown below, but not required for this analysis on a monthly time-step.
+```r
+# aggregate monthly data to seasonal
+streamflow_seasonal_221201 = set.seasons(streamflow_monthly_221201)
+
+streamflow_seasonal_407211 = set.seasons(streamflow_monthly_407211)
+
+# check seasonal data
+head(streamflow_seasonal_221201)
+#>   year month     flow precipitation nmonths
+#> 1 1922     5 20.27150     290.67667       3
+#> 2 1922     8 65.46703     240.52789       3
+#> 3 1922    11 25.07255     136.13480       3
+#> 4 1923     2 15.84783      17.11619       3
+#> 5 1923     5 26.96266     224.47029       3
+#> 6 1923     8 47.19084     322.51619       3
+
 ```
 
 ## Select the state model
-For seasonal and monthly models, there are additional options when selecting a state model. A default state model can be built that is identical to the default annual model except on a monthly time-step OR the state model can be adjusted using `select.stateModel`. In addition to the options presented in the ([adjust.state.model](https://github.com/peterson-tim-j/HydroState/tree/master/vignettes/adjust.state.model/adjust.state.model.html)) vignette, the seasonal and monthly models can assume parameters within the rainfall-runoff relationship vary seasonally throughout the year. This is avaliable within the `seasonal.parameters` selection of `select.stateModel`. This assumes a `parameter` is best modeled as a sinusoidal function representing seasonal trends. The input accepts any default parameter: `a_1`, `a_0`, or `std`. Typically, assuming seasonal trends in only the intercept, `a_0`, explains trends in the residuals of the model. For further details, see help page for `select.stateModel`.
+For seasonal and monthly models, there are additional options when selecting a state model. A default state model can be built that is identical to the default annual model except on a monthly or seasonal time-step OR the state model can be adjusted using `select.stateModel`.
 
-For comparing the default state model and adjusted model, the default state model is first defined. Then an adjusted state model is created.  
+In addition to the options presented in the previous vignette: ([adjust.state.model](https://github.com/peterson-tim-j/HydroState/tree/master/vignettes/adjust.state.model/adjust.state.model.html)), the seasonal and monthly models can assume parameters within the rainfall-runoff relationship vary seasonally throughout the year. This is available within the `seasonal.parameters` selection of `select.stateModel`. This assumes a `parameter` is best modeled as a sinusoidal function representing seasonal trends. The input accepts any default parameter: `a_1`, `a_0`, or `std`. Typically, assuming seasonal trends in only the intercept, `a_0`, explains trends in the residuals of the model. For further details, see help page for `select.stateModel`.
 
+For this analysis on a monthly time-step, the state model is adjusted as shown below:  
 ```r
 # Default state model
-default.state.model = select.stateModel(input.data = streamflow_monthly_221201,
+default.state.model.seasonal = select.stateModel(input.data = streamflow_monthly_221201,
+                              parameters = list('a0','a1','std','AR3'),
+                              error.distribution = 'gamma',
+                              seasonal.parameters = list('a0'))
+                              
+# Default state model with a seasonal intercept and auto-regressive term
+adjusted.state.model.seasonal = select.stateModel(input.data = streamflow_monthly_221201,
                               parameters = list('a0','a1','std'),
-                              error.distribution = 'gauss')
-
-# Adjusted state model assuming lag-1 auto-correlation and seasonal forcing in 'a0'
-AR1.state.model = select.stateModel(input.data = streamflow_monthly_221201,
-                              parameters = list('a0','a1','std','AR1'),
-                              seasonal.parameters = list('a0')
-                              error.distribution = 'gauss')
+                              seasonal.parameters = list('a0'),
+                              error.distribution = 'gamma')
+                              
 
 ```
 
@@ -61,30 +86,37 @@ AR1.state.model = select.stateModel(input.data = streamflow_monthly_221201,
 Build the hydroState model with a specified state model from above rather than using the default.
 
 ```r
-# Build hydroState model with specified state model
-AR1.model.monthly = buildModel(input.data = streamflow_monthly_221201,
-                    stateModel = AR1.state.model)
+
+# Build hydroState model with default state model
+model.seasonal.default = buildModel(input.data = streamflow_monthly_221201,
+                      stateModel = default.state.model.seasonal)
+                      
+model.seasonal.default.all =  buildModelAll(input.data = streamflow_monthly_221201)
+                      
+# Build hydroState model with adjusted state model, seasonal forcing
+model.seasonal.adjusted = buildModel(input.data = streamflow_seasonal_407211,
+                      stateModel = adjusted.state.model.seasonal)
 ```
 
 ## Fit the model
 Fit the built model with `fitModel`.
 ```r
-AR1.model.monthly = fitModel(AR1.model, pop.size.perParameter = 10, max.generations = 500)
+model.seasonal.default = fitModel(model.seasonal.default, pop.size.perParameter = 10, max.generations = 1000)
+
+model.seasonal.default.all = fitModel(model.seasonal.default.all, pop.size.perParameter = 10, max.generations = 10000, doParallel = FALSE)
+
+model.seasonal.adjusted = fitModel(model.seasonal.adjusted, pop.size.perParameter = 10, max.generations = 500)
 ```
 
 ## Review the residuals
-Review the model's residuals from figures using `plot.residuals` to ensure they are uniform and normally distributed with no trends or auto-correlation. A large plot with five figures (A-E) is produced and each is discussed below. There is also an option to export the plot as a PDF with '`do.pdf` = T' and label plots with the site ID (i.e. `ID` = 221201'). Alternatively, the residuals can be reviewed without plotting using `get.residuals` which returns a data frame of the normal pseudo residuals at each time-step. 
-
-A)  Time-series of normal-pseudo residuals to ensure the residuals each year are within the confidence intervals.
-B)  Auto-correlation function (ACF) of normal-pseudo residuals to ensure there is no serial correlation in residuals. Lag spikes should be below confidence interval at each lag (except 0).
-C)  Histogram of uniform-pseudo residuals should show uniform distribution (equal frequency for each residual value)
-D)  Histogram of normal-pseudo residuals should show normal distribution centered on zero and with no skew
-E)  Quantile-Quantile (Q-Q) plot where normal-pseudo residuals vs. theoretical quantities should align on the diagonal line. The last plot contains the Akaike information criterion (AIC) and Shapiro-Wilk p-value. The AIC is an estimator to determine the most parsimonious, best performing model given the number of parameters. When comparing models, the lowest AIC is the best performing model. Shapiro-Wilks test for normality in the residuals and a p-value greater than 0.05 (chosen alpha level) indicates the residuals are normally distributed
-
+Review the model's residuals from figures using `plot.residuals` to ensure they are uniform and normally distributed with no trends or auto-correlation.
 
 ```r
 # review residual plots
-plot.residuals(AR1.model.monthly, do.pdf = F, ID ='221201')
+plot.residuals(model.seasonal.default, do.pdf = F, ID ='221201')
+
+plot.residuals(model.seasonal.adjusted, do.pdf = F, ID ='221201')
+
 
 # get residual values
 model.residuals = get.residuals(AR1.model.monthly)
@@ -95,10 +127,27 @@ Set the state names relative to a year in the record using `setInitialYear`. Thi
 
 ```r
 # set the reference year to name the states
-AR1.model.monthly = setInitialYear(AR1.model.monthly, 1990)
+model.seasonal = setInitialYear(model.seasonal, 1990)
+model.monthly = setInitialYear(model.monthly, 1990)
+
 
 # plot all four plots
-model.states = plot.states(AR1.model.monthly)
+plot.states(model.seasonal)
 
+plot.states(model.monthly)
+
+get.states(model.seasonal)
+
+get.states(default.model.annual)
+
+monthly.states = get.states(model.monthly)
+```
+
+## ## Systematic state model selection for sub-annual models
+
+```r
+<!-- all.models.21201.seasonal = buildModelAll(input.data = streamflow_monthly_221201) -->
+
+<!-- all.models.21201.seasonal = fitModel(all.models.21201.seasonal) -->
 ```
 

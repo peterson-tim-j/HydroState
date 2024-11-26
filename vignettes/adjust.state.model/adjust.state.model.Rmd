@@ -128,7 +128,7 @@ Below is a an example of how to set up `buildModelAll`, but the built models are
 all.models = buildModelAll(input.data = streamflow_annual_407211)
 
 # Fit all models (uncomment to run)
-# all.models = fitModel(all.models, pop.size.perParameter = 10, max.generations = 500, do.parallel = TRUE)
+<!--  all.models = fitModel(all.models, pop.size.perParameter = 10, max.generations = 500, doParallel = TRUE)
 
 ```
 

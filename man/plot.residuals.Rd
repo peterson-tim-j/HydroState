@@ -39,10 +39,10 @@ The normal pseudo residuals are plotted for review to check for outliers and val
 }
 \examples{
 # Load fitted model
-data(model.annual.fitted)
+data(model.annual.fitted.221201)
 
 ## Plot residuals
-plot.residuals(model.name = model.annual.fitted)
+plot.residuals(model.name = model.annual.fitted.221201)
 
 }
 \keyword{plot}

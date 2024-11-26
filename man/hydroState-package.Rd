@@ -57,7 +57,7 @@ There is an additional option to construct all possible types of models using th
   }
 
 \section{Authors}{
-Except where indicated otherwise, the methods and functions in this package were written by Tim Peterson.
+Except where indicated otherwise, the methods and functions in this package were written by Tim Peterson and Thomas Westfall.
 }
 
 \section{Acknowledgments}{

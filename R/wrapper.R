@@ -1,3 +1,114 @@
+#' Set Seasons
+#'
+#' \code{set.seasons}
+#'
+#' @description
+#' Aggregates monthly data to 4 seasons in a year.
+#'
+#' @details
+#' Sets 4 seasons
+#'
+#' @param input.data dataframe of monthly runoff and precipitation observations. Gaps with missing data in either streamflow or precipitation are permitted, and the handling of them is further discussed in \code{select.Markov}. Monthly data is required when using \code{seasonal.parameters} that assumes selected model parameters are better defined with a sinusoidal function.
+#'
+#' @return
+#' A dataframe of seasonal observations with an additional column counting the number of months in each season.
+#'
+#' @keywords seasons
+#'
+#'
+#' @export set.seasons
+#'
+#' @examples
+#'
+#' # Load data
+#' data(streamflow_monthly_221201)
+#'
+#' # aggregate monthly data to seasonal
+#' streamflow_seasonal_221201 = set.seasons(streamflow_monthly_221201)
+#'
+#'
+
+set.seasons <- function(input.data=data.frame(year=c(), month = c(), flow=c(), precip=c())){
+
+#Validate
+  # WILL NEED TO CHANGE SUM TO AVERAGE, and maybe middle month for concentration...
+
+  if(!('year' %in% colnames(input.data))){
+    stop("'input.data' must contain a 'year' column with an integer of years")
+  }
+
+
+  if(!('month' %in% colnames(input.data))){
+    stop("'input.data' must contain a 'month' column with an integer of months")
+  }
+
+  # If monthly data, sort in ascending order by year and month
+  if('month' %in% colnames(input.data)){
+    input.data = input.data[order(input.data[,'year'],input.data[,'month']),]
+  }else if('day' %in% colnames(input.data)){
+    input.data = input.data[order(input.data[,'year'],input.data[,'month'],input.data[,'day']),]
+  }
+
+  delta = getStartEndIndex(input.data)
+
+
+  # Aggregate monthly data to seasons
+  season.months = matrix(0,4,2)
+  season.months[1,] = c(12,2)
+  season.months[2,] = c(3,5)
+  season.months[3,] = c(6,8)
+  season.months[4,] = c(9,11)
+  nrow=0
+  season.end.month.current = 0
+  #streamflow_monthly.seasonal = data.frame(year=c(), month=c(), flow=c(), precipitation=c(), nmonths=c())
+  streamflow_monthly.seasonal = matrix(NA,nrow(input.data),5)
+
+  for(j in 1:nrow(delta)){
+
+    data = input.data[delta[j,1]:delta[j,2],]
+
+    for (i in 1:nrow(data)) {
+
+      # Get season index.
+      if (data$month[i]>=season.months[1,1] || data$month[i]<=season.months[1,2]) {
+        season.ind = 1
+      } else {
+        season.ind = which(data$month[i]>=season.months[,1] & data$month[i]<=season.months[,2])
+      }
+      season.end.month = season.months[season.ind,2]
+
+      if (season.end.month == season.end.month.current) {
+        streamflow_monthly.seasonal[nrow,3] = streamflow_monthly.seasonal[nrow,3] + data$flow[i]
+        streamflow_monthly.seasonal[nrow,4] = streamflow_monthly.seasonal[nrow,4] + data$precipitation[i]
+        streamflow_monthly.seasonal[nrow,5] = streamflow_monthly.seasonal[nrow,5] + 1
+      } else {
+        nrow = nrow + 1
+        if (season.end.month==2) {
+          streamflow_monthly.seasonal[nrow,1] = data$year[i]+1
+        } else {
+          streamflow_monthly.seasonal[nrow,1] = data$year[i]
+        }
+        streamflow_monthly.seasonal[nrow,2] = season.end.month
+        streamflow_monthly.seasonal[nrow,3] = data$flow[i]
+        streamflow_monthly.seasonal[nrow,4] = data$precipitation[i]
+        streamflow_monthly.seasonal[nrow,5] = 1
+
+        season.end.month.current = season.end.month
+      }
+    }
+  }
+
+  filt = !is.na(streamflow_monthly.seasonal[,1]) & streamflow_monthly.seasonal[,5]==3
+  streamflow_monthly.seasonal = streamflow_monthly.seasonal[filt,]
+  streamflow_monthly.seasonal = data.frame(year=streamflow_monthly.seasonal[,1], month=streamflow_monthly.seasonal[,2], flow=streamflow_monthly.seasonal[,3], precipitation=streamflow_monthly.seasonal[,4], nmonths=streamflow_monthly.seasonal[,5])
+
+  # Remove the first 5 years if precip to minimise AR1 spin up effects. THIS IS A TEMP FIX!!!
+  # filt = streamflow_monthly.seasonal$year <= (min(streamflow_monthly.seasonal$year)+4)
+  # streamflow_monthly.seasonal$flow[filt] = NA
+
+  return(streamflow_monthly.seasonal)
+}
+
 #' Transforms Observations
 #'
 #' \code{select.transform}
@@ -827,22 +938,25 @@ buildModelAll <- function(input.data = data.frame(year=c(), flow=c(), precip=c()
     if('month' %in% colnames(input.data)){
       input.data = input.data[order(input.data[,'year'],input.data[,'month']),]
 
+
+      return(new('hydroState.subAnnual.allModels',ID, input.data, allow.flickering=F))
+
       # remove month column
-      input.data = input.data[,c("year","flow","precipitation")]
+      # input.data = input.data[,c("year","flow","precipitation")]
+      #
+      # input.data = aggregate(input.data[c('flow','precipitation')], by=input.data['year'], sum)
+      #
+      # message('Note: Monthly data inputted. flow and precipitation summed by year. All models built.')
 
-      input.data = aggregate(input.data[c('flow','precipitation')], by=input.data['year'], sum)
-
-      message('Note: Monthly data inputted. flow and precipitation summed by year. All models built.')
-
-    }else if('day' %in% colnames(input.data)){
-      input.data = input.data[order(input.data[,'year'],input.data[,'month'],input.data[,'day']),]
-
-      # remove day and month column
-      input.data = input.data[,c("year","flow","precipitation")]
-
-      input.data = aggregate(input.data[c('flow','precipitation')], by=input.data['year'], sum)
-
-      message('Note: Daily data inputted. flow and precipitation summed by year. All models built.')
+    # }else if('day' %in% colnames(input.data)){
+    #   input.data = input.data[order(input.data[,'year'],input.data[,'month'],input.data[,'day']),]
+    #
+    #   # remove day and month column
+    #   input.data = input.data[,c("year","flow","precipitation")]
+    #
+    #   input.data = aggregate(input.data[c('flow','precipitation')], by=input.data['year'], sum)
+    #
+    #   message('Note: Daily data inputted. flow and precipitation summed by year. All models built.')
 
     }
 
@@ -936,18 +1050,64 @@ fitModel <- function(model.name,
                      doParallel = F){
 
   # Validate
-  if(class(model.name)[1] %in% c("hydroState", "hydroState.allModels", "hydroState.subAnnual.allModels")){
-#
+  if(class(model.name)[1] == "hydroState"){
+
     if(doParallel == T){
-      return(fit(model.name, pop.size.perParameter = pop.size.perParameter, max.generations=max.generations, use.initial.parameters=F, doParallel = T))
+
+      return(fit(model.name,
+                 DEstrategy=3,
+                 pop.size.perParameter = pop.size.perParameter,
+                 max.generations=max.generations,
+                 Domains = NA,
+                 reltol=1e-8,
+                 steptol=50,
+                 print.iterations = 25,
+                 use.initial.parameters=F,
+                 doParallel = T))
 
     }else{
-      return(fit(model.name, pop.size.perParameter = pop.size.perParameter, max.generations=max.generations, use.initial.parameters=F))
 
+      return(fit(model.name,
+                 DEstrategy=3,
+                 pop.size.perParameter = pop.size.perParameter,
+                 max.generations=max.generations,
+                 Domains = NA,
+                 reltol=1e-8,
+                 steptol=50,
+                 print.iterations = 25,
+                 use.initial.parameters=F,
+                 doParallel = F))
     }
-    # fit model
+
+  }else if(class(model.name)[1] == "hydroState.allModels"){
+
+    return(fit(model.name,
+               DEstrategy=3,
+               pop.size.perParameter = pop.size.perParameter,
+               max.generations=10000,
+               Domains = NA,
+               reltol=1e-8,
+               steptol=50,
+               print.iterations = 25,
+               use.initial.parameters=F,
+               doParallel = T))
+
+  }else if(class(model.name)[1] == "hydroState.subAnnual.allModels"){
+
+
+    return(fit(model.name,
+               DEstrategy=3,
+               pop.size.perParameter = pop.size.perParameter,
+               max.generations=10000,
+               Domains = NA,
+               reltol=1e-8,
+               steptol=50,
+               print.iterations = 25,
+               use.initial.parameters=F,
+               doParallel = T))
 
   }else{
+
 
     stop('model.name is not an appropriate class. Please ensure input model is a built hydroState model with the class as either of the following: "hydroState", "hydroState.allModels", or "hydroState.subAnnual.allModels"')
 
@@ -998,10 +1158,10 @@ fitModel <- function(model.name,
 #'
 #' @examples
 #' # Load fitted model
-#' data(model.annual.fitted)
+#' data(model.annual.fitted.221201)
 #'
 #' ## Plot residuals
-#' plot.residuals(model.name = model.annual.fitted)
+#' plot.residuals(model.name = model.annual.fitted.221201)
 #'
 
 
@@ -1065,10 +1225,10 @@ plot.residuals <- function(model.name,
 #'
 #' @examples
 #' # Load fitted model
-#' data(model.annual.fitted)
+#' data(model.annual.fitted.221201)
 #'
 #' ## Get residuals in a dataframe
-#' get.residuals(model.name = model.annual.fitted)
+#' get.residuals(model.name = model.annual.fitted.221201)
 #'
 #'
 
@@ -1104,10 +1264,12 @@ get.residuals <- function(model.name){
 #'
 #' @examples
 #' # Load fitted model
-#' data(model.annual.fitted)
+#' data(model.annual.fitted.221201)
 #'
 #' ## Set initial year to set state names
-#' model.annual.fitted = setInitialYear(model.name = model.annual.fitted, initial.year = 1990)
+#' model.annual.fitted.221201 =
+#'                 setInitialYear(model.name = model.annual.fitted.221201,
+#'                                initial.year = 1990)
 #'
 #'
 
@@ -1160,19 +1322,22 @@ setInitialYear <- function(model.name, initial.year){ #make go to first year of 
 #' @import diagram
 #' @import graphics
 #' @importFrom utils tail
+#' @importFrom zoo na.approx
 #'
 #' @examples
 #' # Load fitted model
-#' data(model.annual.fitted)
+#' data(model.annual.fitted.221201)
 #'
 #' ## Set initial year to set state names
-#' model.annual.fitted = setInitialYear(model.name = model.annual.fitted, initial.year = 1990)
+#' model.annual.fitted.221201 =
+#'                   setInitialYear(model.name = model.annual.fitted.221201,
+#'                   initial.year = 1990)
 #'
 #' ## Plot all figures
-#' plot.states(model.name = model.annual.fitted)
+#' plot.states(model.name = model.annual.fitted.221201)
 #'
 #' ## Plot only dependent variable transformed with markov states
-#' plot.states(model.name = model.annual.fitted,
+#' plot.states(model.name = model.annual.fitted.221201,
 #'              ind.variable = FALSE,
 #'              dep.variable = FALSE,
 #'              dep.variable.transformed = TRUE,
@@ -1455,13 +1620,16 @@ plot.states <- function(model.name,
 #'
 #' @examples
 #' # Load fitted model
-#' data(model.annual.fitted)
+#' data(model.annual.fitted.221201)
 #'
 #' ## Set initial year to set state names
-#' model.annual.fitted = setInitialYear(model.name = model.annual.fitted, initial.year = 1990)
+#' model.annual.fitted.221201 =
+#'                 setInitialYear(model.name = model.annual.fitted.221201,
+#'                                initial.year = 1990)
 #'
 #' ## Get states
-#' model.annual.fitted.states = get.states(model.name = model.annual.fitted)
+#' model.annual.fitted.221201.states =
+#'                 get.states(model.name = model.annual.fitted.221201)
 #'
 
 

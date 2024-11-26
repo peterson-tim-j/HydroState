@@ -23,10 +23,10 @@ The normal pseudo residuals are retrieved from the fitted model.
 }
 \examples{
 # Load fitted model
-data(model.annual.fitted)
+data(model.annual.fitted.221201)
 
 ## Get residuals in a dataframe
-get.residuals(model.name = model.annual.fitted)
+get.residuals(model.name = model.annual.fitted.221201)
 
 
 }

@@ -56,7 +56,7 @@ setMethod("initialize","QhatModel.subAnnual.homo.gamma.linear", function(.Object
   .Object
 }
 )
-
+#' @exportMethod setSeasons
 setGeneric(name="setSeasons",def=function(.Object, input.data) {standardGeneric("setSeasons")})
 setMethod(f="setSeasons",signature=c("QhatModel.subAnnual.homo.gamma.linear",'data.frame'),
           definition=function(.Object, input.data)
@@ -71,8 +71,6 @@ setMethod(f="setSeasons",signature=c("QhatModel.subAnnual.homo.gamma.linear",'da
 
     data = input.data[delta[j,1]:delta[j,2],]
 
-  # # Get the probabiity of the observed Qhat for each state at each time point.
-  # emission.probs = lapply(1:NROW(delta), function(i) getEmissionDensity(.Object@QhatModel.object, data[delta[i,1]:delta[i,2],], NA))
     if(delta[j,2] - delta[j,1] > 12){
       # Get the seasons from the input data.
       subAnnual.Monthly.Steps[[j]] = sort(unique(data$month))
