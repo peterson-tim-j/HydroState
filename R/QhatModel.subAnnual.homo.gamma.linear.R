@@ -56,7 +56,7 @@ setMethod("initialize","QhatModel.subAnnual.homo.gamma.linear", function(.Object
   .Object
 }
 )
-#' @exportMethod setSeasons
+
 setGeneric(name="setSeasons",def=function(.Object, input.data) {standardGeneric("setSeasons")})
 setMethod(f="setSeasons",signature=c("QhatModel.subAnnual.homo.gamma.linear",'data.frame'),
           definition=function(.Object, input.data)

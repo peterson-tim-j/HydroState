@@ -6,37 +6,66 @@
 \usage{
 buildModel(
   input.data = data.frame(year = c(), flow = c(), precip = c()),
-  data.transform = NULL,
-  stateModel = NULL,
-  Markov = NULL
+  data.transform = "boxcox",
+  parameters = list("a0", "a1", "std"),
+  seasonal.parameters = list(),
+  state.shift.parameters = list("a0", "std"),
+  error.distribution = "truc.normal",
+  flickering = FALSE,
+  transition.graph = matrix(TRUE, 2, 2)
 )
 }
 \arguments{
-\item{input.data}{dataframe of annual, seasonal, or monthly runoff and precipitation observations. Gaps with missing data in either streamflow or precipitation are permitted, and the handling of them is further discussed in \code{select.Markov}. Monthly data is required when using \code{seasonal.parameters} that assumes selected model parameters are better defined with a sinusoidal function.}
+\item{input.data}{dataframe of annual, seasonal, or monthly runoff and precipitation observations. Gaps with missing data in either streamflow or precipitation are permitted. Monthly data is required when using \code{seasonal.parameters} that assumes selected model parameters are better defined with a sinusoidal function.}
 
-\item{data.transform}{a \code{Qhat.object} with transformed observations from \code{select.transform}. If blank, the default uses 'boxcox' to transform observations.}
+\item{data.transform}{character string with the method of transformation. The default is 'boxcox'. Other options: 'log', 'burbidge', 'none'}
 
-\item{stateModel}{a \code{QhatModel.object} from \code{select.stateModel}. If blank, the default selects a 2-state 'QhatModel.homo.normal.linear' model with a truncated normal error distribution, and allows the intercept 'a0' and standard deviation 'std' to shift as state dependent parameters.}
+\item{parameters}{character list of parameters to construct model. Required and default: \code{a0}, \code{a1}, \code{std}. Auto-correlation terms optional: \code{AR1}, \code{AR2}, or \code{AR3}.}
 
-\item{Markov}{a \code{markov.model.object} from \code{select.Markov}. If blank, the default selects a homogeneous Markov model without flickering.}
+\item{seasonal.parameters}{character list of one or all parameters (\code{a0}, \code{a1}, \code{std}) defined as a sinusoidal function to represent seasonal variation. Requires monthly or seasonal data. Default is empty list.}
+
+\item{state.shift.parameters}{character list of one or all parameters (\code{a0}, \code{a1}, \code{std}, \code{AR1}, \code{AR2}, \code{AR3}) able to shift as dependent on state. Default is \code{a0} and \code{std}.}
+
+\item{error.distribution}{character sting of the distribution in the HMM error. Default is 'truc.normal'. Others include: 'normal' or 'gamma'}
+
+\item{flickering}{logical T/F. T = allows more sensitive markov flickering between states over time, F = less sensitive and is default.}
+
+\item{transition.graph}{matrix given the number of states. Default is a 2-state matrix (2 by 2): matrix(TRUE,2,2)}
 }
 \value{
 A built hydroState model object ready to be fitted with \code{fitModel}
 }
 \description{
-\code{buildModel} builds a hydrostate model with either a default \code{stateModel} or the \code{stateModel} can be specified with options from \code{select.stateModel}. After the model is built, the hydroState model is ready to be fitted with \code{fitModel}
+\code{buildModel} builds a hydrostate model with either a default model or the model can be specified with options from below. Every model depends on a linear base model where streamflow is a function of precipitation. The default model is an analysis of this base linear model with state shifts expected in the intercept, \eqn{a_0}, and standard deviation, \eqn{std}, of the rainfall-runoff relationship. There are additional adjustments to this model with auto-correlations terms, seasonal parameters for a sub-annual analysis, and even evaluation of other \code{state.shift.parameters}. The number of states and assumed error distribution can also be selected. After the model is built, the hydroState model is ready to be fitted with \code{fitModel}
 }
 \details{
 \code{buildModel}
 
 
-hydroState operates in S4, object oriented programming, and requires three objects to build a hydroState model. Each object can be selected from \code{select.transform}, \code{select.stateModel}, and \code{select.Markov}; however, if no object is defined a default model is built with the following objects:
+There are a selection of items to consider when defining the rainfall-runoff relationship and investigating state shifts in this relationship. hydroState provides various options for modelling the rainfall-runoff relationship.
 \itemize{
-\item{1)} 'boxcox' \code{data.transform}
-\item{2)} \code{select.stateModel} with 2-states, a truncated normal error distribution, and allows the intercept 'a0' and standard deviation 'std' to shift as state dependent parameters
-\item{3)}  homogeneous Markov model without flickering in \code{select.Markov}.
+\item{Data gaps  with \code{input.data}}: When there is missing \code{input.data}, special care was taken to reduce the influence of the missing time periods while making the most of the given data without infilling. For time-periods where the dependent variable, streamflow, is missing, the transition probability for these missing periods is essentially ignored by setting the conditional probability of the missing time-steps equal to one. This results in the time-step after the missing period having the same probability of being in the given state as before the missing period. For time-periods where the independent variable is missing, precipitation, the missing periods are essentially ignored when fitting the models as the likelihood is calculated from only continuous periods with values for the independent variable. Since the log-likelihood is calculated for each continuous period, the sum of the log-likelihoods provides a total log-likelihood to fit models. Again, there is no infilling of missing data.
+\item{Transform Observations with \code{data.transform}}: Transforms observations to remove heteroscedasticity. Often there is skew within hydrologic data. When defining relationships between observations, this skew results in an unequal variance in the residuals, heteroscedasticity. Transforming observations is often required with observations of streamflow and precipitation. There are several options to transform observations. Since the degree of transformation is not typically known, 'boxcox' is the default. Other options include: 'log', 'burbidge', and of course, 'none' when no transformation is performed.
+\item{Model Structure with \code{parameters} and \code{seasonal.parameters}}: The structure of the model depends on the \code{parameters}. hydroState simulates runoff, \eqn{Q}, as being in one of finite states, \eqn{i}, at every time-step, \eqn{t}, depending on the distribution of states at prior time steps. This results in a runoff distribution for each state that can vary overtime (\eqn{\widehat{_tQ_i}}). The model defines the relationship that is susceptible to state shifts with precipitation, \eqn{P_t}, as a predictor. This takes the form as a simple linear model \eqn{\widehat{_tQ_i} = f(P_t)}:
+
+\eqn{\widehat{_tQ_i} = P_ta_1 + a_0}
+
+where \eqn{a_0} and \eqn{a_1} are constant parameters. These parameters and the model error, \eqn{std}, are required parameters for every model. It is possible the relationship contains serial correlation and would be better defined with an auto-regressive term:
+
+\eqn{\widehat{_tQ_i} = P_ta_1 + a_0 + AR1\widehat{_{t-1}Q}}
+
+where \eqn{AR1} is the lag-1 auto-correlation term. Either, lag-1: \eqn{AR1}, lag-2: \eqn{AR2}, and lag-3: \eqn{AR3} auto-correlation coefficients are an option as additional parameters to better define the rainfall-runoff relationship.
+For sub-annual analysis, \code{seasonal.parameters} provides the option to assume a sinusoidal function better defines either of the constant parameters or error (\eqn{a_0, a_1, std}) throughout the year, i.e:
+
+\eqn{a_0 = a_{0.disp} + a_{0.amp} * sin(2\pi(\frac{M_t}{12} + a_{0.phase}))}
+
+where \eqn{M_t} is an integer month at \eqn{t}. Monthly streamflow and precipitation are required as \code{input.data} for the sub-annual analysis.
+
+\item{State Dependent Parameters with \code{state.shift.parameters}}: These are state dependent parameters where they are subject to shift in order to better explain the state of streamflow over time. Any or all of the previously chosen parameters can be selected (\eqn{a_0, a_1, std, AR1, AR2, AR3}). The default model evaluates shifts in the rainfall-runoff relationship with \eqn{a_0} \eqn{std} as state dependent parameters.
+\item{Distribution of the Residuals with \code{error.distribution}}: The distribution of the residuals (error) in the model can be chosen to reduce skew and assist with making models statistically adequate (see \code{plot.residuals}). Either normal: 'normal', truncated normal: 'truc.normal', or gamma: 'gamma' distributions are acceptable. The default is 'truc.normal'. Sub-annual models are restricted to only a 'gamma' distribution.
+\item{Markov flickering with \code{flickering}}: The form of the Markov model is homogeneous where the transition probabilities are time-invariant. The model be performed with or without flickering between states. Flickering within the Markov model provides a more sensitive analysis. The default is FALSE, no flickering.
+\item{Number of States with \code{transition.graph}}: The number of possible states in the rainfall-runoff relationship and transition between the states is selected with the transition.graph. The default is a 2-state model in a 2 by 2 matrix with a TRUE transition to and from each state.
 }
-To further review the default model and possible expansions, \code{select.stateModel} provides more details.
 }
 \examples{
 # Load data
@@ -48,26 +77,16 @@ model = buildModel(input.data = streamflow_annual_221201)
 # OR
 
 ## Build annual hydroState model with specified objects
-
-  # Select data transformation. Transforms precipitation and flow in natural log-space
-  data.transform = select.transform(func = 'log',input.data = streamflow_annual_221201)
-
-  # Select stateModel. Assume 2-state, normal error distribution, 1-lag of auto-correlation,
-  # and state dependent parameters in the slope 'a1' and standard deviation 'std'
-  stateModel.annual.AR1 = select.stateModel(input.data = streamflow_annual_221201,
-                             parameters = list('a0','a1','std','AR1'),
-                             state.shift.parameters = list('a1','std'),
-                             error.distribution = 'normal',
-                             transition.graph = matrix(TRUE,2,2))
-
-  # Select Markov model
-  markovModel = select.Markov('annualHomogeneous', transition.graph=matrix(TRUE,2,2))
-
-  # Build hydroState model with objects
-  model = buildModel(input.data = streamflow_annual_221201,
-                   data.transform = data.transform,
-                   stateModel = stateModel.annual.AR1,
-                   Markov = markovModel)
+# Build hydroState model with: 2-state, normal error distribution,
+# 1-lag of auto-correlation, and state dependent parameters ('a1', 'std')
+model = buildModel(input.data = streamflow_annual_221201,
+                   data.transform = 'boxcox',
+                   parameters = list('a0','a1','std','AR1'),
+                   seasonal.parameters = list(),
+                   state.shift.parameters = list('a1','std'),
+                   error.distribution = 'normal',
+                   flickering = FALSE,
+                   transition.graph = matrix(TRUE,2,2))
 
 }
 \keyword{build}

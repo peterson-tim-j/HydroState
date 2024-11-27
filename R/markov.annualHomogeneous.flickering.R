@@ -100,6 +100,7 @@ setMethod(f="getLogLikelihood", signature=c("markov.annualHomogeneous.flickering
             if (any(is.infinite(emission.probs)))
               return(Inf)
 
+
             # Get number of states
             nStates = getNumStates(.Object)
 

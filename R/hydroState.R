@@ -327,7 +327,7 @@ setMethod(f="getTransitionProbabilities",
 
 # Get start and end indices for independent variable
 
-#' @exportMethod getStartEndIndex
+# @exportMethod getStartEndIndex
 setGeneric(name = "getStartEndIndex", def = function(data,...) {standardGeneric("getStartEndIndex")})
 setMethod(f="getStartEndIndex", signature = c(data = "data.frame"), definition = function(data){
 
@@ -416,6 +416,7 @@ setMethod(f="getNegLogLikelihood",signature=c(.Object="hydroState",parameters="l
             return(getNegLogLikelihood(.Object))
           }
           )
+# @exportMethod getNegLogLikelihood
 #setGeneric(name="getNegLogLikelihood",def=function(.Object) {standardGeneric("getNegLogLikelihood")})
 setMethod(f="getNegLogLikelihood",signature=c(.Object="hydroState",parameters='missing'),definition=function(.Object)
           {
@@ -426,30 +427,32 @@ setMethod(f="getNegLogLikelihood",signature=c(.Object="hydroState",parameters='m
             # Add Qhat to the input data
             #data = cbind.data.frame(.Object@input.data,Qhat=Qhat)
 
-            # Get the probabiity of the observed Qhat for each state at each time point.
-            # emission.probs = lapply(1:NROW(delta), function(i) getEmissionDensity(.Object@QhatModel.object, data[delta[i,1]:delta[i,2],], NA))
-            emission.probs = getEmissionDensity(.Object@QhatModel.object, data, NA)
-
-
-
-            # if (all(is.na(unlist(emission.probs))) || max(unlist(emission.probs), na.rm=T)==0) {
-            #   return(Inf)
-            # }
-            if (all(is.na((emission.probs))) || max((emission.probs), na.rm=T)==0) {
-              return(Inf)
-            }
-
             # Set-up to run for all periods with continuous observations of independent variable (precipitation)
             delta = getStartEndIndex(data)
 
-
-            # Get the markov likelihod and return. Importantly, the object QhatBar is passed so that
+            # Get the markov likelihood and return. Importantly, the object QhatBar is passed so that
             # the markov object can get the model estimates of the transformed flow mean, standard deviation etc.
-            nll <- lapply(1:NROW(delta), function(i) getLogLikelihood(.Object@markov.model.object, data[delta[i,1]:delta[i,2],], emission.probs[delta[i,1]:delta[i,2],]))
-            # nll <- getLogLikelihood(.Object@markov.model.object, data, emission.probs)
+            if(NROW(delta)>1){
 
-            nll <- sum(unlist(nll))
-            # nll <- sum((nll))
+              # Get the probabiity of the observed Qhat for each state at each time point.
+              emission.probs = lapply(1:NROW(delta), function(i) getEmissionDensity(.Object@QhatModel.object, data[delta[i,1]:delta[i,2],], NA))
+
+                if (all(is.na(unlist(emission.probs))) || max(unlist(emission.probs), na.rm=T)==0) {
+                    return(Inf)
+                  }
+
+                nll <- lapply(1:NROW(delta), function(i) getLogLikelihood(.Object@markov.model.object, data[delta[i,1]:delta[i,2],], emission.probs[delta[i,1]:delta[i,2],]))
+                nll <- sum(unlist(nll))
+              }else{
+
+                emission.probs = getEmissionDensity(.Object@QhatModel.object, data, NA)
+
+                if (all(is.na((emission.probs))) || max((emission.probs), na.rm=T)==0) {
+                  return(Inf)
+                }
+
+                nll <- getLogLikelihood(.Object@markov.model.object, data, emission.probs)
+              }
 
             if (!is.finite(nll)) {
               return(Inf)
@@ -571,7 +574,7 @@ setMethod(f = "fit",signature="hydroState",definition=function(.Object,
     }else{
       controls = list(reltol=reltol, steptol=steptol, itermax=max.generations, trace=print.iterations, NP=NP, c=0.01,
                       strategy=DEstrategy)
-      message("controls here")
+      # message("controls here")
     }
   }
 
@@ -717,7 +720,7 @@ setMethod(f="setStateNames",signature=c("hydroState","numeric"),definition=funct
 
 
 
-# @export plot.graph
+# @exportMethod plot.graph
 setGeneric(name="plot.graph",def=function(.Object, main=NA, relsize=NA) {standardGeneric("plot.graph")})
 setMethod(f="plot.graph",signature="hydroState",definition=function(.Object, main='Transtion Probability Graph', relsize=0.8)
 {
@@ -754,7 +757,7 @@ setMethod(f="plot.graph",signature="hydroState",definition=function(.Object, mai
 }
 )
 
-#' @exportMethod viterbi
+# @exportMethod viterbi
 setGeneric(name="viterbi",def=function(.Object, data, do.plot=NA, plot.percentiles=NA, plot.yearRange=NA, plot.options=NA) {standardGeneric("viterbi")})
 setMethod(f="viterbi",signature=c("hydroState","missing","missing","missing","missing","missing"),
           definition=function(.Object, data, do.plot=T, plot.percentiles = c(0.05, 0.5, 0.95), plot.yearRange=numeric(),plot.options = c("A","B","C","D"))

@@ -236,13 +236,14 @@ setMethod(f="getTransitionProbabilities",
 )
 
 # Get the log likelihood for the input data.
+# @exportMethod getLogLikelihood
 setMethod(f="getLogLikelihood", signature=c("markov.annualHomogeneous","data.frame","matrix"),
           definition=function(.Object, data, emission.probs)
           {
           # Check all the emmision probs. are finite.
             if (any(is.infinite(emission.probs)))
               return(Inf)
-
+            # message("getLogLikelihood")
             # Get number of states
             nStates = getNumStates(.Object)
 
@@ -501,7 +502,7 @@ setMethod(f="getNumStates",
           signature="markov.annualHomogeneous",
           definition=function(.Object)
           {
-            return(ncol(.Object@transition.graph))
+            return(NCOL(.Object@transition.graph))
           }
 )
 

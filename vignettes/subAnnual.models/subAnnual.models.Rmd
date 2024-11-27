@@ -19,7 +19,7 @@ library(hydroState)
 ```
 
 ## Sub-annual models
-Seasonal and monthly models provide further insight into the state of the relationship throughout the year, but with this more sensitive analysis, there is often more seasonal variation and auto-correlation. hydroState provides additional options to explain this variation with statistically adequate models. These options are located within the `stateModel`. The seasonal variation can be explained with a sinusoidal function for a particular parameter through identifying `seasonal.parameters` in `select.stateModel`. The selection of auto-correlation terms are within `parameters`: `AR1`,`AR2`, or `AR3`. This vignette provides an example of a analysis on a monthly time-step with the intercept, `a_0`, as a `seasonal.parameters`.
+Seasonal and monthly models provide further insight into the state of the rainfall-runoff relationship throughout the year, but with this more sensitive analysis, there is often more seasonal variation and auto-correlation. hydroState provides additional options to explain this variation so models are statistically adequate. These options are located within the `stateModel`. The seasonal variation can be explained with a sinusoidal function for a particular parameter through identifying `seasonal.parameters` in `select.stateModel`. The selection of auto-correlation terms are within `parameters`: `AR1`,`AR2`, or `AR3`. This vignette provides an example of a analysis on a monthly time-step with the intercept, `a_0`, as a `seasonal.parameters`.
 
 ## Load required data
 Seasonal and monthly rainfall-runoff models require a data frame with catchment average runoff and precipitation for each month. Load the data into the environment. Ensure there are four columns named "year", "month", "flow", and "precipitation", and verify the units for flow and precipitation are the same ('mm', 'in', etc.). 
@@ -68,16 +68,21 @@ In addition to the options presented in the previous vignette: ([adjust.state.mo
 For this analysis on a monthly time-step, the state model is adjusted as shown below:  
 ```r
 # Default state model
-default.state.model.seasonal = select.stateModel(input.data = streamflow_monthly_221201,
-                              parameters = list('a0','a1','std','AR3'),
+default.state.model.seasonal = select.stateModel(input.data = streamflow_seasonal_221201,
+                              parameters = list('a0','a1','std'),
                               error.distribution = 'gamma',
-                              seasonal.parameters = list('a0'))
+                              seasonal.parameters = list('a0'),
+                              transition.graph = matrix(TRUE,1,1))
                               
 # Default state model with a seasonal intercept and auto-regressive term
-adjusted.state.model.seasonal = select.stateModel(input.data = streamflow_monthly_221201,
-                              parameters = list('a0','a1','std'),
-                              seasonal.parameters = list('a0'),
-                              error.distribution = 'gamma')
+adjusted.state.model.monthly = select.stateModel(input.data = streamflow_monthly_221201,
+                              parameters = list('a0','a1','std','AR3'),
+                              seasonal.parameters = list('a0','a1'),
+                              error.distribution = 'gamma',
+                              transition.graph = matrix(TRUE,3,3))
+                              
+                              
+                              
                               
 
 ```
@@ -88,14 +93,15 @@ Build the hydroState model with a specified state model from above rather than u
 ```r
 
 # Build hydroState model with default state model
-model.seasonal.default = buildModel(input.data = streamflow_monthly_221201,
-                      stateModel = default.state.model.seasonal)
+model.seasonal.default = buildModel(input.data = streamflow_seasonal_221201,
+stateModel = default.state.model.seasonal)
                       
 model.seasonal.default.all =  buildModelAll(input.data = streamflow_monthly_221201)
                       
 # Build hydroState model with adjusted state model, seasonal forcing
-model.seasonal.adjusted = buildModel(input.data = streamflow_seasonal_407211,
-                      stateModel = adjusted.state.model.seasonal)
+model.monthly.adjusted = buildModel(input.data = streamflow_monthly_221201,
+                      stateModel = adjusted.state.model.monthly,
+                      data.transform = select.transform(func = 'log',input.data = streamflow_monthly_221201))
 ```
 
 ## Fit the model
@@ -103,9 +109,9 @@ Fit the built model with `fitModel`.
 ```r
 model.seasonal.default = fitModel(model.seasonal.default, pop.size.perParameter = 10, max.generations = 1000)
 
-model.seasonal.default.all = fitModel(model.seasonal.default.all, pop.size.perParameter = 10, max.generations = 10000, doParallel = FALSE)
+model.seasonal.default.all = fitModel(model.seasonal.default.all, pop.size.perParameter = 10, max.generations = 10000, doParallel = TRUE)
 
-model.seasonal.adjusted = fitModel(model.seasonal.adjusted, pop.size.perParameter = 10, max.generations = 500)
+model.monthly.adjusted = fitModel(model.monthly.adjusted, pop.size.perParameter = 10, max.generations = 10000, doParallel = TRUE)
 ```
 
 ## Review the residuals
@@ -116,6 +122,8 @@ Review the model's residuals from figures using `plot.residuals` to ensure they 
 plot.residuals(model.seasonal.default, do.pdf = F, ID ='221201')
 
 plot.residuals(model.seasonal.adjusted, do.pdf = F, ID ='221201')
+
+plot.residuals(model.monthly.adjusted)
 
 
 # get residual values
@@ -146,8 +154,10 @@ monthly.states = get.states(model.monthly)
 ## ## Systematic state model selection for sub-annual models
 
 ```r
-<!-- all.models.21201.seasonal = buildModelAll(input.data = streamflow_monthly_221201) -->
+<!-- all.models.221201.seasonal = buildModelAll(input.data = streamflow_seasonal_221201) -->
 
-<!-- all.models.21201.seasonal = fitModel(all.models.21201.seasonal) -->
+<!-- all.models.221201.seasonal = fitModel(all.models.221201.seasonal) -->
+
+best.Model = get.AIC(all.models.monthly.fitted.221201)
 ```
 

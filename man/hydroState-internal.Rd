@@ -69,3 +69,6 @@
 \alias{streamflow_daily_221201}
 \alias{model.annual.fitted.221201}
 \alias{viterbi}
+\alias{select.stateModel}
+\alias{select.Markov}
+\alias{select.transform}

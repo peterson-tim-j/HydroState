@@ -89,6 +89,7 @@ setMethod("get.SeaonalityPeriod","QhatModel.homo.normal.linear", function(.Objec
 )
 
 # Get transition matrix with no input data.
+# @exportMethod getEmissionDensity
 setMethod(f="getEmissionDensity",
           signature=c("QhatModel.homo.normal.linear","data.frame"),
           definition=function(.Object, data, cumProb.threshold.Qhat)

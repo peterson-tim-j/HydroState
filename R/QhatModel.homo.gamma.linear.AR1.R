@@ -22,7 +22,7 @@ validObject <- function(object) {
 setValidity("QhatModel.homo.gamma.linear.AR1", validObject)
 
 # Initialise object
-#' @exportMethod initialize
+# @exportMethod initialize
 #setGeneric(name="initialize",def=function(.Object,input.data){standardGeneric("initialize")})
 setMethod("initialize","QhatModel.homo.gamma.linear.AR1", function(.Object,input.data, transition.graph=matrix(T,2,2),state.dependent.mean.a0=T,
                                                                           state.dependent.mean.a1=F,state.dependent.mean.trend=NA, state.dependent.mean.AR1=F,
