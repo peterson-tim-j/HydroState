@@ -125,7 +125,8 @@ Below is a an example of how to set up `buildModelAll`, but the built models are
 
 ```{r  eval = FALSE}
 # Build all models
-all.models = buildModelAll(input.data = streamflow_annual_221201)
+debugonce(c("initialize","hydroState.allModels","list","character"))
+all.models = buildModelAll(input.data = streamflow_annual_221201, siteID = "221201")
 
 # Fit all models (uncomment to run)
 <!--  all.models = fitModel(all.models, pop.size.perParameter = 10, max.generations = 500, doParallel = TRUE)

@@ -116,12 +116,12 @@ select.transform <- function(func = 'boxcox', input.data=data.frame(year=c(), fl
   func = paste('Qhat.',func,sep='')
   if(func %in% c('Qhat.none','Qhat.log','Qhat.burbidge','Qhat.boxcox')){
 
-    # If monthly data, sort in ascending order by year and month
-    if('month' %in% colnames(input.data)){
-      input.data = input.data[order(input.data[,'year'],input.data[,'month']),]
-    }else if('day' %in% colnames(input.data)){
-      input.data = input.data[order(input.data[,'year'],input.data[,'month'],input.data[,'day']),]
-    }
+    # # If monthly data, sort in ascending order by year and month
+    # if('month' %in% colnames(input.data)){
+    #   input.data = input.data[order(input.data[,'year'],input.data[,'month']),]
+    # }else if('day' %in% colnames(input.data)){
+    #   input.data = input.data[order(input.data[,'year'],input.data[,'month'],input.data[,'day']),]
+    # }
 
 
     return(new(func, input.data))
@@ -587,27 +587,27 @@ buildModel <- function(input.data = data.frame(year=c(), flow=c(), precip=c()),
   }
   #######################################################
 
+  # default transition graph if NULL
+  if(is.null(transition.graph))
+    transition.graph = matrix(TRUE,2,2)
+
+  # default flickering to FALSE if NULL
+  if(is.null(flickering))
+    flickering = FALSE
+
+  # default data.transform if NULL
+  if(is.null(data.transform)){
+    data.transform = select.transform(func = 'boxcox', input.data)
+  }else{
+    data.transform = select.transform(data.transform, input.data)
+  }
+
+  # default state model error.distribution if NULL
+  if(is.null(error.distribution))
+    error.distribution = 'truc.normal'
+
 # If no inputs except input.data, just run default analysis
   if(is.null(parameters) && is.null(seasonal.parameters) && is.null(state.shift.parameters)){
-
-    # default transition graph if NULL
-    if(is.null(transition.graph))
-      transition.graph = matrix(TRUE,2,2)
-
-    # default flickering to FALSE if NULL
-    if(is.null(flickering))
-      flickering = FALSE
-
-    # default data.transform if NULL
-    if(is.null(data.transform)){
-      data.transform = select.transform(func = 'boxcox', input.data)
-    }else{
-      data.transform = select.transform(data.transform, input.data)
-    }
-
-    # default state model error.distribution if NULL
-    if(is.null(error.distribution))
-      error.distribution = 'truc.normal'
 
     # create state model
     stateModel = select.stateModel(input.data,
@@ -625,25 +625,6 @@ buildModel <- function(input.data = data.frame(year=c(), flow=c(), precip=c()),
 
   }else if(!is.null(parameters) && is.null(seasonal.parameters) && is.null(state.shift.parameters)){
 
-    # default transition graph if NULL
-    if(is.null(transition.graph))
-      transition.graph = matrix(TRUE,2,2)
-
-    # default flickering to FALSE if NULL
-    if(is.null(flickering))
-      flickering = FALSE
-
-    # default data.transform if NULL
-    if(is.null(data.transform)){
-      data.transform = select.transform(func = 'boxcox', input.data)
-    }else{
-      data.transform = select.transform(data.transform, input.data)
-    }
-
-    # default state model error.distribution if NULL
-    if(is.null(error.distribution))
-      error.distribution = 'truc.normal'
-
     # create state model
     stateModel = select.stateModel(input.data,
                                    parameters,
@@ -660,24 +641,6 @@ buildModel <- function(input.data = data.frame(year=c(), flow=c(), precip=c()),
 
   }else if(!is.null(parameters) && !is.null(seasonal.parameters) && is.null(state.shift.parameters)){
 
-    # default transition graph if NULL
-    if(is.null(transition.graph))
-      transition.graph = matrix(TRUE,2,2)
-
-    # default flickering to FALSE if NULL
-    if(is.null(flickering))
-      flickering = FALSE
-
-    # default data.transform if NULL
-    if(is.null(data.transform)){
-      data.transform = select.transform(func = 'boxcox', input.data)
-    }else{
-      data.transform = select.transform(data.transform, input.data)
-    }
-
-    # default state model error.distribution if NULL
-    if(is.null(error.distribution))
-      error.distribution = 'truc.normal'
 
     # create state model
     stateModel = select.stateModel(input.data,
@@ -695,25 +658,6 @@ buildModel <- function(input.data = data.frame(year=c(), flow=c(), precip=c()),
 
   }else if(!is.null(parameters) && !is.null(seasonal.parameters) && !is.null(state.shift.parameters)){
 
-    # default transition graph if NULL
-    if(is.null(transition.graph))
-      transition.graph = matrix(TRUE,2,2)
-
-    # default flickering to FALSE if NULL
-    if(is.null(flickering))
-      flickering = FALSE
-
-    # default data.transform if NULL
-    if(is.null(data.transform)){
-      data.transform = select.transform(func = 'boxcox', input.data)
-    }else{
-      data.transform = select.transform(data.transform, input.data)
-    }
-
-    # default state model error.distribution if NULL
-    if(is.null(error.distribution))
-      error.distribution = 'truc.normal'
-
     # create state model
     stateModel = select.stateModel(input.data,
                                    parameters,
@@ -729,25 +673,6 @@ buildModel <- function(input.data = data.frame(year=c(), flow=c(), precip=c()),
     return(new('hydroState',input.data, data.transform, stateModel, Markov))
 
   }else if(is.null(parameters) && is.null(seasonal.parameters) && !is.null(state.shift.parameters)){
-
-    # default transition graph if NULL
-    if(is.null(transition.graph))
-      transition.graph = matrix(TRUE,2,2)
-
-    # default flickering to FALSE if NULL
-    if(is.null(flickering))
-      flickering = FALSE
-
-    # default data.transform if NULL
-    if(is.null(data.transform)){
-      data.transform = select.transform(func = 'boxcox', input.data)
-    }else{
-      data.transform = select.transform(data.transform, input.data)
-    }
-
-    # default state model error.distribution if NULL
-    if(is.null(error.distribution))
-      error.distribution = 'truc.normal'
 
     # create state model
     stateModel = select.stateModel(input.data,
@@ -765,25 +690,6 @@ buildModel <- function(input.data = data.frame(year=c(), flow=c(), precip=c()),
 
   }else if(is.null(parameters) && !is.null(seasonal.parameters) && !is.null(state.shift.parameters)){
 
-    # default transition graph if NULL
-    if(is.null(transition.graph))
-      transition.graph = matrix(TRUE,2,2)
-
-    # default flickering to FALSE if NULL
-    if(is.null(flickering))
-      flickering = FALSE
-
-    # default data.transform if NULL
-    if(is.null(data.transform)){
-      data.transform = select.transform(func = 'boxcox', input.data)
-    }else{
-      data.transform = select.transform(data.transform, input.data)
-    }
-
-    # default state model error.distribution if NULL
-    if(is.null(error.distribution))
-      error.distribution = 'truc.normal'
-
     # create state model
     stateModel = select.stateModel(input.data,
                                    parameters = list('a0','a1','std'),
@@ -800,25 +706,6 @@ buildModel <- function(input.data = data.frame(year=c(), flow=c(), precip=c()),
 
   }else if(!is.null(parameters) && is.null(seasonal.parameters) && !is.null(state.shift.parameters)){
 
-    # default transition graph if NULL
-    if(is.null(transition.graph))
-      transition.graph = matrix(TRUE,2,2)
-
-    # default flickering to FALSE if NULL
-    if(is.null(flickering))
-      flickering = FALSE
-
-    # default data.transform if NULL
-    if(is.null(data.transform)){
-      data.transform = select.transform(func = 'boxcox', input.data)
-    }else{
-      data.transform = select.transform(data.transform, input.data)
-    }
-
-    # default state model error.distribution if NULL
-    if(is.null(error.distribution))
-      error.distribution = 'truc.normal'
-
     # create state model
     stateModel = select.stateModel(input.data,
                                    parameters,
@@ -834,25 +721,6 @@ buildModel <- function(input.data = data.frame(year=c(), flow=c(), precip=c()),
     return(new('hydroState',input.data, data.transform, stateModel, Markov))
 
   }else if(is.null(parameters) && !is.null(seasonal.parameters) && is.null(state.shift.parameters)){
-
-    # default transition graph if NULL
-    if(is.null(transition.graph))
-      transition.graph = matrix(TRUE,2,2)
-
-    # default flickering to FALSE if NULL
-    if(is.null(flickering))
-      flickering = FALSE
-
-    # default data.transform if NULL
-    if(is.null(data.transform)){
-      data.transform = select.transform(func = 'boxcox', input.data)
-    }else{
-      data.transform = select.transform(data.transform, input.data)
-    }
-
-    # default state model error.distribution if NULL
-    if(is.null(error.distribution))
-      error.distribution = 'truc.normal'
 
     # create state model
     stateModel = select.stateModel(input.data,
@@ -905,53 +773,141 @@ buildModel <- function(input.data = data.frame(year=c(), flow=c(), precip=c()),
 #'
 
 
-buildModelAll <- function(input.data = data.frame(year=c(), flow=c(), precip=c()),
-                          ID = ''){
-  #
-  if(is.null(ID)){
-    ID = ''
+buildModelAll <-function(input.data = data.frame(year=c(), flow=c(), precip=c()),
+                         data.transform = NULL,
+                         parameters = NULL,
+                         seasonal.parameters = NULL,
+                         state.shift.parameters = NULL,
+                         error.distribution = NULL,
+                         flickering = FALSE,
+                         transition.graph = NULL,
+                         siteID = NULL){
+
+  #Validate input.data
+  if(!is.data.frame(input.data)){
+    stop("'input.data' is not a dataframe")
+  }
+  if(!('year' %in% colnames(input.data))){
+    stop("'input.data' must contain a 'year' column with an integer of years")
   }
 
-  # Validate
-  if(is.character(ID)){
+  # If monthly data, sort in ascending order by year and month, assume calender year given
+  if('month' %in% colnames(input.data)){
+    input.data = input.data[order(input.data[,'year'],input.data[,'month']),]
+  }else if('day' %in% colnames(input.data)){
+    input.data = input.data[order(input.data[,'year'],input.data[,'month'],input.data[,'day']),]
+  }
+  #######################################################
 
-    # If monthly data, sort in ascending order by year and month
-    if('month' %in% colnames(input.data)){
-      input.data = input.data[order(input.data[,'year'],input.data[,'month']),]
+    # default flickering to FALSE if NULL
+    if(is.null(flickering))
+      flickering = FALSE
 
+    # get data.transform (all possible options)
+    if(is.null(data.transform)){
+      data.transform = list('boxcox', 'log')
+      names(data.transform) = c("boxcox","log")
+    }else{
+      data.transform = list(data.transform)
+    }
 
-      return(new('hydroState.subAnnual.allModels',ID, input.data, allow.flickering=F))
+    if(is.null(parameters)){
+      parameters = list(list('a0','a1','std'), list('a0','a1','std','AR1'), list('a0','a1','std','AR2'), list('a0','a1','std','AR3'))
+      names(parameters) = c("AR0","AR1","AR2","AR3")
+    }else{
+      parameters = list(parameters)
+      names(parameters) = ifelse("AR1" %in% parameters,"AR1",ifelse("AR2" %in% parameters,"AR2", ifelse("AR3" %in% parameters, "AR3","AR0")))
+    }
 
-      # remove month column
-      # input.data = input.data[,c("year","flow","precipitation")]
-      #
-      # input.data = aggregate(input.data[c('flow','precipitation')], by=input.data['year'], sum)
-      #
-      # message('Note: Monthly data inputted. flow and precipitation summed by year. All models built.')
-
-    # }else if('day' %in% colnames(input.data)){
-    #   input.data = input.data[order(input.data[,'year'],input.data[,'month'],input.data[,'day']),]
-    #
-    #   # remove day and month column
-    #   input.data = input.data[,c("year","flow","precipitation")]
-    #
-    #   input.data = aggregate(input.data[c('flow','precipitation')], by=input.data['year'], sum)
-    #
-    #   message('Note: Daily data inputted. flow and precipitation summed by year. All models built.')
+    if(is.null(state.shift.parameters)){
+      state.shift.parameters = list(list('a0','std'), list('a1','std'))
+      names(state.shift.parameters) = c("a0","a1")
+    }else{
+      state.shift.parameters = list(state.shift.parameters)
+      names(state.shift.parameters) = ifelse("a0" %in% state.shift.parameters,"a0",ifelse("a1" %in% state.shift.parameters,"a1", ""))
 
     }
 
+    if(is.null(error.distribution)){
+      error.distribution = list('truc.normal', 'normal', 'gamma')
+    }else{
+      error.distribution = list(error.distribution)
+    }
+
+    if(is.null(transition.graph)){
+      transition.graph = list(matrix(TRUE,1,1),matrix(TRUE,2,2),matrix(TRUE,3,3),matrix(c(TRUE,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,FALSE,TRUE),3,3))
+      names(transition.graph) = c("1State","2State","3StateUS","3State")
+    }else{
+      transition.graph = list(transition.graph)
+      names(transition.graph) = ifelse(transition.graph == matrix(TRUE,1,1),"1State", ifelse(transition.graph == matrix(TRUE,2,2), "2State",ifelse(transition.graph == matrix(TRUE,3,3),"3StateUS",ifelse(transition.graph == matrix(c(TRUE,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,FALSE,TRUE),3,3), "3State", "UserState"))))
+    }
+
+    # build all models
+    build.all.model = vector(mode = "list", length = length(transition.graph) * length(error.distribution) * length(state.shift.parameters) * length(data.transform))
+    build.all.model.names = vector(mode = "list", length = length(transition.graph) * length(error.distribution) * length(state.shift.parameters) * length(data.transform))
+
+    build.all.model.count = 1
+
+      for(i in 1:length(parameters)){
+
+        temp.parameters = parameters[[i]]
+
+        temp.parameters.name = names(parameters[i])
+
+        for(j in 1:length(data.transform)){
+
+          temp.data.transform = data.transform[[j]]
+
+          for(k in 1:length(state.shift.parameters)){
+
+            temp.state.shift.parameters = state.shift.parameters[[k]]
+
+            temp.state.shift.parameters.name = names(state.shift.parameters[k])
 
 
-    return(new('hydroState.allModels',ID, input.data, allow.flickering=F))
+            for(z in 1:length(error.distribution)){
 
-  }else{
+              temp.error.distribution = error.distribution[[z]]
 
-    stop('Please ensure ID is a character vector. See help')
+              for(y in 1:length(transition.graph)){
 
-  }
+                temp.transition.graph = transition.graph[[y]]
+
+                temp.transition.graph.name = names(transition.graph[y])
+
+
+                build.all.model[[build.all.model.count]] = buildModel(input.data,
+                                                           data.transform = temp.data.transform,
+                                                           parameters = temp.parameters,
+                                                           seasonal.parameters = list(),
+                                                           state.shift.parameters = temp.state.shift.parameters,
+                                                           error.distribution = temp.error.distribution,
+                                                           flickering = flickering,
+                                                           transition.graph = temp.transition.graph)
+
+                # build.all.model[build.all.model.count] <- setNames(build.all.model[build.all.model.count], paste("model.",temp.transition.graph.name,".",temp.error.distribution,".",temp.data.transform,".",temp.parameters.name,".",temp.state.shift.parameters.name,sep=""))
+
+                build.all.model.names[[build.all.model.count]] <- paste("model.",temp.transition.graph.name,".",temp.error.distribution,".",temp.data.transform,".",temp.parameters.name,".",temp.state.shift.parameters.name,sep="")
+
+                build.all.model.count = build.all.model.count + 1
+
+                }
+              }
+            }
+          }
+      }
+
+    build.all.model <- setNames(build.all.model, unlist(build.all.model.names))
+
+    # order and make a hydroState.allModels object
+
+    new('hydroState.allModels', build.all.model, siteID)
+
+    return(build.all.model)
 
 }
+
+
 
 #'Fit hydroState model
 #'

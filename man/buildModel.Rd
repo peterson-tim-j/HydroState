@@ -16,7 +16,7 @@ buildModel(
 )
 }
 \arguments{
-\item{input.data}{dataframe of annual, seasonal, or monthly runoff and precipitation observations. Gaps with missing data in either streamflow or precipitation are permitted. Monthly data is required when using \code{seasonal.parameters} that assumes selected model parameters are better defined with a sinusoidal function.}
+\item{input.data}{dataframe of annual, seasonal, or monthly runoff and precipitation observations. Gaps with missing data in either streamflow or precipitation are permitted. Monthly data is required when using \code{seasonal.parameters}.}
 
 \item{data.transform}{character string with the method of transformation. The default is 'boxcox'. Other options: 'log', 'burbidge', 'none'}
 
@@ -36,7 +36,7 @@ buildModel(
 A built hydroState model object ready to be fitted with \code{fitModel}
 }
 \description{
-\code{buildModel} builds a hydrostate model with either a default model or the model can be specified with options from below. Every model depends on a linear base model where streamflow is a function of precipitation. The default model is an analysis of this base linear model with state shifts expected in the intercept, \eqn{a_0}, and standard deviation, \eqn{std}, of the rainfall-runoff relationship. There are additional adjustments to this model with auto-correlations terms, seasonal parameters for a sub-annual analysis, and even evaluation of other \code{state.shift.parameters}. The number of states and assumed error distribution can also be selected. After the model is built, the hydroState model is ready to be fitted with \code{fitModel}
+\code{buildModel} builds a hydrostate model with either a default model or the model can be specified with options from below. Every model depends on a linear base model where streamflow, \eqn{Q}, is a function of precipitation, \eqn{P}: \eqn{Q = Pa_1 + a_0}. The default model is an analysis of this base linear model with state shifts expected in the intercept, \eqn{a_0}, and standard deviation, \eqn{std}, of the rainfall-runoff relationship. There are additional adjustments to this model with auto-correlations terms, seasonal parameters for a sub-annual analysis, and even evaluation of other state dependent, shifting, parameters. The number of states and assumed error distribution can also be selected. After the model is built, the hydroState model is ready to be fitted with \code{fitModel}
 }
 \details{
 \code{buildModel}

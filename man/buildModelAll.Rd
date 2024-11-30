@@ -6,7 +6,13 @@
 \usage{
 buildModelAll(
   input.data = data.frame(year = c(), flow = c(), precip = c()),
-  ID = ""
+  data.transform = "boxcox",
+  parameters = list("a0", "a1", "std"),
+  seasonal.parameters = list(),
+  state.shift.parameters = list("a0", "std"),
+  error.distribution = "truc.normal",
+  flickering = FALSE,
+  transition.graph = matrix(TRUE, 2, 2)
 )
 }
 \arguments{
