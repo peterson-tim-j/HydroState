@@ -13,7 +13,8 @@ hydroState.allModels <- setClass(
     siteID= 'character',
     calib.reference.model.name = 'list',
     calib.reference.criteria.met = 'logical',
-    models = 'list'
+    models = 'list',
+    models.summary = 'data.frame'
 
   ),
 
@@ -22,7 +23,8 @@ hydroState.allModels <- setClass(
     siteID = '(not set)',
     calib.reference.model.name= vector('list',1),
     calib.reference.criteria.met= vector('logical',1),
-    models  = vector('list',1)
+    models  = vector('list',1),
+    models.summary = data.frame()
   )
 )
 
@@ -33,17 +35,324 @@ validObject <- function(object) {
 setValidity("hydroState.allModels", validObject)
 
 # Initialise the object.
-#setGeneric(name="initialize",def=function(.Object,input.data, Qhat.object, QhatModel.object, markov.model.object, ...){standardGeneric("initialize")})
+# setGeneric(name="initialize",def=function(.Object, ...){standardGeneric("initialize")})
 setMethod(f="initialize",signature="hydroState.allModels",definition=function(.Object, models, siteID)
-{
+  {
+
 
   .Object@siteID <- siteID
 
-  # Build hydrostate models
-  .Object@models <- unlist(models)
+  # assign hydroState all models
+  .Object@models <- models
+
+  return(.Object)
+
+}
+)
+
+
+# get summary of all models.
+#' @exportMethod get.summary.table
+setGeneric(name="get.summary.table",def=function(.Object, models.summary = data.frame()){standardGeneric("get.summary.table")})
+setMethod(f="get.summary.table",signature="hydroState.allModels",definition=function(.Object, models.summary)
+{
+
+  if(length(models.summary)>0){
+
+    .Object@models.summary = models.summary
+
+  }else{
+    # Calc details for summary
+    nparams = as.numeric(sapply(.Object@models, function(x) length(getParameters.asVector(x))))
+
+    nstates = as.numeric(sapply(.Object@models, function(x) ncol(x@markov.model.object@transition.graph)))
+
+    state.structure = sapply(.Object@models, function(x) ifelse(all(x@markov.model.object@transition.graph == TRUE),"","S"))
+
+
+    data.transform = sapply(.Object@models, function(x) ifelse(length(x@Qhat.object@parameters@values)>0, 'boxcox','log'))
+
+    error.distribution = sapply(.Object@models, function(x) ifelse(x@QhatModel.object@use.truncated.dist == TRUE,'truc.normal',
+                                                                   ifelse(grepl('normal',class(x@QhatModel.object)),'normal',
+                                                                          ifelse(grepl('gamma',class(x@QhatModel.object)),'gamma',''))))
+
+    auto.correlation = as.numeric(sapply(.Object@models, function(x) ifelse('mean.AR3' %in% names(x@QhatModel.object@parameters@values), '3',
+                                                                            ifelse('mean.AR2' %in% names(x@QhatModel.object@parameters@values), '2',
+                                                                                   ifelse('mean.AR1' %in% names(x@QhatModel.object@parameters@values), '1',
+                                                                                          "0")))))
+
+    state.shift = sapply(.Object@models, function(x) names(x@QhatModel.object@parameters@values[which(c(length(x@QhatModel.object@parameters@values$mean.a0),
+                                                                                                          length(x@QhatModel.object@parameters@values$mean.a1)) > 1)]))
+
+    state.shift = unlist(lapply(1:length(state.shift), function(x) ifelse(length(unlist(state.shift[[x]])) < 1, "none",unlist(state.shift[[x]]))))
+
+    # build matrix of all
+    all.models.matrix = data.frame(model.index = 1:length(.Object@models), model.names = names(.Object@models),nparams = nparams,nstates = nstates, state.structure = state.structure, data.trans = data.transform, error.dist = error.distribution, auto.corr = auto.correlation, state.shift = state.shift, ref.model = NA, row.names = 1)
+
+    all.models.set = 0
+    # seperate, order, then rebine if multiple state shifts being investigated
+    if('mean.a0' %in% unique(all.models.matrix$state.shift)){
+
+      all.models.matrix.a0 = all.models.matrix[which(all.models.matrix$state.shift == 'mean.a0'),]
+
+      all.models.matrix.a0 = all.models.matrix.a0[order(all.models.matrix.a0$nparams,
+                                                        all.models.matrix.a0$nstates),]
+      all.models.set = all.models.set +1
+    }
+
+    if('mean.a1' %in% unique(all.models.matrix$state.shift)){
+
+      all.models.matrix.a1 = all.models.matrix[which(all.models.matrix$state.shift == 'mean.a1'),]
+
+      all.models.matrix.a1 = all.models.matrix.a1[order(all.models.matrix.a1$nparams,
+                                                        all.models.matrix.a1$nstates),]
+      all.models.set = all.models.set +1
+    }
+    if('none' %in% unique(all.models.matrix$state.shift)){
+
+      all.models.matrix.none = all.models.matrix[which(all.models.matrix$state.shift == 'none'),]
+
+      all.models.matrix.none = all.models.matrix.none[order(all.models.matrix.none$nparams,
+                                                            all.models.matrix.none$nstates),]
+      all.models.set = all.models.set +1
+    }
+
+    # remove duplicate one.state models when multiple state.shifts are investigated..
+    if('mean.a0' %in% unique(all.models.matrix$state.shift) &&
+       'mean.a1' %in% unique(all.models.matrix$state.shift)){
+
+      if('none' %in% unique(all.models.matrix$state.shift)){
+
+        if('log' %in% all.models.matrix$data.trans){
+
+          if('normal' %in% all.models.matrix$error.dist){
+            dup.models = all.models.matrix.none[which(all.models.matrix.none$state.shift == 'none' &
+                                                        all.models.matrix.none$data.trans== 'log' &
+                                                        all.models.matrix.none$error.dist== 'normal'),]
+            remove.models =  dup.models[unique(dup.models$auto.corr)*2+1,]
+
+            all.models.matrix.none = all.models.matrix.none[is.na(match(all.models.matrix.none$model.names,remove.models$model.names)),]
+          }
+
+          if('truc.normal' %in% all.models.matrix$error.dist){
+            dup.models = all.models.matrix.none[which(all.models.matrix.none$state.shift == 'none' &
+                                                        all.models.matrix.none$data.trans== 'log' &
+                                                        all.models.matrix.none$error.dist== 'truc.normal'),]
+            remove.models =  dup.models[unique(dup.models$auto.corr)*2+1,]
+
+            all.models.matrix.none = all.models.matrix.none[is.na(match(all.models.matrix.none$model.names,remove.models$model.names)),]
+          }
+
+          if('gamma' %in% all.models.matrix$error.dist){
+            dup.models = all.models.matrix.none[which(all.models.matrix.none$state.shift == 'none' &
+                                                        all.models.matrix.none$data.trans== 'log' &
+                                                        all.models.matrix.none$error.dist== 'gamma'),]
+            remove.models =  dup.models[unique(dup.models$auto.corr)*2+1,]
+
+            all.models.matrix.none = all.models.matrix.none[is.na(match(all.models.matrix.none$model.names,remove.models$model.names)),]
+          }
+        }
+
+        if('boxcox' %in% all.models.matrix$data.trans){
+
+          if('normal' %in% all.models.matrix$error.dist){
+            dup.models = all.models.matrix.none[which(all.models.matrix.none$state.shift == 'none' &
+                                                        all.models.matrix.none$data.trans== 'boxcox' &
+                                                        all.models.matrix.none$error.dist== 'normal'),]
+            remove.models =  dup.models[unique(dup.models$auto.corr)*2+1,]
+
+            all.models.matrix.none = all.models.matrix.none[is.na(match(all.models.matrix.none$model.names,remove.models$model.names)),]
+          }
+
+          if('truc.normal' %in% all.models.matrix$error.dist){
+            dup.models = all.models.matrix.none[which(all.models.matrix.none$state.shift == 'none' &
+                                                        all.models.matrix.none$data.trans== 'boxcox' &
+                                                        all.models.matrix.none$error.dist== 'truc.normal'),]
+            remove.models =  dup.models[unique(dup.models$auto.corr)*2+1,]
+
+            all.models.matrix.none = all.models.matrix.none[is.na(match(all.models.matrix.none$model.names,remove.models$model.names)),]
+          }
+
+          if('gamma' %in% all.models.matrix$error.dist){
+            dup.models = all.models.matrix.none[which(all.models.matrix.none$state.shift == 'none' &
+                                                        all.models.matrix.none$data.trans== 'boxcox' &
+                                                        all.models.matrix.none$error.dist== 'gamma'),]
+            remove.models =  dup.models[unique(dup.models$auto.corr)*2+1,]
+
+            all.models.matrix.none = all.models.matrix.none[is.na(match(all.models.matrix.none$model.names,remove.models$model.names)),]
+          }
+        }
+      }
+    }
+
+    # make list to iterate through model sets
+    if(all(c('none','mean.a0','mean.a1') %in% unique(all.models.matrix$state.shift))){
+      all.models.matrix = rbind(all.models.matrix.none,all.models.matrix.a0,all.models.matrix.a1)
+    }else if(all(c('none','mean.a0') %in% unique(all.models.matrix$state.shift))){
+      all.models.matrix = rbind(all.models.matrix.none,all.models.matrix.a0)
+    }else if(all(c('none','mean.a1') %in% unique(all.models.matrix$state.shift))){
+      all.models.matrix = rbind(all.models.matrix.none,all.models.matrix.a1)
+    }else if(all(c('mean.a0','mean.a1') %in% unique(all.models.matrix$state.shift))){
+      all.models.matrix = rbind(all.models.matrix.none.a0,all.models.matrix.a1)
+    }else if('none' %in% unique(all.models.matrix$state.shift)){
+      all.models.matrix = all.models.matrix.none
+    }else if('mean.a0' %in% unique(all.models.matrix$state.shift)){
+      all.models.matrix = all.models.matrix.a0
+    }else if('mean.a1' %in% unique(all.models.matrix$state.shift)){
+      all.models.matrix = all.models.matrix.a1
+    }
+
+    # isolate each model set to set reference models
+    for(i in 1:length(unique(all.models.matrix$state.shift))){
+      all.models.matrix.set= all.models.matrix[which(all.models.matrix$state.shift == unique(all.models.matrix$state.shift)[i]),]
+
+      if('log' %in% all.models.matrix.set$data.trans){
+        log.models = all.models.matrix.set[which(all.models.matrix.set$data.trans == 'log'),]
+
+        if('normal' %in% log.models$error.dist){
+          temp.models = log.models[which(log.models$error.dist == 'normal'),]
+
+          if('none' %in% temp.models$state.shift){
+            temp.models$ref.model[1] = ""
+            temp.models$ref.model[2:NROW(temp.models)] = temp.models$model.names[1:(NROW(temp.models)-1)]
+          }else if('mean.a0' %in% temp.models$state.shift){
+            temp.models$ref.model[1] =  ifelse(i == 1, "","model.1State.normal.log.AR0.a1")
+            temp.models$ref.model[2:NROW(temp.models)] = temp.models$model.names[1:(NROW(temp.models)-1)]
+          }else if('mean.a1' %in% temp.models$state.shift){
+            temp.models$ref.model[1] =  ifelse(i == 1, "","model.1State.normal.log.AR0.a1")
+            temp.models$ref.model[2:NROW(temp.models)] = temp.models$model.names[1:(NROW(temp.models)-1)]
+          }
+
+          # reestablish in all. models.
+          all.models.matrix$ref.model[!is.na(match(all.models.matrix$model.names,temp.models$model.names))] <- temp.models$ref.model
+
+        }
+
+        if('truc.normal' %in% log.models$error.dist){
+          temp.models = log.models[which(log.models$error.dist == 'truc.normal'),]
+
+          if('none' %in% temp.models$state.shift){
+            temp.models$ref.model[1] = ""
+            temp.models$ref.model[2:NROW(temp.models)] = temp.models$model.names[1:(NROW(temp.models)-1)]
+          }else if('mean.a0' %in% temp.models$state.shift){
+            temp.models$ref.model[1] =  ifelse(i == 1, "","model.1State.truc.normal.log.AR0.a1")
+            temp.models$ref.model[2:NROW(temp.models)] = temp.models$model.names[1:(NROW(temp.models)-1)]
+          }else if('mean.a1' %in% temp.models$state.shift){
+            temp.models$ref.model[1] =  ifelse(i == 1, "","model.1State.truc.normal.log.AR0.a1")
+            temp.models$ref.model[2:NROW(temp.models)] = temp.models$model.names[1:(NROW(temp.models)-1)]
+          }
+
+          # reestablish in all. models.
+          all.models.matrix$ref.model[!is.na(match(all.models.matrix$model.names,temp.models$model.names))] <- temp.models$ref.model
+
+        }
+
+
+        if('gamma' %in% log.models$error.dist){
+          temp.models = log.models[which(log.models$error.dist == 'gamma'),]
+
+          if('none' %in% temp.models$state.shift){
+            temp.models$ref.model[1] = ""
+            temp.models$ref.model[2:NROW(temp.models)] = temp.models$model.names[1:(NROW(temp.models)-1)]
+          }else if('mean.a0' %in% temp.models$state.shift){
+            temp.models$ref.model[1] =  ifelse(i == 1, "","model.1State.gamma.log.AR0.a1")
+            temp.models$ref.model[2:NROW(temp.models)] = temp.models$model.names[1:(NROW(temp.models)-1)]
+          }else if('mean.a1' %in% temp.models$state.shift){
+            temp.models$ref.model[1] =  ifelse(i == 1, "","model.1State.gamma.log.AR0.a1")
+            temp.models$ref.model[2:NROW(temp.models)] = temp.models$model.names[1:(NROW(temp.models)-1)]
+          }
+
+          # reestablish in all. models.
+          all.models.matrix$ref.model[!is.na(match(all.models.matrix$model.names,temp.models$model.names))] <- temp.models$ref.model
+
+        }
+      }
+
+      if('boxcox' %in% all.models.matrix.set$data.trans){
+        boxcox.models = all.models.matrix.set[which(all.models.matrix.set$data.trans == 'boxcox'),]
+
+        if('normal' %in% boxcox.models$error.dist){
+          temp.models = boxcox.models[which(boxcox.models$error.dist == 'normal'),]
+
+          if('none' %in% temp.models$state.shift){
+            temp.models$ref.model[1] = ifelse('log' %in% all.models.matrix.set$data.trans,"model.1State.normal.log.AR0.a1","")
+            temp.models$ref.model[2:NROW(temp.models)] = temp.models$model.names[1:(NROW(temp.models)-1)]
+          }else if('mean.a0' %in% temp.models$state.shift){
+            temp.models$ref.model[1] =  ifelse(i == 1, "","model.1State.normal.boxcox.AR0.a1")
+            temp.models$ref.model[2:NROW(temp.models)] = temp.models$model.names[1:(NROW(temp.models)-1)]
+          }else if('mean.a1' %in% temp.models$state.shift){
+            temp.models$ref.model[1] =  ifelse(i == 1, "","model.1State.normal.boxcox.AR0.a1")
+            temp.models$ref.model[2:NROW(temp.models)] = temp.models$model.names[1:(NROW(temp.models)-1)]
+          }
+
+          # reestablish in all. models.
+          all.models.matrix$ref.model[!is.na(match(all.models.matrix$model.names,temp.models$model.names))] <- temp.models$ref.model
+
+        }
+
+        if('truc.normal' %in% boxcox.models$error.dist){
+          temp.models = boxcox.models[which(boxcox.models$error.dist == 'truc.normal'),]
+
+          if('none' %in% temp.models$state.shift){
+            temp.models$ref.model[1] = ifelse('log' %in% all.models.matrix.set$data.trans,"model.1State.truc.normal.log.AR0.a1","")
+            temp.models$ref.model[2:NROW(temp.models)] = temp.models$model.names[1:(NROW(temp.models)-1)]
+          }else if('mean.a0' %in% temp.models$state.shift){
+            temp.models$ref.model[1] =  ifelse(i == 1, "","model.1State.truc.normal.boxcox.AR0.a1")
+            temp.models$ref.model[2:NROW(temp.models)] = temp.models$model.names[1:(NROW(temp.models)-1)]
+          }else if('mean.a1' %in% temp.models$state.shift){
+            temp.models$ref.model[1] =  ifelse(i == 1, "","model.1State.truc.normal.boxcox.AR0.a1")
+            temp.models$ref.model[2:NROW(temp.models)] = temp.models$model.names[1:(NROW(temp.models)-1)]
+          }
+
+          # reestablish in all. models.
+          all.models.matrix$ref.model[!is.na(match(all.models.matrix$model.names,temp.models$model.names))] <- temp.models$ref.model
+
+        }
+
+
+        if('gamma' %in% boxcox.models$error.dist){
+          temp.models = boxcox.models[which(boxcox.models$error.dist == 'gamma'),]
+
+          if('none' %in% temp.models$state.shift){
+            temp.models$ref.model[1] = ifelse('log' %in% all.models.matrix.set$data.trans,"model.1State.gamma.log.AR0.a1","")
+            temp.models$ref.model[2:NROW(temp.models)] = temp.models$model.names[1:(NROW(temp.models)-1)]
+          }else if('mean.a0' %in% temp.models$state.shift){
+            temp.models$ref.model[1] =  ifelse(i == 1, "","model.1State.gamma.boxcox.AR0.a1")
+            temp.models$ref.model[2:NROW(temp.models)] = temp.models$model.names[1:(NROW(temp.models)-1)]
+          }else if('mean.a1' %in% temp.models$state.shift){
+            temp.models$ref.model[1] =  ifelse(i == 1, "","model.1State.gamma.boxcox.AR0.a1")
+            temp.models$ref.model[2:NROW(temp.models)] = temp.models$model.names[1:(NROW(temp.models)-1)]
+          }
+
+          # reestablish in all. models.
+          all.models.matrix$ref.model[!is.na(match(all.models.matrix$model.names,temp.models$model.names))] <- temp.models$ref.model
+
+        }
+      }
+
+    }
+
+    # reorder to ensure empty calib ref are first...
+    empty.ref = which(all.models.matrix$ref.model =="")
+    full.ref = which(all.models.matrix$ref.model !="")
+    all.models.matrix = rbind(all.models.matrix[empty.ref,],all.models.matrix[full.ref,])
+
+    # clean all.models (remove the duplicate one-state if so) this happens if investigating slope and intercept seperately
+    .Object@models <- .Object@models[match(all.models.matrix$model.names,names(.Object@models))]
+
+
+
+
+    #export summary
+    .Object@models.summary <- all.models.matrix
+  }
+
+  ### Then adjust calib.reference details based on models.summary from user or machine
 
   # Define Refernce models. That is, the calibration obecjive function that this models needs to meet or exceed.
-  .Object@calib.reference.model.name <- names(models)
+  .Object@calib.reference.model.name <- as.list(.Object@models.summary$ref.model)
+  names(.Object@calib.reference.model.name) <- .Object@models.summary$model.names
+
 
   model.names = names(.Object@models)
   .Object@calib.reference.criteria.met = rep(F,length(model.names))
@@ -52,9 +361,9 @@ setMethod(f="initialize",signature="hydroState.allModels",definition=function(.O
   return(.Object)
 
 }
-
 )
 
+#' @exportMethod fit
 setMethod(f = "fit",signature="hydroState.allModels",definition=function(.Object,
                                                                          pop.size.perParameter=25,
                                                                          max.generations=10000,
@@ -327,3 +636,4 @@ setMethod(f="getAIC.bestModel",signature="hydroState.allModels",definition=funct
   return(list(model=bestModel, model.best1State = bestModel.1State, AIC=AIC, evidenceRatio.oneState=EF.oneState))
 }
 )
+

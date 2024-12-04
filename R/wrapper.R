@@ -835,11 +835,11 @@ buildModelAll <-function(input.data = data.frame(year=c(), flow=c(), precip=c())
     }
 
     if(is.null(transition.graph)){
-      transition.graph = list(matrix(TRUE,1,1),matrix(TRUE,2,2),matrix(TRUE,3,3),matrix(c(TRUE,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,FALSE,TRUE),3,3))
-      names(transition.graph) = c("1State","2State","3StateUS","3State")
+      transition.graph = list(matrix(TRUE,1,1),matrix(TRUE,2,2),matrix(TRUE,3,3))#,matrix(c(TRUE,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,FALSE,TRUE),3,3))
+      names(transition.graph) = c("1State","2State","3State")
     }else{
       transition.graph = list(transition.graph)
-      names(transition.graph) = ifelse(transition.graph == matrix(TRUE,1,1),"1State", ifelse(transition.graph == matrix(TRUE,2,2), "2State",ifelse(transition.graph == matrix(TRUE,3,3),"3StateUS",ifelse(transition.graph == matrix(c(TRUE,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,FALSE,TRUE),3,3), "3State", "UserState"))))
+      names(transition.graph) = ifelse(transition.graph == matrix(TRUE,1,1),"1State", ifelse(transition.graph == matrix(TRUE,2,2), "2State",ifelse(transition.graph == matrix(TRUE,3,3),"3State",paste(NCOL(transition.graph),"UserState",sep=""))))
     }
 
     # build all models
@@ -899,15 +899,31 @@ buildModelAll <-function(input.data = data.frame(year=c(), flow=c(), precip=c())
 
     build.all.model <- setNames(build.all.model, unlist(build.all.model.names))
 
-    # order and make a hydroState.allModels object
+    # make all.models a all.Models object
+    build.all.model <- new('hydroState.allModels',models = build.all.model, siteID = siteID)
 
-    new('hydroState.allModels', build.all.model, siteID)
+    # now create summary table and assign calibration items
+    build.all.model <- get.summary.table(build.all.model)
+
+    # build.all.model.table <- showModelAll(build.all.model)
+    # order and make a hydroState.allModels object
+    # debugonce("get.summary.table","hydroState.allModels")
 
     return(build.all.model)
 
 }
 
+#'Show all models
+#'
+#'\code{showModelAll}
+#'
+#' @description
+#' \code{showModelAll} outputs a summary table of all built hydroState models and allows users to edit the reference models for calibration.
+#'
+#' @details
+#' For every model in \code{buildModelAll}, there is a reference model for calibration. The reference model is slightly simpler model with one less parameter. During calibration with \code{fitModel}, the model performance must exceed the the performance of the reference model else the model is rejected. For instance 'model.1State.normal.log.AR0' contains 3-parameters and is the reference model for 'model.1State.normal.log.AR1' which contains 4-parameters. The objective function of 'model.1State.normal.log.AR1' must calibrate the model with a lower negative log-likelihood than 'model.1State.normal.log.AR0'. These reference models are pre-defined in \code{buildModelAll}, but this function allows the user to edit the reference models in the data.frame if needed.
 
+# model.1State.gamma.boxcox.AR2.a1
 
 #'Fit hydroState model
 #'

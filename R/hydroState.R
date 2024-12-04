@@ -127,7 +127,7 @@ setMethod(f="getParameters",
 )
 
 # Get the full set of model parameters as a list.
-# @exportMethod getParameters.asVector
+#' @exportMethod getParameters.asVector
 setGeneric(name="getParameters.asVector",def=function(.Object) {standardGeneric("getParameters.asVector")})
 setMethod(f="getParameters.asVector",
           signature="hydroState",
