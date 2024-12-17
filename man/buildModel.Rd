@@ -10,7 +10,7 @@ buildModel(
   parameters = list("a0", "a1", "std"),
   seasonal.parameters = list(),
   state.shift.parameters = list("a0", "std"),
-  error.distribution = "truc.normal",
+  error.distribution,
   flickering = FALSE,
   transition.graph = matrix(TRUE, 2, 2)
 )

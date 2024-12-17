@@ -29,7 +29,7 @@ data(model.annual.fitted.221201)
 get.AIC(model.annual.fitted.221201)
 
 ## Lowest AIC of a model set
-get.AIC()
+# get.AIC()
 
 }
 \keyword{AIC}

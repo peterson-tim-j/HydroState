@@ -21,6 +21,13 @@ A data.frame with a summary of all models
 
 For every model in code{buildModelAll}, there is a reference model for calibration. The reference model is a slightly simpler model with one less parameter. During calibration with \code{fitModel}, the model performance must exceed the the performance of the reference model else the model is rejected. For instance 'model.1State.normal.log.AR0' contains 3-parameters and is the reference model for 'model.1State.normal.log.AR1' which contains 4-parameters. The objective function of 'model.1State.normal.log.AR1' must calibrate the model with a lower negative log-likelihood than 'model.1State.normal.log.AR0'. These reference models are pre-defined in \code{buildModelAll}, but this function allows the user to edit the reference models in the data.frame if needed.
 }
+\examples{
+# Show reference table of all fitted models
+
+\dontrun{
+all.models.ref.table = showModelAll(all.models)
+}
+}
 \keyword{all}
 \keyword{hydroState}
 \keyword{models}

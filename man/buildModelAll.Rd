@@ -37,8 +37,6 @@ buildModelAll(
 \item{siteID}{character string of site identifier.}
 
 \item{reference.table}{data frame with a table summarizing all built models and corresponding reference model. From function \code{showModelAll}. If empty, summary table will be built automatically.}
-
-\item{ID}{character vector of a stream gauge identifier}
 }
 \value{
 A list of built hydroState models with every combination of objects ready to be fitted
@@ -57,7 +55,7 @@ All possible combinations of hydroState models are built for each data transform
 data(streamflow_annual_221201)
 
 # Build all annual models
-all.annual.models = buildModelAll(input.data = streamflow_annual_221201, ID = '221201')
+all.annual.models = buildModelAll(input.data = streamflow_annual_221201, siteID = '221201')
 
 }
 \keyword{all}

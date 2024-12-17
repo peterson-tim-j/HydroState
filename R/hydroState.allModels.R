@@ -52,7 +52,7 @@ setMethod(f="initialize",signature="hydroState.allModels",definition=function(.O
 
 
 # get summary of all models.
-#' @exportMethod get.summary.table
+# @exportMethod get.summary.table
 setGeneric(name="get.summary.table",def=function(.Object, models.summary = data.frame()){standardGeneric("get.summary.table")})
 setMethod(f="get.summary.table",signature="hydroState.allModels",definition=function(.Object, models.summary)
 {
@@ -73,7 +73,7 @@ setMethod(f="get.summary.table",signature="hydroState.allModels",definition=func
     data.transform = sapply(.Object@models, function(x) ifelse(length(x@Qhat.object@parameters@values)>0, 'boxcox','log'))
 
     #adjust number of model parameters depending on data transform
-    nstates = sapply(1:length(nstates), function(x) ifelse(data.transform[x] == 'boxcox', nstates[x] +1, nstates[x]))
+    nparams = as.numeric(sapply(1:length(nparams), function(x) ifelse(data.transform[x] == 'boxcox', nparams[x] +1, nparams[x])))
 
 
     error.distribution = sapply(.Object@models, function(x) ifelse(x@QhatModel.object@use.truncated.dist == TRUE,'truc.normal',
@@ -220,16 +220,18 @@ setMethod(f="get.summary.table",signature="hydroState.allModels",definition=func
             temp.models$ref.model[1] = ""
             temp.models$ref.model[2:NROW(temp.models)] = temp.models$model.names[1:(NROW(temp.models)-1)]
           }else if('mean.a0' %in% temp.models$state.shift){
-            temp.models$ref.model[1] =  ifelse(i == 1, "","model.1State.normal.log.AR0.a1")
+            temp.models$ref.model[1] =  ifelse(i == 1, "",max.temp.normal.log.model)
             temp.models$ref.model[2:NROW(temp.models)] = temp.models$model.names[1:(NROW(temp.models)-1)]
           }else if('mean.a1' %in% temp.models$state.shift){
-            temp.models$ref.model[1] =  ifelse(i == 1, "","model.1State.normal.log.AR0.a1")
+            temp.models$ref.model[1] =  ifelse(i == 1, "",max.temp.normal.log.model)
             temp.models$ref.model[2:NROW(temp.models)] = temp.models$model.names[1:(NROW(temp.models)-1)]
           }
 
           # reestablish in all. models.
           all.models.matrix$ref.model[!is.na(match(all.models.matrix$model.names,temp.models$model.names))] <- temp.models$ref.model
 
+          # set max model for state of log models
+          max.temp.normal.log.model = all.models.matrix$model.names[length(temp.models)]
         }
 
         if('truc.normal' %in% log.models$error.dist){
@@ -239,16 +241,18 @@ setMethod(f="get.summary.table",signature="hydroState.allModels",definition=func
             temp.models$ref.model[1] = ""
             temp.models$ref.model[2:NROW(temp.models)] = temp.models$model.names[1:(NROW(temp.models)-1)]
           }else if('mean.a0' %in% temp.models$state.shift){
-            temp.models$ref.model[1] =  ifelse(i == 1, "","model.1State.truc.normal.log.AR0.a1")
+            temp.models$ref.model[1] =  ifelse(i == 1, "",max.temp.truc.normal.log.model)
             temp.models$ref.model[2:NROW(temp.models)] = temp.models$model.names[1:(NROW(temp.models)-1)]
           }else if('mean.a1' %in% temp.models$state.shift){
-            temp.models$ref.model[1] =  ifelse(i == 1, "","model.1State.truc.normal.log.AR0.a1")
+            temp.models$ref.model[1] =  ifelse(i == 1, "",max.temp.truc.normal.log.model)
             temp.models$ref.model[2:NROW(temp.models)] = temp.models$model.names[1:(NROW(temp.models)-1)]
           }
 
           # reestablish in all. models.
           all.models.matrix$ref.model[!is.na(match(all.models.matrix$model.names,temp.models$model.names))] <- temp.models$ref.model
 
+          # set max model for state of log models
+          max.temp.truc.normal.log.model = all.models.matrix$model.names[length(temp.models)]
         }
 
 
@@ -259,15 +263,18 @@ setMethod(f="get.summary.table",signature="hydroState.allModels",definition=func
             temp.models$ref.model[1] = ""
             temp.models$ref.model[2:NROW(temp.models)] = temp.models$model.names[1:(NROW(temp.models)-1)]
           }else if('mean.a0' %in% temp.models$state.shift){
-            temp.models$ref.model[1] =  ifelse(i == 1, "","model.1State.gamma.log.AR0.a1")
+            temp.models$ref.model[1] =  ifelse(i == 1, "",max.temp.gamma.log.model)
             temp.models$ref.model[2:NROW(temp.models)] = temp.models$model.names[1:(NROW(temp.models)-1)]
           }else if('mean.a1' %in% temp.models$state.shift){
-            temp.models$ref.model[1] =  ifelse(i == 1, "","model.1State.gamma.log.AR0.a1")
+            temp.models$ref.model[1] =  ifelse(i == 1, "",max.temp.gamma.log.model)
             temp.models$ref.model[2:NROW(temp.models)] = temp.models$model.names[1:(NROW(temp.models)-1)]
           }
 
           # reestablish in all. models.
           all.models.matrix$ref.model[!is.na(match(all.models.matrix$model.names,temp.models$model.names))] <- temp.models$ref.model
+
+          # set max model for state of log models
+          max.temp.gamma.log.model = all.models.matrix$model.names[length(temp.models)]
 
         }
       }
@@ -279,38 +286,42 @@ setMethod(f="get.summary.table",signature="hydroState.allModels",definition=func
           temp.models = boxcox.models[which(boxcox.models$error.dist == 'normal'),]
 
           if('none' %in% temp.models$state.shift){
-            temp.models$ref.model[1] = ifelse('log' %in% all.models.matrix.set$data.trans,"model.1State.normal.log.AR0.a1","")
+            temp.models$ref.model[1] = ifelse('log' %in% all.models.matrix.set$data.trans,log.models$model.names[which(log.models$error.dist == 'normal')][1],"")
             temp.models$ref.model[2:NROW(temp.models)] = temp.models$model.names[1:(NROW(temp.models)-1)]
           }else if('mean.a0' %in% temp.models$state.shift){
-            temp.models$ref.model[1] =  ifelse(i == 1, "","model.1State.normal.boxcox.AR0.a1")
+            temp.models$ref.model[1] =  ifelse(i == 1, "", max.temp.normal.boxcox.model)
             temp.models$ref.model[2:NROW(temp.models)] = temp.models$model.names[1:(NROW(temp.models)-1)]
           }else if('mean.a1' %in% temp.models$state.shift){
-            temp.models$ref.model[1] =  ifelse(i == 1, "","model.1State.normal.boxcox.AR0.a1")
+            temp.models$ref.model[1] =  ifelse(i == 1, "", max.temp.normal.boxcox.model)
             temp.models$ref.model[2:NROW(temp.models)] = temp.models$model.names[1:(NROW(temp.models)-1)]
           }
 
           # reestablish in all. models.
           all.models.matrix$ref.model[!is.na(match(all.models.matrix$model.names,temp.models$model.names))] <- temp.models$ref.model
 
+          # set max model for state of boxcox models
+          max.temp.normal.boxcox.model = all.models.matrix$model.names[length(temp.models)]
         }
 
         if('truc.normal' %in% boxcox.models$error.dist){
           temp.models = boxcox.models[which(boxcox.models$error.dist == 'truc.normal'),]
 
           if('none' %in% temp.models$state.shift){
-            temp.models$ref.model[1] = ifelse('log' %in% all.models.matrix.set$data.trans,"model.1State.truc.normal.log.AR0.a1","")
+            temp.models$ref.model[1] = ifelse('log' %in% all.models.matrix.set$data.trans,log.models$model.names[which(log.models$error.dist == 'truc.normal')][1],"")
             temp.models$ref.model[2:NROW(temp.models)] = temp.models$model.names[1:(NROW(temp.models)-1)]
           }else if('mean.a0' %in% temp.models$state.shift){
-            temp.models$ref.model[1] =  ifelse(i == 1, "","model.1State.truc.normal.boxcox.AR0.a1")
+            temp.models$ref.model[1] =  ifelse(i == 1, "", max.temp.truc.normal.boxcox.model)
             temp.models$ref.model[2:NROW(temp.models)] = temp.models$model.names[1:(NROW(temp.models)-1)]
           }else if('mean.a1' %in% temp.models$state.shift){
-            temp.models$ref.model[1] =  ifelse(i == 1, "","model.1State.truc.normal.boxcox.AR0.a1")
+            temp.models$ref.model[1] =  ifelse(i == 1, "", max.temp.truc.normal.boxcox.model)
             temp.models$ref.model[2:NROW(temp.models)] = temp.models$model.names[1:(NROW(temp.models)-1)]
           }
 
           # reestablish in all. models.
           all.models.matrix$ref.model[!is.na(match(all.models.matrix$model.names,temp.models$model.names))] <- temp.models$ref.model
 
+          # set max model for state of boxcox models
+          max.temp.truc.normal.boxcox.model = all.models.matrix$model.names[length(temp.models)]
         }
 
 
@@ -318,18 +329,21 @@ setMethod(f="get.summary.table",signature="hydroState.allModels",definition=func
           temp.models = boxcox.models[which(boxcox.models$error.dist == 'gamma'),]
 
           if('none' %in% temp.models$state.shift){
-            temp.models$ref.model[1] = ifelse('log' %in% all.models.matrix.set$data.trans,"model.1State.gamma.log.AR0.a1","")
+            temp.models$ref.model[1] = ifelse('log' %in% all.models.matrix.set$data.trans,log.models$model.names[which(log.models$error.dist == 'gamma')][1],"")
             temp.models$ref.model[2:NROW(temp.models)] = temp.models$model.names[1:(NROW(temp.models)-1)]
           }else if('mean.a0' %in% temp.models$state.shift){
-            temp.models$ref.model[1] =  ifelse(i == 1, "","model.1State.gamma.boxcox.AR0.a1")
+            temp.models$ref.model[1] =  ifelse(i == 1, "",max.temp.gamma.boxcox.model)
             temp.models$ref.model[2:NROW(temp.models)] = temp.models$model.names[1:(NROW(temp.models)-1)]
           }else if('mean.a1' %in% temp.models$state.shift){
-            temp.models$ref.model[1] =  ifelse(i == 1, "","model.1State.gamma.boxcox.AR0.a1")
+            temp.models$ref.model[1] =  ifelse(i == 1, "",max.temp.gamma.boxcox.model)
             temp.models$ref.model[2:NROW(temp.models)] = temp.models$model.names[1:(NROW(temp.models)-1)]
           }
 
           # reestablish in all. models.
           all.models.matrix$ref.model[!is.na(match(all.models.matrix$model.names,temp.models$model.names))] <- temp.models$ref.model
+
+          # set max model for state of boxcox models
+          max.temp.gamma.boxcox.model = all.models.matrix$model.names[length(temp.models)]
 
         }
       }
@@ -366,7 +380,7 @@ setMethod(f="get.summary.table",signature="hydroState.allModels",definition=func
 }
 )
 
-#' @exportMethod fit
+# @exportMethod fit
 setMethod(f = "fit",signature="hydroState.allModels",definition=function(.Object,
                                                                          pop.size.perParameter=25,
                                                                          max.generations=10000,

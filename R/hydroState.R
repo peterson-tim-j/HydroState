@@ -127,7 +127,7 @@ setMethod(f="getParameters",
 )
 
 # Get the full set of model parameters as a list.
-#' @exportMethod getParameters.asVector
+# @exportMethod getParameters.asVector
 setGeneric(name="getParameters.asVector",def=function(.Object) {standardGeneric("getParameters.asVector")})
 setMethod(f="getParameters.asVector",
           signature="hydroState",
@@ -720,7 +720,7 @@ setMethod(f="setStateNames",signature=c("hydroState","numeric"),definition=funct
 
 
 
-# @exportMethod plot.graph
+#' @export plot.graph
 setGeneric(name="plot.graph",def=function(.Object, main=NA, relsize=NA) {standardGeneric("plot.graph")})
 setMethod(f="plot.graph",signature="hydroState",definition=function(.Object, main='Transtion Probability Graph', relsize=0.8)
 {
@@ -757,7 +757,7 @@ setMethod(f="plot.graph",signature="hydroState",definition=function(.Object, mai
 }
 )
 
-# @exportMethod viterbi
+# @exportMethod viterbiF\
 setGeneric(name="viterbi",def=function(.Object, data, do.plot=NA, plot.percentiles=NA, plot.yearRange=NA, plot.options=NA) {standardGeneric("viterbi")})
 setMethod(f="viterbi",signature=c("hydroState","missing","missing","missing","missing","missing"),
           definition=function(.Object, data, do.plot=T, plot.percentiles = c(0.05, 0.5, 0.95), plot.yearRange=numeric(),plot.options = c("A","B","C","D"))

@@ -760,7 +760,6 @@ buildModel <- function(input.data = data.frame(year=c(), flow=c(), precip=c()),
 #'
 #'
 #' @param input.data dataframe of annual, seasonal, or monthly runoff and precipitation observations. Gaps with missing data in either streamflow or precipitation are permitted, and the handling of them is further discussed in \code{select.Markov}. Monthly data is required when using \code{seasonal.parameters} that assumes selected model parameters are better defined with a sinusoidal function.
-#' @param ID  character vector of a stream gauge identifier
 #' @param data.transform character list of method of transformation. If empty, the default builds all possible combinations of models with 'boxcox' and 'log' data transformation.
 #' @param parameters character list of parameters to determine model form. If empty, the default builds all possible combinations of model forms.
 #' @param seasonal.parameters character list of parameters with sinusoidal function to represent seasonal variation. Requires monthly or seasonal data. If empty and monthly or seasonal data is given, the default builds all possible combinations of models with a seasonal parameter for each and all parameters.
@@ -786,7 +785,7 @@ buildModel <- function(input.data = data.frame(year=c(), flow=c(), precip=c()),
 #' data(streamflow_annual_221201)
 #'
 #' # Build all annual models
-#' all.annual.models = buildModelAll(input.data = streamflow_annual_221201, ID = '221201')
+#' all.annual.models = buildModelAll(input.data = streamflow_annual_221201, siteID = '221201')
 #'
 
 
@@ -842,28 +841,13 @@ buildModelAll <-function(input.data = data.frame(year=c(), flow=c(), precip=c())
       names(parameters) = ifelse("AR1" %in% parameters,"AR1",ifelse("AR2" %in% parameters,"AR2", ifelse("AR3" %in% parameters, "AR3","AR0")))
     }
 
-    if('month' %in% colnames(input.data)){
-
-      if(is.null(seasonal.parameters)){
-        seasonal.parameters = list(list('a0'), list('a0','std'),list('a0','a1','std'),
-                                   list('a1'), list('a1','std'), list('a0','a1'),list('std'))
-        names(seasonal.parameters) =list('a0.seasonal', 'a0.std.seasonal', 'a0.a1.std.seasonal',
-                                         'a1.seasonal', 'a1.std.seasonal', 'a0.a1.seasonal', 'std.seasonal')
-      }else{
-        seasonal.parameters = list(seasonal.parameters)
-        names(seasonal.parameters) = ifelse("a0" %in% unlist(seasonal.parameters),"a0.seasonal",
-                                            ifelse("a1" %in% unlist(seasonal.parameters),"a1.seasonal",
-                                                   ifelse("a0" %in% unlist(seasonal.parameters) && "a1" %in% unlist(seasonal.parameters) ,"a0.a1.seasonal",
-                                                          ifelse("a0" %in% unlist(seasonal.parameters) && "std" %in% unlist(seasonal.parameters) ,"a0.std.seasonal",
-                                                                 ifelse("a1" %in% unlist(seasonal.parameters) && "std" %in% unlist(seasonal.parameters) ,"a1.std.seasonal",
-                                                                        ifelse("a0" %in% unlist(seasonal.parameters) && "a1" %in% unlist(seasonal.parameters) && "std" %in% unlist(seasonal.parameters) ,"a0.a1.std.seasonal"))))))
-
-      }
+    if(is.null(transition.graph)){
+      transition.graph = list(matrix(TRUE,1,1),matrix(TRUE,2,2),matrix(TRUE,3,3))#,matrix(c(TRUE,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,FALSE,TRUE),3,3))
+      names(transition.graph) = c("1State","2State","3State")
     }else{
-      seasonal.parameters = list()
-      # names(seasonal.parameters) = ""
+      transition.graph = list(transition.graph)
+      names(transition.graph) = ifelse(transition.graph == matrix(TRUE,1,1),"1State", ifelse(transition.graph == matrix(TRUE,2,2), "2State",ifelse(transition.graph == matrix(TRUE,3,3),"3State",paste(NCOL(transition.graph),"UserState",sep=""))))
     }
-
 
     if(is.null(state.shift.parameters)){
       state.shift.parameters = list(list('a0','std'), list('a1','std'))
@@ -876,12 +860,36 @@ buildModelAll <-function(input.data = data.frame(year=c(), flow=c(), precip=c())
 
     if('month' %in% colnames(input.data)){
 
-      if(length(seasonal.parameters) > 0){
-        error.distribution = list('gamma')
-        message('Models built with gamma error.distribution')
+      if(length(seasonal.parameters) < 1){
+        seasonal.parameters = list(list('a0'), list('a0','std'),list('a0','a1','std'),
+                                   list('a1'), list('a1','std'), list('a0','a1'),list('std'))
+        names(seasonal.parameters) =list('a0.seasonal', 'a0.std.seasonal', 'a0.a1.std.seasonal',
+                                         'a1.seasonal', 'a1.std.seasonal', 'a0.a1.seasonal', 'std.seasonal')
       }else{
-        error.distribution = list('truc.normal','normal','gamma')
+        seasonal.parameters = list(seasonal.parameters)
+        names(seasonal.parameters) = ifelse("a0" %in% unlist(seasonal.parameters),"a0.seasonal",
+                                            ifelse("a1" %in% unlist(seasonal.parameters),"a1.seasonal",
+                                                   ifelse("a0" %in% unlist(seasonal.parameters) && "a1" %in% unlist(seasonal.parameters) ,"a0.a1.seasonal",
+                                                          ifelse("a0" %in% unlist(seasonal.parameters) && "std" %in% unlist(seasonal.parameters) ,"a0.std.seasonal",
+                                                                 ifelse("a1" %in% unlist(seasonal.parameters) && "std" %in% unlist(seasonal.parameters) ,"a1.std.seasonal",
+                                                                        ifelse("a0" %in% unlist(seasonal.parameters) && "a1" %in% unlist(seasonal.parameters) && "std" %in% unlist(seasonal.parameters) ,"a0.a1.std.seasonal",""))))))
+
       }
+    }
+
+    if('month' %in% colnames(input.data)){
+
+      if(length(seasonal.parameters) > 0){
+
+        error.distribution = list('gamma')
+        message('Subannual models built with gamma error.distribution')
+
+      }else if(missing(error.distribution)){
+        error.distribution = list('truc.normal','normal','gamma')
+      }else{
+        error.distribution = list(error.distribution)
+      }
+
     }else{
 
       if(missing(error.distribution)){
@@ -889,28 +897,18 @@ buildModelAll <-function(input.data = data.frame(year=c(), flow=c(), precip=c())
       }else{
         error.distribution = list(error.distribution)
       }
-    }
 
-    if(is.null(transition.graph)){
-      transition.graph = list(matrix(TRUE,1,1),matrix(TRUE,2,2),matrix(TRUE,3,3))#,matrix(c(TRUE,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,FALSE,TRUE),3,3))
-      names(transition.graph) = c("1State","2State","3State")
-    }else{
-      transition.graph = list(transition.graph)
-      names(transition.graph) = ifelse(transition.graph == matrix(TRUE,1,1),"1State", ifelse(transition.graph == matrix(TRUE,2,2), "2State",ifelse(transition.graph == matrix(TRUE,3,3),"3State",paste(NCOL(transition.graph),"UserState",sep=""))))
     }
 
     # build all models
 
-    if('month' %in% colnames(input.data)){
-      build.all.model = vector(mode = "list", length = length(transition.graph) * length(error.distribution) * length(state.shift.parameters) * length(state.shift.parameters) * length(data.transform))
-      build.all.model.names = vector(mode = "list", length = length(transition.graph) * length(error.distribution) * length(state.shift.parameters) * length(state.shift.parameters) * length(data.transform))
-    }else{
-      build.all.model = vector(mode = "list", length = length(transition.graph) * length(error.distribution) * length(state.shift.parameters) * length(data.transform))
-      build.all.model.names = vector(mode = "list", length = length(transition.graph) * length(error.distribution) * length(state.shift.parameters) * length(data.transform))
-    }
+    if(length(seasonal.parameters) > 0){
+      build.all.model = vector(mode = "list", length = length(transition.graph) * length(error.distribution) * length(state.shift.parameters) * length(seasonal.parameters) * length(data.transform))
+      build.all.model.names = vector(mode = "list", length = length(transition.graph) * length(error.distribution) * length(state.shift.parameters) * length(seasonal.parameters) * length(data.transform))
 
-    build.all.model.count = 1
+      build.all.model.count = 1
 
+      # seasonal first... if seasonal parameters
       for(i in 1:length(parameters)){
 
         temp.parameters = parameters[[i]]
@@ -927,58 +925,95 @@ buildModelAll <-function(input.data = data.frame(year=c(), flow=c(), precip=c())
 
             temp.state.shift.parameters.name = names(state.shift.parameters[k])
 
-              for(m in 1:length(seasonal.parameters)){
+            for(m in 1:length(seasonal.parameters)){
 
-                if('month' %in% colnames(input.data)){
+                temp.seasonal.parameters = seasonal.parameters[[m]]
 
-                  temp.seasonal.parameters = seasonal.parameters[[m]]
+                temp.seasonal.parameters.name = names(seasonal.parameters[m])
 
-                  temp.seasonal.parameters.name = names(seasonal.parameters[m])
-                }else{
-                  temp.seasonal.parameters = list()
-                  temp.seasonal.parameters.name = ""
-                }
+              for(z in 1:length(error.distribution)){
 
-                for(z in 1:length(error.distribution)){
+                temp.error.distribution = error.distribution[[z]]
 
-                  temp.error.distribution = error.distribution[[z]]
+                for(y in 1:length(transition.graph)){
 
-                  for(y in 1:length(transition.graph)){
+                  temp.transition.graph = transition.graph[[y]]
 
-                    temp.transition.graph = transition.graph[[y]]
-
-                    temp.transition.graph.name = names(transition.graph[y])
+                  temp.transition.graph.name = names(transition.graph[y])
 
 
-                    build.all.model[[build.all.model.count]] = buildModel(input.data,
-                                                               data.transform = temp.data.transform,
-                                                               parameters = temp.parameters,
-                                                               seasonal.parameters = temp.seasonal.parameters,
-                                                               state.shift.parameters = temp.state.shift.parameters,
-                                                               error.distribution = temp.error.distribution,
-                                                               flickering = flickering,
-                                                               transition.graph = temp.transition.graph)
+                  build.all.model[[build.all.model.count]] = buildModel(input.data,
+                                                                        data.transform = temp.data.transform,
+                                                                        parameters = temp.parameters,
+                                                                        seasonal.parameters = temp.seasonal.parameters,
+                                                                        state.shift.parameters = temp.state.shift.parameters,
+                                                                        error.distribution = temp.error.distribution,
+                                                                        flickering = flickering,
+                                                                        transition.graph = temp.transition.graph)
 
-                    # build.all.model[build.all.model.count] <- setNames(build.all.model[build.all.model.count], paste("model.",temp.transition.graph.name,".",temp.error.distribution,".",temp.data.transform,".",temp.parameters.name,".",temp.state.shift.parameters.name,sep=""))
-
-                    if(length(seasonal.parameters)>0){
-
-                      build.all.model.names[[build.all.model.count]] <- paste("model.",temp.transition.graph.name,".",temp.error.distribution,".",temp.data.transform,".",temp.parameters.name,".",temp.seasonal.parameters.name,".",temp.state.shift.parameters.name,sep="")
-
-                    }else{
-
-                      build.all.model.names[[build.all.model.count]] <- paste("model.",temp.transition.graph.name,".",temp.error.distribution,".",temp.data.transform,".",temp.parameters.name,".",temp.state.shift.parameters.name,sep="")
-
-                    }
+                    build.all.model.names[[build.all.model.count]] <- paste("model.",temp.transition.graph.name,".",temp.error.distribution,".",temp.data.transform,".",temp.parameters.name,".",temp.seasonal.parameters.name,".",temp.state.shift.parameters.name,sep="")
 
                     build.all.model.count = build.all.model.count + 1
 
-                    }
-                  }
                 }
+              }
+            }
           }
         }
       }
+
+      # if not seasonal, just do annual..
+      }else{
+      build.all.model = vector(mode = "list", length = length(transition.graph) * length(error.distribution) * length(state.shift.parameters) * length(data.transform))
+      build.all.model.names = vector(mode = "list", length = length(transition.graph) * length(error.distribution) * length(state.shift.parameters) * length(data.transform))
+
+      build.all.model.count = 1
+
+        for(i in 1:length(parameters)){
+
+          temp.parameters = parameters[[i]]
+
+          temp.parameters.name = names(parameters[i])
+
+          for(j in 1:length(data.transform)){
+
+            temp.data.transform = data.transform[[j]]
+
+            for(k in 1:length(state.shift.parameters)){
+
+              temp.state.shift.parameters = state.shift.parameters[[k]]
+
+              temp.state.shift.parameters.name = names(state.shift.parameters[k])
+
+                  for(z in 1:length(error.distribution)){
+
+                    temp.error.distribution = error.distribution[[z]]
+
+                    for(y in 1:length(transition.graph)){
+
+                      temp.transition.graph = transition.graph[[y]]
+
+                      temp.transition.graph.name = names(transition.graph[y])
+
+
+                      build.all.model[[build.all.model.count]] = buildModel(input.data,
+                                                                 data.transform = temp.data.transform,
+                                                                 parameters = temp.parameters,
+                                                                 state.shift.parameters = temp.state.shift.parameters,
+                                                                 error.distribution = temp.error.distribution,
+                                                                 flickering = flickering,
+                                                                 transition.graph = temp.transition.graph)
+
+                        build.all.model.names[[build.all.model.count]] <- paste("model.",temp.transition.graph.name,".",temp.error.distribution,".",temp.data.transform,".",temp.parameters.name,".",temp.state.shift.parameters.name,sep="")
+
+                        build.all.model.count = build.all.model.count + 1
+
+                      }
+                    }
+                  }
+            }
+          }
+        }
 
     build.all.model <- setNames(build.all.model, unlist(build.all.model.names))
 
@@ -1023,8 +1058,13 @@ buildModelAll <-function(input.data = data.frame(year=c(), flow=c(), precip=c())
 #' @keywords hydroState summary all models
 #'
 #' @export
-#' @examples
 #'
+#' @examples
+#' # Show reference table of all fitted models
+#'
+#' \dontrun{
+#' all.models.ref.table = showModelAll(all.models)
+#' }
 
 showModelAll <- function(all.models){
 
@@ -1108,7 +1148,7 @@ showModelAll <- function(all.models){
 #' data(streamflow_annual_221201)
 #'
 #' ## Build all annual models
-#' all.annual.models = buildModelAll(input.data = streamflow_annual_221201, ID = '221201')
+#' all.annual.models = buildModelAll(input.data = streamflow_annual_221201, siteID = '221201')
 #'
 #' ## Fit all
 #' model = fitModel(all.annual.models)
@@ -1217,8 +1257,7 @@ fitModel <- function(model.name,
 #'
 #' @param model.name is the name of the fitted \code{hydroState} model object.
 #'
-#' @return
-#' AIC value
+#' @return AIC value
 #'
 #' @keywords AIC
 #'
@@ -1233,7 +1272,7 @@ fitModel <- function(model.name,
 #' get.AIC(model.annual.fitted.221201)
 #'
 #' ## Lowest AIC of a model set
-#' get.AIC()
+#' # get.AIC()
 #'
 
 
@@ -1300,6 +1339,7 @@ get.AIC <- function(model.name){
 #' @importFrom grDevices pdf
 #' @import diagram
 #' @import graphics
+#'
 #'
 #' @examples
 #' # Load fitted model
