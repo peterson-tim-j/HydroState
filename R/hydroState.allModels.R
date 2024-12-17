@@ -72,6 +72,10 @@ setMethod(f="get.summary.table",signature="hydroState.allModels",definition=func
 
     data.transform = sapply(.Object@models, function(x) ifelse(length(x@Qhat.object@parameters@values)>0, 'boxcox','log'))
 
+    #adjust number of model parameters depending on data transform
+    nstates = sapply(1:length(nstates), function(x) ifelse(data.transform[x] == 'boxcox', nstates[x] +1, nstates[x]))
+
+
     error.distribution = sapply(.Object@models, function(x) ifelse(x@QhatModel.object@use.truncated.dist == TRUE,'truc.normal',
                                                                    ifelse(grepl('normal',class(x@QhatModel.object)),'normal',
                                                                           ifelse(grepl('gamma',class(x@QhatModel.object)),'gamma',''))))
@@ -332,20 +336,19 @@ setMethod(f="get.summary.table",signature="hydroState.allModels",definition=func
 
     }
 
-    # reorder to ensure empty calib ref are first...
-    empty.ref = which(all.models.matrix$ref.model =="")
-    full.ref = which(all.models.matrix$ref.model !="")
-    all.models.matrix = rbind(all.models.matrix[empty.ref,],all.models.matrix[full.ref,])
-
-    # clean all.models (remove the duplicate one-state if so) this happens if investigating slope and intercept seperately
-    .Object@models <- .Object@models[match(all.models.matrix$model.names,names(.Object@models))]
-
-
-
 
     #export summary
     .Object@models.summary <- all.models.matrix
   }
+
+  # reorder to ensure empty calib ref are first...
+  empty.ref = which(.Object@models.summary$ref.model =="")
+  full.ref = which(.Object@models.summary$ref.model !="")
+  .Object@models.summary = rbind(.Object@models.summary[empty.ref,],.Object@models.summary[full.ref,])
+
+  # clean all.models (remove the duplicate one-state if so) this happens if investigating slope and intercept seperately
+  .Object@models <- .Object@models[match(.Object@models.summary$model.names,names(.Object@models))]
+
 
   ### Then adjust calib.reference details based on models.summary from user or machine
 
@@ -354,7 +357,7 @@ setMethod(f="get.summary.table",signature="hydroState.allModels",definition=func
   names(.Object@calib.reference.model.name) <- .Object@models.summary$model.names
 
 
-  model.names = names(.Object@models)
+  model.names = names(.Object@models.summary$model.names)
   .Object@calib.reference.criteria.met = rep(F,length(model.names))
   names(.Object@calib.reference.criteria.met) <- model.names
 

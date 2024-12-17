@@ -40,10 +40,10 @@ head(streamflow_annual_407211)
 #> 1949 35.864082      564.7229
 ```
 
-## Select the state model
-Before building the model, select a state model using `select.stateModel` that better suites the distribution or auto-correlation within the residuals. This function provides several options to better define the rainfall-runoff relationship. When model residuals are not normally distributed, consider changing the `error.distribution` to `gamma` or `normal`. If auto-correlation is present, consider including an `AR1`, `AR2`, or `AR3` term within `parameters` to assume auto-correlation of 1, 2, or 3 time lags. It is also possible to reduce auto-correlation by allowing for 3-states rather than two by adjusting the `transition.graph` to equal `matrix(TRUE,3,3)`. Or the shift could be occurring within a different model parameter and this adjustment involves specifying the `state.shift.parameters`.
+## Build a hydroState model with an adjusted the state model
+While building the model, adjust the state model that better suites the distribution or auto-correlation within the residuals. `buildModel` provides several options to better define the rainfall-runoff relationship. When model residuals are not normally distributed, consider changing the `error.distribution` to `gamma` or `normal`. If auto-correlation is present, consider including an `AR1`, `AR2`, or `AR3` term within `parameters` to assume auto-correlation of 1, 2, or 3 time lags. It is also possible to reduce auto-correlation by allowing for 3-states rather than two by adjusting the `transition.graph` to equal `matrix(TRUE,3,3)`. Or the shift could be occurring within a different model parameter and this adjustment involves specifying the `state.shift.parameters`.
 
-Below are four options to adjust the state model to better fit the model's residuals. For further details, see help page for `select.stateModel`.
+Below are four options to adjust the state model to better fit the model's residuals. For further details, see help page for `buildModel`.
 
 1) `parameters` - include `AR1`, `AR2`, or `AR3` to assume auto-correlation of 1, 2, or 3 time lags 
 2) `state.shift.parameters` - adjust the state dependent parameter to `a1` or one of the auto-correlation terms.  
@@ -54,31 +54,18 @@ For this example, we compare the default state model and adjusted model. The def
 
 ```r
 # Default state model
-default.state.model = select.stateModel(input.data = streamflow_annual_407211,
+default.model.annual = buildModel(input.data = streamflow_annual_407211,
                               parameters = list('a0','a1','std'),
                               state.shift.parameters = list('a0','std'),
                               error.distribution = 'truc.normal',
                               transition.graph = matrix(TRUE,2,2))
 
 # Adjusted state model assuming the residuals are a gamma distribution
-gamma.state.model = select.stateModel(input.data = streamflow_annual_407211,
+gamma.model.annual = buildModel(input.data = streamflow_annual_407211,
                               parameters = list('a0','a1','std'),
                               state.shift.parameters = list('a0','std'),
                               error.distribution = 'gamma',
                               transition.graph = matrix(TRUE,2,2))
-```
-
-## Build a hydroState model with select state model
-The example continues building two hydroState models, one for the default state model and the other for the adjusted state model.
-
-```r
-# Build hydroState model for default model
-default.model.annual = buildModel(input.data = streamflow_annual_407211,
-                    stateModel = default.state.model)
-
-# Build hydroState model for adjusted state model
-gamma.model.annual = buildModel(input.data = streamflow_annual_407211,
-                    stateModel = gamma.state.model)
 ```
 
 ## Fit the model
@@ -119,17 +106,29 @@ plot.states(gamma.model.annual)
 <\center>
 
 ## Systematic state model selection
-How do we know which state model is the best given our observations? Rather than manually testing every adjustment in the state model, the `buildModelAll` function builds every possible state model combination (each distribution, auto-correlation terms, and 1 to 3-states) while the intercept, `a_1` and error `std` are considered `state.shift.parameters`. The function performs similarly to `buildModel` and can easily replace this function in the workflow. After being built, the `fitModel` function is performed just as before, and the best model is based on the lowest AIC. 
+How do we know which state model is the best given our observations? Rather than manually testing every adjustment of the state model, the `buildModelAll` function builds every possible state model combination (each distribution, auto-correlation terms, and 1 to 3-states) while the intercept, `a_1` and error `std` are considered `state.shift.parameters`. The function performs similarly to `buildModel` and can easily replace this function in the workflow. After being built, the models can be fitted using the `fitModel` function. This function fits each model iteratively, and requires each model to provide a better fit than the previous simpler model known as the reference model. To see a summary of the order of the reference models and revise them, use the `showModelAll` function. Once the models are fitted, the best model is the one with the lowest AIC, and the `get.AIC` function outputs a table with each model and AIC.
 
-Below is a an example of how to set up `buildModelAll`, but the built models are not fitted in this example due to time constraints. It is best to run `fitModel` in parallel when fitting all built models to save computation time. 
+Below is a an example of how to set up `buildModelAll`, and perform the steps to adjust the reference table using `showModelAll`, fit the models using `fitModel`, and identify the model with the lowest AIC. Note, fitting all models can take several hours to run. 
 
 ```{r  eval = FALSE}
-# Build all models
-debugonce("initialize",c("hydroState.allModels","list","character"))
-all.models = buildModelAll(input.data = streamflow_annual_221201, siteID = "221201")
+# Build all model combinations with 'a0' and 'std' as state-dependent parameters
+all.models = buildModelAll(input.data = streamflow_annual_407211,
+                           state.shift.parameters = list('a0','std'),
+                           siteID = "407211")
+
+# Review the order of the reference models, adjust reference models if needed.
+all.models.ref.table = showModelAll(all.models)
+
+# Re-build with adjusted reference table
+all.models = buildModelAll(input.data = streamflow_annual_407211,
+                               state.shift.parameters = list('a0','std'),
+                               reference.table = all.models.ref.table)
 
 # Fit all models (uncomment to run)
-<!--  all.models = fitModel(all.models, pop.size.perParameter = 10, max.generations = 500, doParallel = TRUE)
+<!-- all.models = fitModel(all.models, pop.size.perParameter = 10, max.generations = 500, doParallel = T) -->
+
+# get table of AIC values for each model
+get.AIC(all.models)
 
 ```
 

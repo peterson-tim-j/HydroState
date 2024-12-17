@@ -13,11 +13,30 @@ buildModelAll(
   error.distribution = NULL,
   flickering = FALSE,
   transition.graph = NULL,
-  siteID = NULL
+  siteID = NULL,
+  reference.table = NULL
 )
 }
 \arguments{
 \item{input.data}{dataframe of annual, seasonal, or monthly runoff and precipitation observations. Gaps with missing data in either streamflow or precipitation are permitted, and the handling of them is further discussed in \code{select.Markov}. Monthly data is required when using \code{seasonal.parameters} that assumes selected model parameters are better defined with a sinusoidal function.}
+
+\item{data.transform}{character list of method of transformation. If empty, the default builds all possible combinations of models with 'boxcox' and 'log' data transformation.}
+
+\item{parameters}{character list of parameters to determine model form. If empty, the default builds all possible combinations of model forms.}
+
+\item{seasonal.parameters}{character list of parameters with sinusoidal function to represent seasonal variation. Requires monthly or seasonal data. If empty and monthly or seasonal data is given, the default builds all possible combinations of models with a seasonal parameter for each and all parameters.}
+
+\item{state.shift.parameters}{character list of one or all parameters to identify state dependent parameters. If empty, the default builds models with all possible combinations state shift parameters.}
+
+\item{error.distribution}{character list of the distribution in the HMM error. If empty, the default builds models with all possible combinations of error distribution: list('truc.normal', 'normal','gamma')}
+
+\item{flickering}{logical T/F. T = allows more sensitive markov flickering between states over time, F = less sensitive and is default.}
+
+\item{transition.graph}{matrix given the number of states. If empty, the default builds models with all possible combinations of states: 1-state matrix (1 by 1): matrix(TRUE,1,1),  2-state matrix (2 by 2): matrix(TRUE,2,2), 3-state matrix (3 by 3): matrix(TRUE,3,3).}
+
+\item{siteID}{character string of site identifier.}
+
+\item{reference.table}{data frame with a table summarizing all built models and corresponding reference model. From function \code{showModelAll}. If empty, summary table will be built automatically.}
 
 \item{ID}{character vector of a stream gauge identifier}
 }
