@@ -443,7 +443,7 @@ setMethod(f = "fit",signature="hydroState.allModels",definition=function(.Object
 
       if (doParallel==T) {
         model <- .Object@models[[i]]
-        assign("model", model, envir=globalenv())
+        assign("model", model, envir=baseenv())
                  #new.env(parent = baseenv()))
 
         # error occurs after calling this...

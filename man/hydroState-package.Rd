@@ -10,7 +10,7 @@
 
 \description{
 
-\code{hydroState} provides methods to construct and evaluate hidden Markov models (HMM) of annual, seasonal, or monthly streamflow runoff with precipitation as a predictor. The state of the relationship between these observations is evaluated overtime. The package contains a default \code{hydroState} model to evaluate probable shifts in the intercept of the rainfall-runoff relationship or shifts in other terms can be evaluated. The default model can also be expanded with various terms to better define the relationship as discussed below, but the general workflow is as follows. Once the default or constructed model is built (\code{buildModel}), the model is fitted (\code{fitModel}) to determine the most likly rainfall-runoff state at each time-step. To assess the adequacy of the fit, the residuals are plotted (\code{plot.residuals}), and an adequate fit requires the residuals to be normaly distributed and not have any correlation or trends. The resulting runoff states from the fitted model can then be evaluated overtime (\code{plot.states}) and even exported (\code{get.states}) with the state values, confidence intervals, and conditional probabilities of each state. Input data requires a dataframe with flow and precipitation at annual, seasonal, or monthly timesteps, and gaps with missing data are permitted.
+\code{hydroState} provides methods to construct and evaluate hidden Markov models (HMM) of annual, seasonal, or monthly streamflow runoff with precipitation as a predictor. The state of the relationship between these observations is evaluated overtime. The package contains a default \code{hydroState} model to evaluate probable shifts in the intercept of the rainfall-runoff relationship or shifts in other terms can be evaluated. The default model can also be expanded with various terms to better define the relationship as discussed below, but the general workflow is as follows. Once the default or constructed model is built (\code{buildModel}), the model is fitted (\code{fitModel}) to determine the most likly rainfall-runoff state at each time-step. To assess the adequacy of the fit, the residuals are plotted (\code{plot_residuals}), and an adequate fit requires the residuals to be normaly distributed and not have any correlation or trends. The resulting runoff states from the fitted model can then be evaluated overtime (\code{plot_states}) and even exported (\code{get.states}) with the state values, confidence intervals, and conditional probabilities of each state. Input data requires a dataframe with flow and precipitation at annual, seasonal, or monthly timesteps, and gaps with missing data are permitted.
 
 A \code{hydroState} model operates in S4, object oriented programming, and building a unique model requires selection of various items within the \code{buildModel} function. The form of the model is adjusted through selecting the type of \code{data.transform}, \code{parameters}, \code{state.shift.parameters}, \code{error.distribution}, and \code{transition.graph}. The \code{data.transform} offers various transformaitons of the observations in order to reduce skew. These transformaitons include: 'boxcox', 'log', 'burbidge', or 'none'. The selected \code{parameters} adjust the form of the model where the degree of auto-correlation ('AR1', 'AR2', or 'AR3') can be included. The selection of \code{state.shift.parameters} are the state dependent parameters expected to shift overtime. The \code{error.distribution} allows selection of any of the following three possible distribution ('normal', 'gamma', or 'truc.normal') in order to better explain the residuals. When monthly or seasonal data is included, \code{seasonal.parameters} can be included to better explain the varation in the rainfall-runoff relationship throughtout the year. Lastly, the \code{transition.graph} is just the number of expected states in a matrix. Further details on the selection of options for constructing a \code{hydroState} model are explained within each topic.
 
@@ -39,7 +39,7 @@ There is an additional option to construct all possible types of models using th
   \section{III. Review}{
 
     \tabular{ll}{
-      \code{\link{plot.residuals}}\tab plot residuals\cr
+      \code{\link{plot_residuals}}\tab plot residuals\cr
       \code{\link{get.residuals}}\tab get residuals\cr
       ------------------------\tab------------------------------------------------
   }
@@ -48,7 +48,7 @@ There is an additional option to construct all possible types of models using th
 
     \tabular{ll}{
       \code{\link{setInitialYear}}\tab set initial year for assigning state names\cr
-      \code{\link{plot.states}}\tab plot states\cr
+      \code{\link{plot_states}}\tab plot states\cr
       \code{\link{get.states}}\tab get states\cr
       ------------------------\tab------------------------------------------------
   }

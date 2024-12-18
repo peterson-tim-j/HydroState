@@ -80,7 +80,7 @@ default.model.annual = fitModel(default.model.annual, pop.size.perParameter = 10
 ```
 
 ## Review the residuals
-Review the model's residuals from figures using `plot.residuals` to ensure they are uniform and normally distributed with no trends or auto-correlation. A large plot with five figures (A-E) is produced and the check for each is discussed below. There is also an option to export the plot as a PDF with `do.pdf = T` and label plots with the site ID (i.e. `ID = 221201`). Alternatively, the residuals can be reviewed without plotting using `get.residuals` which returns a data frame of the normal pseudo residuals at each time-step. If the residuals of the fitted model do not meet these checks below, consider adjusting the model as discussed in the next vignette ([adjust.state.model](https://github.com/peterson-tim-j/HydroState/tree/master/vignettes/adjust.state.model/adjust.state.model.html)).
+Review the model's residuals from figures using `plot_residuals` to ensure they are uniform and normally distributed with no trends or auto-correlation. A large plot with five figures (A-E) is produced and the check for each is discussed below. There is also an option to export the plot as a PDF with `do.pdf = T` and label plots with the site ID (i.e. `ID = 221201`). Alternatively, the residuals can be reviewed without plotting using `get.residuals` which returns a data frame of the normal pseudo residuals at each time-step. If the residuals of the fitted model do not meet these checks below, consider adjusting the model as discussed in the next vignette ([adjust.state.model](https://github.com/peterson-tim-j/HydroState/tree/master/vignettes/adjust.state.model/adjust.state.model.html)).
 
 A)  Time-series of normal-pseudo residuals to ensure the residuals each year are within the confidence intervals.
 B)  Auto-correlation function (ACF) of normal-pseudo residuals to ensure there is no serial correlation in residuals. Lag spikes should be below confidence interval at each lag (except 0).
@@ -93,7 +93,7 @@ E)  Quantile-Quantile (Q-Q) plot where normal-pseudo residuals vs. theoretical q
 
 ```r
 # review residual plots
-plot.residuals(default.model.annual, do.pdf = F, ID ='221201')
+plot_residuals(default.model.annual, do.pdf = F, ID ='221201')
 
 # get residual values
 model.residuals = get.residuals(default.model.annual)
@@ -104,14 +104,14 @@ model.residuals = get.residuals(default.model.annual)
 
 
 ## Evaluate the state-shifts
-Set the state names relative to a year in the record using `setInitialYear`. This provides a name for the states so they are easier to interpret in the following figures. Then plot the state-shifts overtime using `plot.states`. In this example, 1990 is chosen as the year of reference, but any year can be selected as the reference year. All four plots within the function are shown here, but either plot or combination of plots can be selected. Alternatively, the states can be reviewed without plotting using `get.states` which returns a data frame of states at each time-step.
+Set the state names relative to a year in the record using `setInitialYear`. This provides a name for the states so they are easier to interpret in the following figures. Then plot the state-shifts overtime using `plot_states`. In this example, 1990 is chosen as the year of reference, but any year can be selected as the reference year. All four plots within the function are shown here, but either plot or combination of plots can be selected. Alternatively, the states can be reviewed without plotting using `get.states` which returns a data frame of states at each time-step.
 
 ```r
 # set the reference year to name the states
 default.model.annual = setInitialYear(default.model.annual, 1990)
 
 # plot all four plots
-plot.states(default.model.annual)
+plot_states(default.model.annual)
 
 ```
 <center>

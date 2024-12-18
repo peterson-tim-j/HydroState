@@ -720,9 +720,9 @@ setMethod(f="setStateNames",signature=c("hydroState","numeric"),definition=funct
 
 
 
-#' @export plot.graph
-setGeneric(name="plot.graph",def=function(.Object, main=NA, relsize=NA) {standardGeneric("plot.graph")})
-setMethod(f="plot.graph",signature="hydroState",definition=function(.Object, main='Transtion Probability Graph', relsize=0.8)
+# @export plot_graph
+setGeneric(name="plot_graph",def=function(.Object, main=NA, relsize=NA) {standardGeneric("plot_graph")})
+setMethod(f="plot_graph",signature="hydroState",definition=function(.Object, main='Transtion Probability Graph', relsize=0.8)
 {
 
   # Get Transition probs. and round to 4 digits

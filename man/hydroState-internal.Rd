@@ -57,7 +57,7 @@
 \alias{markov.annualHomogeneous}
 \alias{markov.annualHomogeneous.flickering}
 \alias{parameters}
-\alias{plot.graph}
+\alias{plot_graph}
 \alias{setParameters}
 \alias{setParameters.fromTransformed}
 \alias{setParameters.fromTransformed.asVector}
@@ -69,6 +69,7 @@
 \alias{streamflow_daily_221201}
 \alias{model.annual.fitted.221201}
 \alias{model.monthly.adjusted.fitted}
+\alias{all.models.monthly.fitted.221201}
 \alias{get.summary.table}
 \alias{viterbi}
 \alias{select.stateModel}

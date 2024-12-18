@@ -80,11 +80,11 @@ model.monthly.adjusted = fitModel(model.monthly.adjusted, pop.size.perParameter 
 ```
 
 ## Review the residuals
-Review the model's residuals from figures using `plot.residuals` to ensure they are uniform and normally distributed with no trends or auto-correlation.
+Review the model's residuals from figures using `plot_residuals` to ensure they are uniform and normally distributed with no trends or auto-correlation.
 
 ```r
 # review residual plots
-plot.residuals(model.monthly.adjusted, do.pdf = F, ID ='221201')
+plot_residuals(model.monthly.adjusted, do.pdf = F, ID ='221201')
 ```
 
 <center>
@@ -93,7 +93,7 @@ plot.residuals(model.monthly.adjusted, do.pdf = F, ID ='221201')
 
 
 ## Evaluate the state-shifts
-Set the state names relative to a year in the record using `setInitialYear`. This provides a name for the states so they are easier to interpret in the following figures. Then plot the state-shifts overtime using `plot.states`. In this example, 1990 is chosen as the year of reference. All four plots within the function are shown here, but either plot or combination of plots can be selected. Alternatively, the states can be reviewed without plotting using `get.states` which returns a data frame of states at each time-step.
+Set the state names relative to a year in the record using `setInitialYear`. This provides a name for the states so they are easier to interpret in the following figures. Then plot the state-shifts overtime using `plot_states`. In this example, 1990 is chosen as the year of reference. All four plots within the function are shown here, but either plot or combination of plots can be selected. Alternatively, the states can be reviewed without plotting using `get.states` which returns a data frame of states at each time-step.
 
 ```r
 # set the reference year to name the states
@@ -101,7 +101,7 @@ model.monthly.adjusted = setInitialYear(model.monthly.adjusted, 1990)
 
 
 # plot all four plots
-plot.states(model.monthly.adjusted, dopdf = T)
+plot_states(model.monthly.adjusted, dopdf = T)
 
 ```
 

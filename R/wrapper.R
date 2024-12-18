@@ -519,7 +519,7 @@ select.Markov <- function(flickering = FALSE,
 #' where \eqn{M_t} is an integer month at \eqn{t}. Monthly streamflow and precipitation are required as \code{input.data} for the sub-annual analysis.
 #'
 #' \item{State Dependent Parameters with \code{state.shift.parameters}}: These are state dependent parameters where they are subject to shift in order to better explain the state of streamflow over time. Any or all of the previously chosen parameters can be selected (\eqn{a_0, a_1, std, AR1, AR2, AR3}). The default model evaluates shifts in the rainfall-runoff relationship with \eqn{a_0} \eqn{std} as state dependent parameters.
-#' \item{Distribution of the Residuals with \code{error.distribution}}: The distribution of the residuals (error) in the model can be chosen to reduce skew and assist with making models statistically adequate (see \code{plot.residuals}). Either normal: 'normal', truncated normal: 'truc.normal', or gamma: 'gamma' distributions are acceptable. The default is 'truc.normal'. Sub-annual models are restricted to only a 'gamma' distribution.
+#' \item{Distribution of the Residuals with \code{error.distribution}}: The distribution of the residuals (error) in the model can be chosen to reduce skew and assist with making models statistically adequate (see \code{plot_residuals}). Either normal: 'normal', truncated normal: 'truc.normal', or gamma: 'gamma' distributions are acceptable. The default is 'truc.normal'. Sub-annual models are restricted to only a 'gamma' distribution.
 #' \item{Markov flickering with \code{flickering}}: The form of the Markov model is homogeneous where the transition probabilities are time-invariant. The model be performed with or without flickering between states. Flickering within the Markov model provides a more sensitive analysis. The default is FALSE, no flickering.
 #' \item{Number of States with \code{transition.graph}}: The number of possible states in the rainfall-runoff relationship and transition between the states is selected with the transition.graph. The default is a 2-state model in a 2 by 2 matrix with a TRUE transition to and from each state.
 #'}
@@ -1284,7 +1284,7 @@ get.AIC <- function(model.name){
 
 
   # Validate
-  if(length(model.name@models) >1){
+  if(length(model.name) >1){
 
       return(getAIC.bestModel(model.name)$AIC)
 
@@ -1301,13 +1301,13 @@ get.AIC <- function(model.name){
 
 #'Plot residuals
 #'
-#' \code{plot.residuals}
+#' \code{plot_residuals}
 #'
 #' @description
-#' The normal pseudo residuals are plotted for review to check for outliers and validate the fit of the model. It is recommended to ensure the model fit is valid before evaluating results (i.e. \code{plot.states}). Furthermore, to ensure the multi-state model performs better than the one-state model, it is recommended to visually compare \code{plot.resdiuals} of both models.
+#' The normal pseudo residuals are plotted for review to check for outliers and validate the fit of the model. It is recommended to ensure the model fit is valid before evaluating results (i.e. \code{plot_states}). Furthermore, to ensure the multi-state model performs better than the one-state model, it is recommended to visually compare \code{plot.resdiuals} of both models.
 #'
 #' @details
-#' \code{plot.residuals} produces five plots to review and validate the fitted hydroState model.
+#' \code{plot_residuals} produces five plots to review and validate the fitted hydroState model.
 #' \itemize{
 #'  \item{A)}{ Time-series of normal-pseudo residuals to ensure the residuals each year are within the confidence intervals.}
 #'  \item{B)}{ Auto-correlation function (ACF) of normal-pseudo residuals to ensure there is no serial correlation in residuals. Lag spikes should be below confidence interval at each lag (except 0).}
@@ -1317,8 +1317,8 @@ get.AIC <- function(model.name){
 #'  }
 #'  It is recommended to export the residual plot as a PDF due to it's size. If the R plot windor is too small, two common errors can occur:
 #'  \itemize{
-#'  \item{"Error in plot.new() : figure margins too large":} reset plot window with "dev.off()", enlarge plot area and re-run \code{plot.residuals}.
-#'  \item{"Error in par(op) : invalid value specified for graphical parameter "pin"} if the R plot window is not reset with "dev.off", an additional \code{plot.residuals} attempt will result in this error.
+#'  \item{"Error in plot.new() : figure margins too large":} reset plot window with "dev.off()", enlarge plot area and re-run \code{plot_residuals}.
+#'  \item{"Error in par(op) : invalid value specified for graphical parameter "pin"} if the R plot window is not reset with "dev.off", an additional \code{plot_residuals} attempt will result in this error.
 #'  }
 #'
 #'
@@ -1333,7 +1333,7 @@ get.AIC <- function(model.name){
 #' @keywords plot residuals
 #'
 #'
-#' @export plot.residuals
+#' @export plot_residuals
 #' @importFrom stats acf
 #' @importFrom grDevices dev.off
 #' @importFrom grDevices pdf
@@ -1346,11 +1346,11 @@ get.AIC <- function(model.name){
 #' data(model.annual.fitted.221201)
 #'
 #' ## Plot residuals
-#' plot.residuals(model.name = model.annual.fitted.221201)
+#' plot_residuals(model.name = model.annual.fitted.221201)
 #'
 
 
-plot.residuals <- function(model.name,
+plot_residuals <- function(model.name,
                            do.pdf = FALSE,
                            ID = NULL
                              ){
@@ -1441,7 +1441,7 @@ get.residuals <- function(model.name){
 #' @param initial.year integer with year (YYYY). Default is first year in input.data.
 #'
 #' @return
-#' A fitted hydroState model object with state names for each time-step ready for \code{plot.states}
+#' A fitted hydroState model object with state names for each time-step ready for \code{plot_states}
 #'
 #' @keywords state names
 #'
@@ -1470,13 +1470,13 @@ setInitialYear <- function(model.name, initial.year){ #make go to first year of 
 
 #'plot States
 #'
-#' \code{plot.states}
+#' \code{plot_states}
 #'
 #' @description
-#' \code{plot.states} produces several plots to visualize results of the states overtime. \code{setInitialYear} is required before \code{plot.states}.
+#' \code{plot_states} produces several plots to visualize results of the states overtime. \code{setInitialYear} is required before \code{plot_states}.
 #'
 #' @details
-#' \code{plot.states} produces four figures of the results from the fitted hydroState model. The default produces all four:
+#' \code{plot_states} produces four figures of the results from the fitted hydroState model. The default produces all four:
 #' \itemize{
 #'  \item{independent variable}: precipitation
 #'  \item{dependent variable and states}: streamflow observations, most likely state, and relative normal state estimate
@@ -1501,7 +1501,7 @@ setInitialYear <- function(model.name, initial.year){ #make go to first year of 
 #' @keywords plot states results
 #'
 #'
-#' @export plot.states
+#' @export plot_states
 #' @importFrom grDevices dev.off
 #' @importFrom grDevices pdf
 #' @import diagram
@@ -1519,10 +1519,10 @@ setInitialYear <- function(model.name, initial.year){ #make go to first year of 
 #'                   initial.year = 1990)
 #'
 #' ## Plot all figures
-#' plot.states(model.name = model.annual.fitted.221201)
+#' plot_states(model.name = model.annual.fitted.221201)
 #'
 #' ## Plot only dependent variable transformed with markov states
-#' plot.states(model.name = model.annual.fitted.221201,
+#' plot_states(model.name = model.annual.fitted.221201,
 #'              ind.variable = FALSE,
 #'              dep.variable = FALSE,
 #'              dep.variable.transformed = TRUE,
@@ -1530,7 +1530,7 @@ setInitialYear <- function(model.name, initial.year){ #make go to first year of 
 #'
 
 
-plot.states <- function(model.name,
+plot_states <- function(model.name,
                         ind.variable = TRUE,
                         dep.variable = TRUE,
                         dep.variable.transformed = TRUE,
@@ -1787,7 +1787,7 @@ plot.states <- function(model.name,
 #' \item{Viterbi State Number:} state number (i.e. 1, 2, or 3) to differentiate states
 #' \item{Obs. flow:} streamflow observations
 #' \item{Viterbi Flow:} flow values of the Viterbi state including the 5\% and 95\% confidence intervals. These are the most likely flow state values at each time-step of the given states.
-#' \item{Normal State Flow:} flow values of the normal state including the 5\% and 95\% confidence intervals. These Normal state flow values are the values from the normal state at each time-step. When the most likely state is the Normal state for a time-step, the Viterbi flow state value equals the Normal flow state value. This Normal state can be visualized relative to the most likely Viterbi state in the "dep.variable" plot from \code{plot.states}.
+#' \item{Normal State Flow:} flow values of the normal state including the 5\% and 95\% confidence intervals. These Normal state flow values are the values from the normal state at each time-step. When the most likely state is the Normal state for a time-step, the Viterbi flow state value equals the Normal flow state value. This Normal state can be visualized relative to the most likely Viterbi state in the "dep.variable" plot from \code{plot_states}.
 #' \item{Conditional Prob:} conditional probabilities for each state show the probability of remaining in the given state. When the conditional probability is closer to 1, there is a higher probability that hydroState model remains in that state for the next time-step.
 #' \item{Emission Density:} emission density for each state is the result of multiplying the conditional probabilities by the transition probabilities at each timestep.
 #' }

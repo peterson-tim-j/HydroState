@@ -19,7 +19,7 @@ library(hydroState)
 ```
 
 ## Adjusting the default state model
-Nature is messy where the default state model from the `annual.two.state` vignette might not adequately fit the observed rainfall-runoff relationship. In order for the state shifts to be statistically adequate and informative, the model's residuals must adhere to the required checks in `plot.residuals` (uniform and normally distributed with no trends or auto-correlation). This vignette introduces a suite of options to adjust the default state model when model residuals do not meet the checks. Most often, this requires adjusting the shape of the residual distribution, applying auto-correlation terms, or possibly allowing for change in different model parameters.
+Nature is messy where the default state model from the `annual.two.state` vignette might not adequately fit the observed rainfall-runoff relationship. In order for the state shifts to be statistically adequate and informative, the model's residuals must adhere to the required checks in `plot_residuals` (uniform and normally distributed with no trends or auto-correlation). This vignette introduces a suite of options to adjust the default state model when model residuals do not meet the checks. Most often, this requires adjusting the shape of the residual distribution, applying auto-correlation terms, or possibly allowing for change in different model parameters.
 
 This vignette works through an example comparing the default model with an adjusted model. It concludes with the introduction of 'buildModelAll' that systematically builds all possible adjustments in the state model in order to identify the best performing model when models are fitted. 
 
@@ -77,13 +77,13 @@ gamma.model.annual = fitModel(gamma.model.annual, pop.size.perParameter = 10, ma
 ```
 
 ## Review the residuals
-Review the residuals of both models using `plot.residuals` to determine which model is more adequate (uniform and normally distributed with no trends or auto-correlation in the residuals). The following two figures show the adjusted state model that assumes a gamma distribution of the residuals, 'gamma.annual.model', is more adequate with a Shapiro-Wilks p-value greater then 0.05 suggesting residuals are normally distributed. 
+Review the residuals of both models using `plot_residuals` to determine which model is more adequate (uniform and normally distributed with no trends or auto-correlation in the residuals). The following two figures show the adjusted state model that assumes a gamma distribution of the residuals, 'gamma.annual.model', is more adequate with a Shapiro-Wilks p-value greater then 0.05 suggesting residuals are normally distributed. 
 
 ```r
 # review residual plots
-plot.residuals(default.model.annual, do.pdf = T, ID ='407211')
+plot_residuals(default.model.annual, do.pdf = T, ID ='407211')
 
-plot.residuals(gamma.model.annual, do.pdf = T, ID ='407211')
+plot_residuals(gamma.model.annual, do.pdf = T, ID ='407211')
 
 ```
 <center>
@@ -91,14 +91,14 @@ plot.residuals(gamma.model.annual, do.pdf = T, ID ='407211')
 <\center>
 
 ## Evaluate the state-shifts
-Set the state names relative to a year in the record using `setInitialYear` and evaluat the flow states overtime of the adjusted model using `plot.states`. The year 1991 is selected as the initial year because there is not sufficient streamflow data for 1990 at this site (Bet Bet Creek - 407211).
+Set the state names relative to a year in the record using `setInitialYear` and evaluat the flow states overtime of the adjusted model using `plot_states`. The year 1991 is selected as the initial year because there is not sufficient streamflow data for 1990 at this site (Bet Bet Creek - 407211).
 
 ```r
 # set the reference year to name the states
 gamma.model.annual = setInitialYear(gamma.model.annual, 1991)
 
 # plot all four plots
-plot.states(gamma.model.annual)
+plot_states(gamma.model.annual)
 
 ```
 <center>
@@ -113,7 +113,7 @@ Below is a an example of how to set up `buildModelAll`, and perform the steps to
 ```{r  eval = FALSE}
 # Build all model combinations with 'a0' and 'std' as state-dependent parameters
 all.models = buildModelAll(input.data = streamflow_annual_407211,
-                           state.shift.parameters = list('a0','std'),
+                           state.shift.parameters =list('a0','std'),
                            siteID = "407211")
 
 # Review the order of the reference models, adjust reference models if needed.
