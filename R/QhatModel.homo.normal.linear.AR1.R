@@ -109,7 +109,7 @@ setMethod(f="getMean.AR1",signature=c("QhatModel.homo.normal.linear.AR1","data.f
             }
             if (ncols.AR1==1 || ncols.AR1 ==.Object@nStates) {
               AR1.est = matrix(rep(parameters$mean.AR1,each=nrows),nrows,.Object@nStates);
-            } else if (mean.AR1<.Object@nStates) {
+            } else if (ncols.AR1<.Object@nStates) {
               stop(paste('The number of parameters for the a0 term of the mean model must must equal 1 or the number of states of ',.Object@nStates))
             }
             if (ncols.trend==1 || ncols.trend==.Object@nStates) {

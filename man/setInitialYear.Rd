@@ -12,7 +12,7 @@ setInitialYear(model.name, initial.year)
 \item{initial.year}{integer with year (YYYY). Default is first year in input.data.}
 }
 \value{
-A fitted hydroState model object with state names for each time-step ready for \code{plot_states}
+A fitted hydroState model object with state names for each time-step ready for \code{plot.states}
 }
 \description{
 sets the state names for each time-step relative to the initial year given

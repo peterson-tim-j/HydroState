@@ -210,11 +210,13 @@ setMethod(f="setParameters",
               .Object@Qhat.object@parameters <- setParameters(.Object@Qhat.object@parameters, parameters$Qhat)
               .Object@QhatModel.object@parameters <- setParameters(.Object@QhatModel.object@parameters, parameters$QhatModel)
               .Object@markov.model.object@parameters <- setParameters(.Object@markov.model.object@parameters, parameters$markov)
-            } else if(is.numeric(parameters)) {
-              .Object@Qhat.object@parameters <- setParameters.fromVector(.Object@Qhat.object@parameters, parameters$Qhat)
-              .Object@QhatModel.object@parameters <- setParameters.fromVector(.Object@QhatModel.object@parameters, parameters$QhatModel)
-              .Object@markov.model.object@parameters <- setParameters.fromVector(.Object@markov.model.object@parameters, parameters$markov)
+            # } else if(is.numeric(parameters)) {
+            #   .Object@Qhat.object@parameters <- setParameters.fromVector(.Object@Qhat.object@parameters, parameters$Qhat)
+            #   .Object@QhatModel.object@parameters <- setParameters.fromVector(.Object@QhatModel.object@parameters, parameters$QhatModel)
+            #   .Object@markov.model.object@parameters <- setParameters.fromVector(.Object@markov.model.object@parameters, parameters$markov)
 
+            } else{
+              message("setParameters error")
             }
             return(.Object)
           }

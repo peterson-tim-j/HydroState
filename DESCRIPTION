@@ -6,7 +6,7 @@ Authors@R: c(
     person("Thomas", "Westfall", email = "thomas.westfall1@monash.edu", role = "aut", comment = c(ORCID = "0009-0000-0529-881X"))) 
 Maintainer: Tim Peterson <tim.peterson@monash.edu>
 Depends: R (>= 3.4.2)
-Description: HydroState identifies regime changes in streamflow runoff not explained by variations in precipitation. The package allows a flexible set of Hidden Markov Models of annual, seasonal or monthly streamflow runoff to be built that includes precipitation as a predictor of runoff. Suites of models can be built for a single site, ranging from one to three states and each with differing combinations of error models and auto-correlation terms, allowing the most parsimonious model (by AIC) to easily be identified. The entire package is written in R S4 object oriented code and accesible with specific functions for users. See Peterson TJ, Saft M, Peel MC & John A (2021), Watersheds may not recover from drought, Science, DOI: 10.1126/science.abd5085.
+Description: HydroState identifies regime changes in streamflow runoff not explained by variations in precipitation. The package builds a flexible set of Hidden Markov Models of annual, seasonal or monthly streamflow runoff with precipitation as a predictor. Suites of models can be built for a single site, ranging from one to three states and each with differing combinations of error models and auto-correlation terms. The most parsimonious model is easily identified by AIC. The entire package is written in R S4 object oriented code, but is accesible with specific functions and vignettes for users. See Peterson TJ, Saft M, Peel MC & John A (2021), Watersheds may not recover from drought, Science, DOI: 10.1126/science.abd5085.
 Imports: methods, DEoptim, sn, truncnorm, diagram, padr, zoo, graphics
 BugReports: https://github.com/peterson-tim-j/HydroState/issues
 URL: https://github.com/peterson-tim-j/HydroState
@@ -15,6 +15,12 @@ Encoding: UTF-8
 LazyData: true
 RoxygenNote: 7.3.1
 ByteCompile: true
+Suggests: 
+    knitr,
+    rmarkdown,
+    testthat (>= 3.0.0)
+Config/testthat/edition: 3
+VignetteBuilder: knitr
 Collate: 
     'abstracts.R'
     'parameters.R'
@@ -44,9 +50,3 @@ Collate:
     'hydroState.subAnnual.allModels.R'
     'markov.annualHomogeneous.flickering.R'
     'wrapper.R'
-Suggests: 
-    knitr,
-    rmarkdown,
-    testthat (>= 3.0.0)
-Config/testthat/edition: 3
-VignetteBuilder: knitr

@@ -197,7 +197,7 @@ setMethod(f="get.summary.table",signature="hydroState.allModels",definition=func
     }else if(all(c('none','mean.a1') %in% unique(all.models.matrix$state.shift))){
       all.models.matrix = rbind(all.models.matrix.none,all.models.matrix.a1)
     }else if(all(c('mean.a0','mean.a1') %in% unique(all.models.matrix$state.shift))){
-      all.models.matrix = rbind(all.models.matrix.none.a0,all.models.matrix.a1)
+      all.models.matrix = rbind(all.models.matrix.a0,all.models.matrix.a1)
     }else if('none' %in% unique(all.models.matrix$state.shift)){
       all.models.matrix = all.models.matrix.none
     }else if('mean.a0' %in% unique(all.models.matrix$state.shift)){
