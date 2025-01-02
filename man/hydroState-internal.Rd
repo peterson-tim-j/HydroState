@@ -3,7 +3,7 @@
 \alias{hydroState-internal}
 \title{hydroState-internal}
 
-\description{These are undocumented internal functions not intended for the user}
+\description{There are several undocumented internal functions not intended for the user. These functions are not listed here but are shown within the file: hydroState-internal.Rd}
 
 \alias{Qhat.boxcox}
 \alias{Qhat.burbidge}

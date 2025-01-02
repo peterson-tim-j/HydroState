@@ -2,6 +2,7 @@
 
 export(buildModel)
 export(buildModelAll)
+export(checkModel)
 export(fitModel)
 export(get.AIC)
 export(get.residuals)

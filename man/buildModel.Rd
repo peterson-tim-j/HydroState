@@ -6,11 +6,11 @@
 \usage{
 buildModel(
   input.data = data.frame(year = c(), flow = c(), precip = c()),
-  data.transform = "boxcox",
+  data.transform = list("boxcox"),
   parameters = list("a0", "a1", "std"),
   seasonal.parameters = list(),
   state.shift.parameters = list("a0", "std"),
-  error.distribution,
+  error.distribution = list(),
   flickering = FALSE,
   transition.graph = matrix(TRUE, 2, 2)
 )
@@ -18,7 +18,7 @@ buildModel(
 \arguments{
 \item{input.data}{dataframe of annual, seasonal, or monthly runoff and precipitation observations. Gaps with missing data in either streamflow or precipitation are permitted. Monthly data is required when using \code{seasonal.parameters}.}
 
-\item{data.transform}{character string with the method of transformation. The default is 'boxcox'. Other options: 'log', 'burbidge', 'none'}
+\item{data.transform}{character list with the method of transformation. The default is 'boxcox'. Other options: 'log', 'burbidge', 'none'}
 
 \item{parameters}{character list of parameters to construct model. Required and default: \code{a0}, \code{a1}, \code{std}. Auto-correlation terms optional: \code{AR1}, \code{AR2}, or \code{AR3}.}
 
@@ -26,7 +26,7 @@ buildModel(
 
 \item{state.shift.parameters}{character list of one or all parameters (\code{a0}, \code{a1}, \code{std}, \code{AR1}, \code{AR2}, \code{AR3}) able to shift as dependent on state. Default is \code{a0} and \code{std}.}
 
-\item{error.distribution}{character sting of the distribution in the HMM error. Default is 'truc.normal'. Others include: 'normal' or 'gamma'}
+\item{error.distribution}{character list of the distribution in the HMM error. Default is 'truc.normal'. Others include: 'normal' or 'gamma'}
 
 \item{flickering}{logical T/F. T = allows more sensitive markov flickering between states over time, F = less sensitive and is default.}
 
@@ -80,11 +80,11 @@ model = buildModel(input.data = streamflow_annual_221201)
 # Build hydroState model with: 2-state, normal error distribution,
 # 1-lag of auto-correlation, and state dependent parameters ('a1', 'std')
 model = buildModel(input.data = streamflow_annual_221201,
-                   data.transform = 'boxcox',
+                   data.transform = list('boxcox'),
                    parameters = list('a0','a1','std','AR1'),
                    seasonal.parameters = list(),
                    state.shift.parameters = list('a1','std'),
-                   error.distribution = 'normal',
+                   error.distribution = list('normal'),
                    flickering = FALSE,
                    transition.graph = matrix(TRUE,2,2))
 

@@ -18,7 +18,7 @@ buildModelAll(
 )
 }
 \arguments{
-\item{input.data}{dataframe of annual, seasonal, or monthly runoff and precipitation observations. Gaps with missing data in either streamflow or precipitation are permitted, and the handling of them is further discussed in \code{select.Markov}. Monthly data is required when using \code{seasonal.parameters} that assumes selected model parameters are better defined with a sinusoidal function.}
+\item{input.data}{dataframe of annual, seasonal, or monthly runoff and precipitation observations. Gaps with missing data in either streamflow or precipitation are permitted, and the handling of them is further discussed in \code{buildModel}. Monthly data is required when using \code{seasonal.parameters} that assumes selected model parameters are better defined with a sinusoidal function.}
 
 \item{data.transform}{character list of method of transformation. If empty, the default builds all possible combinations of models with 'boxcox' and 'log' data transformation.}
 
@@ -42,13 +42,13 @@ buildModelAll(
 A list of built hydroState models with every combination of objects ready to be fitted
 }
 \description{
-\code{buildModelAll} builds all possible combinations of hydroState models
+\code{buildModelAll} builds all possible combinations of hydroState models. The same fields are available as in \code{buildModel} in order to specify the type of models to be built. After all models are built, they are fitted using the same \code{fitModel} function.
 }
 \details{
 \code{buildModelAll}
 
 
-All possible combinations of hydroState models are built for each data transformations, auto-correlation lag, and residual distribution from 1 to 3 states for investigating only state changes in the 'a0' and 'std' parameters. Note: annual time-step only
+All possible combinations of hydroState models are built for each data transformations, auto-correlation lag, and residual distribution from 1 to 3 states for investigating only state changes in the 'a0' and 'std' parameters. To reduce the number of models in the search, specify which field(s) to remain constant. For example, to investigate the best model with the number of auto-correlation terms and number of states with a 'boxcox' data transform and 'gamma' distribution of the residuals, set \code{data.transform} to 'boxcox' and \code{error.distribution} to 'gamma'. If no fields are specified, all possible model combinations are built.
 }
 \examples{
 # Load data

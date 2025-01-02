@@ -9,7 +9,7 @@ set.seasons(
 )
 }
 \arguments{
-\item{input.data}{dataframe of monthly runoff and precipitation observations. Gaps with missing data in either streamflow or precipitation are permitted, and the handling of them is further discussed in \code{select.Markov}. Monthly data is required when using \code{seasonal.parameters} that assumes selected model parameters are better defined with a sinusoidal function.}
+\item{input.data}{dataframe of monthly runoff and precipitation observations. Gaps with missing data in either streamflow or precipitation are permitted, and the handling of them is further discussed in \code{buildModel}. Monthly data is required when using \code{seasonal.parameters} that assumes selected model parameters are better defined with a sinusoidal function.}
 }
 \value{
 A dataframe of seasonal observations with an additional column counting the number of months in each season.

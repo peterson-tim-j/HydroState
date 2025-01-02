@@ -8,7 +8,7 @@
 #' @details
 #' Sets 4 seasons
 #'
-#' @param input.data dataframe of monthly runoff and precipitation observations. Gaps with missing data in either streamflow or precipitation are permitted, and the handling of them is further discussed in \code{select.Markov}. Monthly data is required when using \code{seasonal.parameters} that assumes selected model parameters are better defined with a sinusoidal function.
+#' @param input.data dataframe of monthly runoff and precipitation observations. Gaps with missing data in either streamflow or precipitation are permitted, and the handling of them is further discussed in \code{buildModel}. Monthly data is required when using \code{seasonal.parameters} that assumes selected model parameters are better defined with a sinusoidal function.
 #'
 #' @return
 #' A dataframe of seasonal observations with an additional column counting the number of months in each season.
@@ -525,11 +525,11 @@ select.Markov <- function(flickering = FALSE,
 #'}
 #'
 #' @param input.data dataframe of annual, seasonal, or monthly runoff and precipitation observations. Gaps with missing data in either streamflow or precipitation are permitted. Monthly data is required when using \code{seasonal.parameters}.
-#' @param data.transform character string with the method of transformation. The default is 'boxcox'. Other options: 'log', 'burbidge', 'none'
+#' @param data.transform character list with the method of transformation. The default is 'boxcox'. Other options: 'log', 'burbidge', 'none'
 #' @param parameters character list of parameters to construct model. Required and default: \code{a0}, \code{a1}, \code{std}. Auto-correlation terms optional: \code{AR1}, \code{AR2}, or \code{AR3}.
 #' @param seasonal.parameters character list of one or all parameters (\code{a0}, \code{a1}, \code{std}) defined as a sinusoidal function to represent seasonal variation. Requires monthly or seasonal data. Default is empty list.
 #' @param state.shift.parameters character list of one or all parameters (\code{a0}, \code{a1}, \code{std}, \code{AR1}, \code{AR2}, \code{AR3}) able to shift as dependent on state. Default is \code{a0} and \code{std}.
-#' @param error.distribution character sting of the distribution in the HMM error. Default is 'truc.normal'. Others include: 'normal' or 'gamma'
+#' @param error.distribution character list of the distribution in the HMM error. Default is 'truc.normal'. Others include: 'normal' or 'gamma'
 #' @param flickering logical T/F. T = allows more sensitive markov flickering between states over time, F = less sensitive and is default.
 #' @param transition.graph matrix given the number of states. Default is a 2-state matrix (2 by 2): matrix(TRUE,2,2)
 #'
@@ -556,11 +556,11 @@ select.Markov <- function(flickering = FALSE,
 #' # Build hydroState model with: 2-state, normal error distribution,
 #' # 1-lag of auto-correlation, and state dependent parameters ('a1', 'std')
 #' model = buildModel(input.data = streamflow_annual_221201,
-#'                    data.transform = 'boxcox',
+#'                    data.transform = list('boxcox'),
 #'                    parameters = list('a0','a1','std','AR1'),
 #'                    seasonal.parameters = list(),
 #'                    state.shift.parameters = list('a1','std'),
-#'                    error.distribution = 'normal',
+#'                    error.distribution = list('normal'),
 #'                    flickering = FALSE,
 #'                    transition.graph = matrix(TRUE,2,2))
 #'
@@ -568,11 +568,11 @@ select.Markov <- function(flickering = FALSE,
 
 
 buildModel <- function(input.data = data.frame(year=c(), flow=c(), precip=c()),
-                       data.transform = 'boxcox',
+                       data.transform = list('boxcox'),
                        parameters = list('a0','a1','std'),
                        seasonal.parameters = list(),
                        state.shift.parameters = list('a0','std'),
-                       error.distribution,
+                       error.distribution = list(),
                        flickering = FALSE,
                        transition.graph = matrix(TRUE,2,2)){
 
@@ -601,17 +601,17 @@ buildModel <- function(input.data = data.frame(year=c(), flow=c(), precip=c()),
     flickering = FALSE
 
   # default data.transform if NULL
-  if(is.null(data.transform)){
+  if(missing(data.transform)){
     data.transform = select.transform(func = 'boxcox', input.data)
   }else{
-    data.transform = select.transform(data.transform, input.data)
+    data.transform = select.transform(unlist(data.transform), input.data)
   }
 
   # default state model error.distribution if NULL
   if(missing(error.distribution) && length(seasonal.parameters) < 1){
-    error.distribution = 'truc.normal'
+    error.distribution = list('truc.normal')
   }else if(missing(error.distribution) && length(seasonal.parameters) > 0){
-    error.distribution = 'gamma'
+    error.distribution = list('gamma')
   }
 
 # If no inputs except input.data, just run default analysis
@@ -622,7 +622,7 @@ buildModel <- function(input.data = data.frame(year=c(), flow=c(), precip=c()),
                                    parameters = list('a0','a1','std'),
                                    seasonal.parameters = list(),
                                    state.shift.parameters = list('a0','std'),
-                                   error.distribution,
+                                   error.distribution = unlist(error.distribution),
                                    transition.graph = transition.graph)
 
     # create Markov model
@@ -638,7 +638,7 @@ buildModel <- function(input.data = data.frame(year=c(), flow=c(), precip=c()),
                                    parameters,
                                    seasonal.parameters = list(),
                                    state.shift.parameters = list('a0','std'),
-                                   error.distribution,
+                                   error.distribution = unlist(error.distribution),
                                    transition.graph = transition.graph)
 
     # create Markov model
@@ -655,7 +655,7 @@ buildModel <- function(input.data = data.frame(year=c(), flow=c(), precip=c()),
                                    parameters,
                                    seasonal.parameters,
                                    state.shift.parameters = list('a0','std'),
-                                   error.distribution,
+                                   error.distribution = unlist(error.distribution),
                                    transition.graph = transition.graph)
 
     # create Markov model
@@ -671,7 +671,7 @@ buildModel <- function(input.data = data.frame(year=c(), flow=c(), precip=c()),
                                    parameters,
                                    seasonal.parameters,
                                    state.shift.parameters,
-                                   error.distribution,
+                                   error.distribution = unlist(error.distribution),
                                    transition.graph = transition.graph)
 
     # create Markov model
@@ -687,7 +687,7 @@ buildModel <- function(input.data = data.frame(year=c(), flow=c(), precip=c()),
                                    parameters = list('a0','a1','std'),
                                    seasonal.parameters = list(),
                                    state.shift.parameters,
-                                   error.distribution,
+                                   error.distribution = unlist(error.distribution),
                                    transition.graph = transition.graph)
 
     # create Markov model
@@ -703,7 +703,7 @@ buildModel <- function(input.data = data.frame(year=c(), flow=c(), precip=c()),
                                    parameters = list('a0','a1','std'),
                                    seasonal.parameters,
                                    state.shift.parameters,
-                                   error.distribution,
+                                   error.distribution = unlist(error.distribution),
                                    transition.graph = transition.graph)
 
     # create Markov model
@@ -719,7 +719,7 @@ buildModel <- function(input.data = data.frame(year=c(), flow=c(), precip=c()),
                                    parameters,
                                    seasonal.parameters = list(),
                                    state.shift.parameters,
-                                   error.distribution,
+                                   error.distribution = unlist(error.distribution),
                                    transition.graph = transition.graph)
 
     # create Markov model
@@ -735,7 +735,7 @@ buildModel <- function(input.data = data.frame(year=c(), flow=c(), precip=c()),
                                    parameters = list('a0','a1','std'),
                                    seasonal.parameters,
                                    state.shift.parameters = list('a0','std'),
-                                   error.distribution,
+                                   error.distribution = unlist(error.distribution),
                                    transition.graph = transition.graph)
 
     # create Markov model
@@ -753,13 +753,13 @@ buildModel <- function(input.data = data.frame(year=c(), flow=c(), precip=c()),
 #' \code{buildModelAll}
 #'
 #' @description
-#' \code{buildModelAll} builds all possible combinations of hydroState models
+#' \code{buildModelAll} builds all possible combinations of hydroState models. The same fields are available as in \code{buildModel} in order to specify the type of models to be built. After all models are built, they are fitted using the same \code{fitModel} function.
 #'
 #' @details
-#' All possible combinations of hydroState models are built for each data transformations, auto-correlation lag, and residual distribution from 1 to 3 states for investigating only state changes in the 'a0' and 'std' parameters. Note: annual time-step only
+#' All possible combinations of hydroState models are built for each data transformations, auto-correlation lag, and residual distribution from 1 to 3 states for investigating only state changes in the 'a0' and 'std' parameters. To reduce the number of models in the search, specify which field(s) to remain constant. For example, to investigate the best model with the number of auto-correlation terms and number of states with a 'boxcox' data transform and 'gamma' distribution of the residuals, set \code{data.transform} to 'boxcox' and \code{error.distribution} to 'gamma'. If no fields are specified, all possible model combinations are built.
 #'
 #'
-#' @param input.data dataframe of annual, seasonal, or monthly runoff and precipitation observations. Gaps with missing data in either streamflow or precipitation are permitted, and the handling of them is further discussed in \code{select.Markov}. Monthly data is required when using \code{seasonal.parameters} that assumes selected model parameters are better defined with a sinusoidal function.
+#' @param input.data dataframe of annual, seasonal, or monthly runoff and precipitation observations. Gaps with missing data in either streamflow or precipitation are permitted, and the handling of them is further discussed in \code{buildModel}. Monthly data is required when using \code{seasonal.parameters} that assumes selected model parameters are better defined with a sinusoidal function.
 #' @param data.transform character list of method of transformation. If empty, the default builds all possible combinations of models with 'boxcox' and 'log' data transformation.
 #' @param parameters character list of parameters to determine model form. If empty, the default builds all possible combinations of model forms.
 #' @param seasonal.parameters character list of parameters with sinusoidal function to represent seasonal variation. Requires monthly or seasonal data. If empty and monthly or seasonal data is given, the default builds all possible combinations of models with a seasonal parameter for each and all parameters.
@@ -1806,6 +1806,53 @@ plot.states <- function(model.name,
 get.states <- function(model.name){
 
       return(viterbi(model.name, do.plot = F))
+
+}
+
+#'Check Model
+#'
+#' \code{checkModel}
+#'
+#' @description
+#' \code{checkModel} validates the model's states at each time-step through re-sampleing the input data and re-runnning the Viterbi algorithm.
+#'
+#' @details
+#' Duplicate the input data 100 times. Get the transformed observations. Generate a synthetic series from the model. Get a time series of the transformed observations using the sample states. Find the Viterbi states for the re-sampled transformed data. Assess probability that the inferred state equals the 'known' state.
+#'
+#' @param model fitted \code{hydroState} model.
+#' @param n.samples integer of samples to re-sample. Default is 100000.
+#'
+#' @return
+#' table of the prbability of the inferred state equals the known state
+#'
+#' @keywords check model viterbi
+#'
+#'
+#' @export checkModel
+#'
+#' @examples
+#' ## Check fitted model
+#' checkModel(model = model.annual.fitted.221201)
+#'
+
+
+checkModel <- function(model, n.samples){
+
+  if(class(model)[1] == "hydroState"){
+
+    if(missing(n.samples)){
+
+      return(check.viterbi(model, nSamples = 100000))
+
+    }else{
+
+      return(check.viterbi(model, nSamples = n.samples))
+    }
+
+
+  }else{
+    stop('model is not a hydroState object')
+  }
 
 }
 
