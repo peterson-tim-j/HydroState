@@ -74,26 +74,44 @@ setMethod(f="setSeasons",signature=c("QhatModel.subAnnual.homo.gamma.linear",'da
     if(delta[j,2] - delta[j,1] > 12){
       # Get the seasons from the input data.
       subAnnual.Monthly.Steps[[j]] = sort(unique(data$month))
+
       subAnnual.Monthly.StepSize.min = rep(NA, length(subAnnual.Monthly.Steps[[j]]))
       subAnnual.Monthly.StepSize.max = rep(NA, length(subAnnual.Monthly.Steps[[j]]))
 
 
-      # Loop though each unique month and calc. the time step size.
+
+      # # Loop though each unique month and calc. the days.
+      # for (i in 1:length(subAnnual.Monthly.Steps[[j]])) {
+      #   # for (z in 1:length(which(data$month==subAnnual.Monthly.Steps[[j]][i]))){
+      #     step.sizes = diff(data$day[which(data$month==subAnnual.Monthly.Steps[[j]][i])])
+      #   # }
+      #
+      #   subAnnual.Monthly.StepSize.min[i] = min(step.sizes)
+      #   subAnnual.Monthly.StepSize.max[i] = max(step.sizes)
+      #
+      # }
+      #
+      # if(any(subAnnual.Monthly.StepSize.max != c(1,1,1,1,1,1,1,1,1,1,1,1)) ||
+      #    any(subAnnual.Monthly.StepSize.min != c(-30, -28, -30, -29, -30, -29, -30, -30, -29, -30, -29, -30))){
+      #   warning(paste('There are missing days in the month',' Check input data.'))
+      # }
+
+
+      # # Check that there is number of days for each one time-step size for each month.
       for (i in 1:length(subAnnual.Monthly.Steps[[j]])) {
-        step.sizes = diff(which(data$month==subAnnual.Monthly.Steps[[j]][i]))
+
+        step.sizes = diff(data$month[which(data$month==subAnnual.Monthly.Steps[[j]][i])])
+
         subAnnual.Monthly.StepSize.min[i] = min(step.sizes)
         subAnnual.Monthly.StepSize.max[i] = max(step.sizes)
-      }
-
-      # Check that there is only one time-step size for each month.
-      for (i in 1:length(subAnnual.Monthly.Steps[[j]])) {
+      #
         if (subAnnual.Monthly.StepSize.min[i] != subAnnual.Monthly.StepSize.max[i])
           stop(paste('The time steps for month', subAnnual.Monthly.Steps[[j]][i],'are not constant. Check input data.'))
       }
-
-      # Check that each month has the same time step size.
-      if (length(unique(subAnnual.Monthly.StepSize.min))!=1 || length(unique(subAnnual.Monthly.StepSize.max))!=1)
-        warning(paste('The time step sizes differ across the year. Consider checking the input data.'))
+      #
+      # # # Check that each month has the same time step size.
+      # if (length(unique(subAnnual.Monthly.StepSize.min))!=1 || length(unique(subAnnual.Monthly.StepSize.max))!=1)
+      #   warning(paste('The time step sizes differ across the year. Consider checking the input data.'))
 
    }else{
      subAnnual.Monthly.Steps[[j]] = sort(unique(data$month))

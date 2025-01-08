@@ -5,14 +5,14 @@
 \title{Fit hydroState model}
 \usage{
 fitModel(
-  model.name,
+  model,
   pop.size.perParameter = 10,
   max.generations = 500,
   doParallel = F
 )
 }
 \arguments{
-\item{model.name}{name of the built hydroState model or name of the list containing all built models}
+\item{model}{built hydroState model or list containing all built models}
 
 \item{pop.size.perParameter}{integer that should be greater than or equal to the number of parameters in the model. The default is '10' and is sufficient for all models.}
 
@@ -30,7 +30,7 @@ A fitted hydroState model
 \code{fitModel}
 
 
-After a hydroState model object is built, the model is ready to be fitted through minimizing the negative log-likelihood function. The likelihood is estimated recursively across each time-step, for each continous period of observations, and the sum of the negative log-likelihood is minimized too calibrate the model parameters. The only required input is the given name of the built hydroState model object. \code{fitModel} works for one built model (\code{buildModel}) or all (\code{buildModelAll}). If fitting all models be sure to install and load the \href{https://cran.r-project.org/web/packages/parallelly/index.html}{parallelly} library. Details on the likelihood function is as follows:
+After a hydroState model object is built, the model is ready to be fitted through minimizing the negative log-likelihood function. The likelihood is estimated recursively across each time-step, for each continous period of observations, and the sum of the negative log-likelihood is minimized too calibrate the model parameters. The only required input is the built hydroState model. \code{fitModel} works for one built model (\code{buildModel}) or all (\code{buildModelAll}). If fitting all models be sure to install and load the \href{https://cran.r-project.org/web/packages/parallelly/index.html}{parallelly} library. Details on the likelihood function is as follows:
 
 The likelihood function is estimated as:
 

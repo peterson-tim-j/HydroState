@@ -92,6 +92,7 @@ setMethod(f="getDistributionPercentiles",
 )
 
 # Get transition matrix with no input data.
+#' @exportMethod getEmissionDensity
 setMethod(f="getEmissionDensity",
           signature=c("QhatModel.homo.gamma.linear","data.frame"),
           definition=function(.Object, data, cumProb.threshold.Qhat)
@@ -145,6 +146,8 @@ setMethod(f="getEmissionDensity",
               }
             } else {
                 for (i in 1:.Object@nStates) {
+
+                  # tt <- tryCatch(x(5),error=function(e) e, warning=function(w) w)
                   P[,i] <- dgamma(data$Qhat.flow, shape=markov.shape[,i], scale=markov.scale[,i])
                 }
             }

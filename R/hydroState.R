@@ -397,8 +397,8 @@ setMethod(f="getStartEndIndex", signature = c(data = "data.frame"), definition =
           delta <- cbind(start.index,end.index)
 
           #re-compute index, if observations are less than minimum_period
-          # if(any(delta[,2] - delta[,1] < minimum_period)){
-          #   delta <- delta[-which(delta[,2] - delta[,1] < minimum_period),]
+          # if(any(delta[,2] - delta[,1] < 2)){
+          #   delta <- delta[-which(delta[,2] - delta[,1] < 2),]
           # }
 
           return(delta)
@@ -418,7 +418,7 @@ setMethod(f="getNegLogLikelihood",signature=c(.Object="hydroState",parameters="l
             return(getNegLogLikelihood(.Object))
           }
           )
-# @exportMethod getNegLogLikelihood
+#'@exportMethod getNegLogLikelihood
 #setGeneric(name="getNegLogLikelihood",def=function(.Object) {standardGeneric("getNegLogLikelihood")})
 setMethod(f="getNegLogLikelihood",signature=c(.Object="hydroState",parameters='missing'),definition=function(.Object)
           {
@@ -443,13 +443,13 @@ setMethod(f="getNegLogLikelihood",signature=c(.Object="hydroState",parameters='m
                     return(Inf)
                   }
 
-                nll <- lapply(1:NROW(delta), function(i) getLogLikelihood(.Object@markov.model.object, data[delta[i,1]:delta[i,2],], emission.probs[delta[i,1]:delta[i,2],]))
+                nll <- lapply(1:NROW(delta), function(i) getLogLikelihood(.Object@markov.model.object, data[delta[i,1]:delta[i,2],], as.matrix(emission.probs[[i]],1:.Object@QhatModel.object@nStates)))
                 nll <- sum(unlist(nll))
               }else{
 
                 emission.probs = getEmissionDensity(.Object@QhatModel.object, data, NA)
 
-                if (all(is.na((emission.probs))) || max((emission.probs), na.rm=T)==0) {
+                if (all(is.na(emission.probs)) || max(emission.probs, na.rm=T)==0) {
                   return(Inf)
                 }
 

@@ -236,7 +236,7 @@ setMethod(f="getTransitionProbabilities",
 )
 
 # Get the log likelihood for the input data.
-# @exportMethod getLogLikelihood
+#' @exportMethod getLogLikelihood
 setMethod(f="getLogLikelihood", signature=c("markov.annualHomogeneous","data.frame","matrix"),
           definition=function(.Object, data, emission.probs)
           {
@@ -269,6 +269,7 @@ setMethod(f="getLogLikelihood", signature=c("markov.annualHomogeneous","data.fra
             # Get the transition matrix.
             Tprob = getTransitionProbabilities(.Object)
 
+            ### uncomment for originial hydroState ###
             # Only accept the transition probs. if the model persists in each state. This is estimated from an extenstion of the
             # reference below to >2 states. Specifically, if the sum of the probs of switching from state A to any oter state  and from
             # any other state to A is >=1, the then model DOES NOT persist in state A.
@@ -310,8 +311,8 @@ setMethod(f="getLogLikelihood", signature=c("markov.annualHomogeneous","data.fra
             alpha      <- alpha/sumalpha
 
             # if only one observation
-            if(NROW(emission.probs) == 1)
-              return(lscale)
+            # if(NROW(emission.probs) == 1)
+            #   return(0)
 
             # Loop through 2+ time steps
             for (i in 2:nrow(data)) {

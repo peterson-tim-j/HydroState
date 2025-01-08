@@ -4,10 +4,10 @@
 \alias{get.states}
 \title{get states}
 \usage{
-get.states(model.name)
+get.states(model)
 }
 \arguments{
-\item{model.name}{is the name of the fitted \code{hydroState} model object.}
+\item{model}{fitted \code{hydroState} model.}
 }
 \value{
 data frame of results to evaluate the rainfall-runoff states overtime
@@ -35,12 +35,12 @@ data(model.annual.fitted.221201)
 
 ## Set initial year to set state names
 model.annual.fitted.221201 =
-                setInitialYear(model.name = model.annual.fitted.221201,
+                setInitialYear(model = model.annual.fitted.221201,
                                initial.year = 1990)
 
 ## Get states
 model.annual.fitted.221201.states =
-                get.states(model.name = model.annual.fitted.221201)
+                get.states(model = model.annual.fitted.221201)
 
 }
 \keyword{get}

@@ -4,10 +4,10 @@
 \alias{get.AIC}
 \title{get AIC}
 \usage{
-get.AIC(model.name)
+get.AIC(model)
 }
 \arguments{
-\item{model.name}{is the name of the fitted \code{hydroState} model object.}
+\item{model}{fitted \code{hydroState} model object.}
 }
 \value{
 AIC value

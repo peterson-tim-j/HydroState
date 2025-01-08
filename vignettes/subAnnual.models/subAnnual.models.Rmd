@@ -32,12 +32,12 @@ data(streamflow_monthly_221201)
 # check input data
 head(streamflow_monthly_221201)
 #>   year month      flow precipitation
-#> 1 1922     3  2.521175      47.81208
-#> 2 1922     4  2.412904      56.06649
-#> 3 1922     5 15.337419     186.79810
-#> 4 1922     6 25.799507      73.82219
-#> 5 1922     7 26.012962     107.27834
-#> 6 1922     8 13.654558      59.42736
+#> 1 1922     5  2.521175      47.81208
+#> 2 1922     6  2.412904      56.06649
+#> 3 1922     7 15.337419     186.79810
+#> 4 1922     8 25.799507      73.82219
+#> 5 1922     9 26.012962     107.27834
+#> 6 1922     10 13.654558      59.42736
 
 ```
 
@@ -48,20 +48,20 @@ streamflow_seasonal_221201 = set.seasons(streamflow_monthly_221201)
 
 # check seasonal data
 head(streamflow_seasonal_221201)
-#>   year month     flow precipitation nmonths
-#> 1 1922     5 20.27150     290.67667       3
-#> 2 1922     8 65.46703     240.52789       3
-#> 3 1922    11 25.07255     136.13480       3
-#> 4 1923     2 15.84783      17.11619       3
-#> 5 1923     5 26.96266     224.47029       3
-#> 6 1923     8 47.19084     322.51619       3
+#>  year month     flow precipitation nmonths
+#> 1 1922     8 43.54983     316.68678       3
+#> 2 1922    11 48.00441     200.60889       3
+#> 3 1923     2 20.97989     104.40220       3
+#> 4 1923     5 16.52530      41.23328       3
+#> 5 1923     8 27.94948     243.65699       3
+#> 6 1923    11 51.88673     391.47728       3
 
 ```
 
 ## Build a sub-annual hydroState model
 For seasonal and monthly models, there are additional options when building a model. A default model can be built that is identical to the default annual model except on a monthly or seasonal time-step OR the model can be adjusted.
 
-In addition to the options presented in the previous vignette: ([adjust.state.model](https://github.com/peterson-tim-j/HydroState/tree/master/vignettes/adjust.state.model/adjust.state.model.html)), the seasonal and monthly models can assume parameters within the rainfall-runoff relationship vary seasonally throughout the year. This is available within the `seasonal.parameters`. This assumes a `parameter` is best modeled as a sinusoidal function representing seasonal trends. The input accepts any default parameter: `a_1`, `a_0`, or `std`. Typically, assuming seasonal trends in only the intercept, `a_0`, explains trends in the residuals of the model. For further details, see help page for `buildModel`.
+In addition to the options presented in the previous vignette: ([adjust.state.model](https://github.com/peterson-tim-j/HydroState/tree/master/vignettes/adjust.state.model/adjust.state.model.html)), the seasonal and monthly models can assume parameters within the rainfall-runoff relationship vary seasonally throughout the year. This is available within the `seasonal.parameters`. This assumes a `parameter` is best modeled as a sinusoidal function representing seasonal trends. The input accepts any default parameter: `a1`, `a0`, or `std`. Typically, assuming seasonal trends in only the intercept, `a0`, explains trends in the residuals of the model. For further details, see help page for `buildModel`.
 
 For this analysis, an adjusted model is built on a monthly time-step:
 
@@ -97,11 +97,11 @@ Set the state names relative to a year in the record using `setInitialYear`. Thi
 
 ```r
 # set the reference year to name the states
-model.monthly.adjusted = setInitialYear(model.monthly.adjusted, 1990)
+model.monthly.adjusted= setInitialYear(model.monthly.adjusted, 1990)
 
 
 # plot all four plots
-plot.states(model.monthly.adjusted, dopdf = T)
+plot.states(model.monthly.adjusted, do.pdf = F)
 
 ```
 
@@ -124,7 +124,7 @@ all.models.monthly = buildModelAll(input.data = streamflow_monthly_221201,
                                         reference.table = all.models.ref.table)
 
 # Fit all models (uncomment to run)
-<!-- all.models.monthly = fitModel(all.models.monthly, pop.size.perParameter = 10, max.generations = 500, doParallel = T) -->
+<!-- all.models.monthly = fitModel(all.models.monthly, pop.size.perParameter = 10, max.generations = 1000, doParallel = T) -->
 
 # Identify the best model with the lowest AIC
 get.AIC(all.models.monthly)

@@ -86,9 +86,17 @@ setMethod(f="get.summary.table",signature="hydroState.allModels",definition=func
                                                                                           "0")))))
 
     state.shift = sapply(.Object@models, function(x) names(x@QhatModel.object@parameters@values[which(c(length(x@QhatModel.object@parameters@values$mean.a0),
-                                                                                                          length(x@QhatModel.object@parameters@values$mean.a1)) > 1)]))
+                                                                                                        length(x@QhatModel.object@parameters@values$mean.a1),
+                                                                                                        length(x@QhatModel.object@parameters@values$mean.a0.amp),
+                                                                                                        length(x@QhatModel.object@parameters@values$mean.a0.phase),
+                                                                                                        length(x@QhatModel.object@parameters@values$mean.a0.disp),
+                                                                                                        length(x@QhatModel.object@parameters@values$mean.a1.amp),
+                                                                                                        length(x@QhatModel.object@parameters@values$mean.a1.phase),
+                                                                                                        length(x@QhatModel.object@parameters@values$mean.a1.disp)
+                                                                                                        ) > 1)]))
+    # simplify to mean.a0 or mean.a1 if seasonal..
+    state.shift = unlist(lapply(1:length(state.shift), function(x) ifelse(length(unlist(state.shift[[x]])) < 1, "none",substr(unlist(state.shift[[x]]),1,7))))
 
-    state.shift = unlist(lapply(1:length(state.shift), function(x) ifelse(length(unlist(state.shift[[x]])) < 1, "none",unlist(state.shift[[x]]))))
 
     # build matrix of all
     all.models.matrix = data.frame(model.index = 1:length(.Object@models), model.names = names(.Object@models),nparams = nparams,nstates = nstates, state.structure = state.structure, data.trans = data.transform, error.dist = error.distribution, auto.corr = auto.correlation, state.shift = state.shift, ref.model = NA, row.names = 1)
@@ -443,7 +451,7 @@ setMethod(f = "fit",signature="hydroState.allModels",definition=function(.Object
 
       if (doParallel==T) {
         model <- .Object@models[[i]]
-        assign("model", model, envir=baseenv())
+        assign("model", model, envir=globalenv())
                  #new.env(parent = baseenv()))
 
         # error occurs after calling this...

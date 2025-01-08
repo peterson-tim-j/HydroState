@@ -4,10 +4,10 @@
 \alias{plot.residuals}
 \title{Plot residuals}
 \usage{
-\method{plot}{residuals}(model.name, do.pdf = FALSE, ID = NULL)
+\method{plot}{residuals}(model, do.pdf = FALSE, ID = NULL)
 }
 \arguments{
-\item{model.name}{name of the fitted hydroState model object.}
+\item{model}{fitted hydroState model object.}
 
 \item{do.pdf}{option to export residual plots as a pdf. Default is FALSE.}
 
@@ -42,7 +42,7 @@ The normal pseudo residuals are plotted for review to check for outliers and val
 data(model.annual.fitted.221201)
 
 ## Plot residuals
-plot.residuals(model.name = model.annual.fitted.221201)
+plot.residuals(model = model.annual.fitted.221201)
 
 }
 \keyword{plot}

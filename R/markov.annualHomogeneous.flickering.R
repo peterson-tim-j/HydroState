@@ -151,10 +151,6 @@ setMethod(f="getLogLikelihood", signature=c("markov.annualHomogeneous.flickering
             lscale   <- log(sumalpha)
             alpha      <- alpha/sumalpha
 
-            # if only one observation
-            if(NROW(emission.probs) == 1)
-              return(lscale)
-
             # Loop through 2+ time steps
             for (i in 2:nrow(data)) {
               alpha    <- alpha %*% Tprob * as.vector(emission.probs[i,])

@@ -57,14 +57,14 @@ For this example, we compare the default state model and adjusted model. The def
 default.model.annual = buildModel(input.data = streamflow_annual_407211,
                               parameters = list('a0','a1','std'),
                               state.shift.parameters = list('a0','std'),
-                              error.distribution = 'truc.normal',
+                              error.distribution = list('truc.normal'),
                               transition.graph = matrix(TRUE,2,2))
 
 # Adjusted state model assuming the residuals are a gamma distribution
 gamma.model.annual = buildModel(input.data = streamflow_annual_407211,
                               parameters = list('a0','a1','std'),
                               state.shift.parameters = list('a0','std'),
-                              error.distribution = 'gamma',
+                              error.distribution = list('gamma'),
                               transition.graph = matrix(TRUE,2,2))
 ```
 
@@ -106,20 +106,21 @@ plot.states(gamma.model.annual)
 <\center>
 
 ## Systematic state model selection
-How do we know which state model is the best given our observations? Rather than manually testing every adjustment of the state model, the `buildModelAll` function builds every possible state model combination (each distribution, auto-correlation terms, and 1 to 3-states) while the intercept, `a_1` and error `std` are considered `state.shift.parameters`. The function performs similarly to `buildModel` and can easily replace this function in the workflow. After being built, the models can be fitted using the `fitModel` function. This function fits each model iteratively, and requires each model to provide a better fit than the previous simpler model known as the reference model. To see a summary of the order of the reference models and revise them, use the `showModelAll` function. Once the models are fitted, the best model is the one with the lowest AIC, and the `get.AIC` function outputs a table with each model and AIC.
+How do we know which state model is the best given our observations? Rather than manually testing every adjustment of the state model, the `buildModelAll` function builds every possible state model combination (each distribution, auto-correlation terms, and 1 to 3-states) while the intercept, `a0` and error `std` are considered `state.shift.parameters`. The function performs similarly to `buildModel` and can easily replace this function in the workflow. After being built, the models can be fitted using the `fitModel` function. This function fits each model iteratively, and requires each model to provide a better fit than the previous simpler model known as the reference model. Each model undergoes 20 calibration trials, and if the best model fit of the trails is not less than or equal to the reference model calibration, the calibration reference criteria in the list of models is '0'. To see a summary of the order of the reference models and revise them, use the `showModelAll` function. Once the models are fitted, the best model is the one with the lowest AIC, and the `get.AIC` function outputs a table with each model and AIC.
 
 Below is a an example of how to set up `buildModelAll`, and perform the steps to adjust the reference table using `showModelAll`, fit the models using `fitModel`, and identify the model with the lowest AIC. Note, fitting all models can take several hours to run. 
 
 ```{r  eval = FALSE}
 # Build all model combinations with 'a0' and 'std' as state-dependent parameters
 all.models = buildModelAll(input.data = streamflow_annual_407211,
-                           state.shift.parameters =list('a0','std'),
+                           state.shift.parameters =list('a1','std'),
+                           error.distribution = list('gamma'),
                            siteID = "407211")
 
 # Review the order of the reference models, adjust reference models if needed.
 all.models.ref.table = showModelAll(all.models)
 
-# Re-build with adjusted reference table
+# If reference models are adjusted, then re-build models
 all.models = buildModelAll(input.data = streamflow_annual_407211,
                                state.shift.parameters = list('a0','std'),
                                reference.table = all.models.ref.table)
