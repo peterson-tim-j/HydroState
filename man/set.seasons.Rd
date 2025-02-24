@@ -21,7 +21,7 @@ Aggregates monthly data to 4 seasons in a year.
 \code{set.seasons}
 
 
-Sets 4 seasons
+Aggregates monthly data by taking the sum of runoff and precipitation in 4 seasons: Dec-Feb, Mar-May, Jun-Aug, Sep-Nov. Last month of each season becomes the time-step identifier.
 }
 \examples{
 

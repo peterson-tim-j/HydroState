@@ -11,6 +11,7 @@ QhatModel.homo.gamma.linear <- setClass(
     # Set the default values for the slots. (optional)
   prototype=list(
     input.data = data.frame(),
+    precip.delta = data.frame(),
     nStates = Inf,
     use.truncated.dist=F,
     parameters = new('parameters',c('mean.a0', 'mean.a1','std.a0'),c(1,1,1))
@@ -30,6 +31,7 @@ setMethod("initialize","QhatModel.homo.gamma.linear", function(.Object, input.da
                                                                       state.dependent.mean.a1=F, state.dependent.mean.trend=NA,state.dependent.std.a0=T) {
 
   .Object@input.data <- input.data
+  .Object@precip.delta = getStartEndIndex(input.data) # for precipitation / independent variable
   .Object@use.truncated.dist <- F
   .Object@nStates = ncol(transition.graph)
 

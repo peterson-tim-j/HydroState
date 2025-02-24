@@ -11,6 +11,7 @@ QhatModel.homo.normal.linear <- setClass(
   # Define the slots
   slots = c(
     input.data = "data.frame",
+    precip.delta = "data.frame",
     nStates = 'numeric',
     use.truncated.dist = 'logical',
     parameters = "parameters"
@@ -19,6 +20,7 @@ QhatModel.homo.normal.linear <- setClass(
   # Set the default values for the slots. (optional)
   prototype=list(
     input.data = data.frame(year=c(0),month=c(0),precipitation=c(0)),
+    precip.delta = data.frame(start.index = c(1),end.index = Inf),
     nStates = Inf,
     use.truncated.dist=T,
     parameters = new('parameters',c('mean.a0', 'mean.a1','std.a0'),c(1,1,1))
@@ -44,6 +46,9 @@ setMethod("initialize","QhatModel.homo.normal.linear", function(.Object, input.d
 
   .Object@nStates = ncol(transition.graph)
 
+  .Object@precip.delta = getStartEndIndex(input.data) # for precipitation / independent variable
+
+
   # Set the number of parameter values per parameter name and set up model terms for mean and standard deviation and trend.
   if (is.na(state.dependent.mean.trend)) {
     parameter.length <- as.numeric(c(state.dependent.mean.a0, state.dependent.mean.a1, state.dependent.std.a0)) * (.Object@nStates-1) + 1
@@ -53,8 +58,54 @@ setMethod("initialize","QhatModel.homo.normal.linear", function(.Object, input.d
     .Object@parameters = new('parameters', c('mean.a0', 'mean.a1', 'mean.trend', 'std.a0'), parameter.length)
   }
 
+
   validObject(.Object)
   .Object
+}
+)
+#get Delta
+# Get start and end indices for independent variable
+
+#' @exportMethod getStartEndIndex
+setGeneric(name = "getStartEndIndex", def = function(input.data) {standardGeneric("getStartEndIndex")})
+setMethod(f = "getStartEndIndex", signature = c("data.frame"), function(input.data){
+
+
+  end.index = which(diff(is.finite(input.data$precipitation)) == -1)
+
+  #if no gaps, just return, first obs. precip to last obs. precip
+  if(length(end.index) == 0){
+    return(data.frame(start.index = checkmate::wf(is.finite(input.data$precipitation),TRUE),
+                      end.index = checkmate::wl(is.finite(input.data$precipitation), TRUE)))
+  }
+
+  # if gaps, find index of each start and end
+  # if(checkmate::wl(is.finite(input.data$precipitation), TRUE) == NROW(input.data)){
+    end.index[NROW(end.index) + 1] = checkmate::wl(is.finite(input.data$precipitation), TRUE)
+  # }else{
+  # end.index[NROW(end.index) + 1] = checkmate::wl(is.finite(input.data$precipitation), TRUE)
+  # }
+
+  start.index = rep(NA,length(end.index))
+
+  if(checkmate::wf(is.finite(input.data$precipitation),TRUE) ==1){ #if starts at first time-step
+    start.index[1] = checkmate::wf(is.finite(input.data$precipitation),TRUE)
+    start.index[2:NROW(end.index)] = which(diff(is.finite(input.data$precipitation)) == 1) +1
+  }else{ # if not,
+    start.index[1:NROW(end.index)] = which(diff(is.finite(input.data$precipitation)) == 1) +1
+  }
+
+
+  # print(delta)
+  delta <- data.frame(start.index,end.index)
+
+  #re-compute index, if observations are less than minimum_period
+  # if(any(delta[,2] - delta[,1] < minimum_period)){
+  #   delta <- delta[-which(delta[,2] - delta[,1] < minimum_period),]
+  # }
+
+  return(delta)
+
 }
 )
 
@@ -89,7 +140,7 @@ setMethod("get.SeaonalityPeriod","QhatModel.homo.normal.linear", function(.Objec
 )
 
 # Get transition matrix with no input data.
-# @exportMethod getEmissionDensity
+#' @exportMethod getEmissionDensity
 setMethod(f="getEmissionDensity",
           signature=c("QhatModel.homo.normal.linear","data.frame"),
           definition=function(.Object, data, cumProb.threshold.Qhat)
@@ -184,7 +235,6 @@ setMethod(f="getDistributionPercentiles",
 setGeneric(name="getMean",def=function(.Object, data) {standardGeneric("getMean")})
 setMethod(f="getMean",signature=c("QhatModel.homo.normal.linear","data.frame"),definition=function(.Object, data)
 {
-
             # Get object parameter list
             parameters = getParameters(.Object@parameters)
 

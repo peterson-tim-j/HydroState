@@ -52,7 +52,7 @@ setMethod(f="initialize",signature="hydroState.allModels",definition=function(.O
 
 
 # get summary of all models.
-# @exportMethod get.summary.table
+#' @exportMethod get.summary.table
 setGeneric(name="get.summary.table",def=function(.Object, models.summary = data.frame()){standardGeneric("get.summary.table")})
 setMethod(f="get.summary.table",signature="hydroState.allModels",definition=function(.Object, models.summary)
 {
@@ -239,7 +239,7 @@ setMethod(f="get.summary.table",signature="hydroState.allModels",definition=func
           all.models.matrix$ref.model[!is.na(match(all.models.matrix$model.names,temp.models$model.names))] <- temp.models$ref.model
 
           # set max model for state of log models
-          max.temp.normal.log.model = all.models.matrix$model.names[length(temp.models)]
+          max.temp.normal.log.model = temp.models$model.names[NROW(temp.models)]
         }
 
         if('truc.normal' %in% log.models$error.dist){
@@ -260,12 +260,12 @@ setMethod(f="get.summary.table",signature="hydroState.allModels",definition=func
           all.models.matrix$ref.model[!is.na(match(all.models.matrix$model.names,temp.models$model.names))] <- temp.models$ref.model
 
           # set max model for state of log models
-          max.temp.truc.normal.log.model = all.models.matrix$model.names[length(temp.models)]
+          max.temp.truc.normal.log.model = temp.models$model.names[NROW(temp.models)]
         }
 
 
         if('gamma' %in% log.models$error.dist){
-          temp.models = log.models[which(log.models$error.dist == 'gamma'),]
+          temp.models <- log.models[which(log.models$error.dist == 'gamma'),]
 
           if('none' %in% temp.models$state.shift){
             temp.models$ref.model[1] = ""
@@ -282,7 +282,7 @@ setMethod(f="get.summary.table",signature="hydroState.allModels",definition=func
           all.models.matrix$ref.model[!is.na(match(all.models.matrix$model.names,temp.models$model.names))] <- temp.models$ref.model
 
           # set max model for state of log models
-          max.temp.gamma.log.model = all.models.matrix$model.names[length(temp.models)]
+          max.temp.gamma.log.model = temp.models$model.names[NROW(temp.models)]
 
         }
       }
@@ -308,7 +308,7 @@ setMethod(f="get.summary.table",signature="hydroState.allModels",definition=func
           all.models.matrix$ref.model[!is.na(match(all.models.matrix$model.names,temp.models$model.names))] <- temp.models$ref.model
 
           # set max model for state of boxcox models
-          max.temp.normal.boxcox.model = all.models.matrix$model.names[length(temp.models)]
+          max.temp.normal.boxcox.model = temp.models$model.names[NROW(temp.models)]
         }
 
         if('truc.normal' %in% boxcox.models$error.dist){
@@ -329,7 +329,7 @@ setMethod(f="get.summary.table",signature="hydroState.allModels",definition=func
           all.models.matrix$ref.model[!is.na(match(all.models.matrix$model.names,temp.models$model.names))] <- temp.models$ref.model
 
           # set max model for state of boxcox models
-          max.temp.truc.normal.boxcox.model = all.models.matrix$model.names[length(temp.models)]
+          max.temp.truc.normal.boxcox.model = temp.models$model.names[NROW(temp.models)]
         }
 
 
@@ -351,7 +351,7 @@ setMethod(f="get.summary.table",signature="hydroState.allModels",definition=func
           all.models.matrix$ref.model[!is.na(match(all.models.matrix$model.names,temp.models$model.names))] <- temp.models$ref.model
 
           # set max model for state of boxcox models
-          max.temp.gamma.boxcox.model = all.models.matrix$model.names[length(temp.models)]
+          max.temp.gamma.boxcox.model = temp.models$model.names[NROW(temp.models)]
 
         }
       }

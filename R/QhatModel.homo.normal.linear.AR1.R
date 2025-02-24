@@ -10,6 +10,7 @@ QhatModel.homo.normal.linear.AR1 <- setClass(
 
   # Set the default values for the slots. (optional)
   prototype=list(
+    precip.delta = data.frame(start.index = c(1),end.index = Inf),
     parameters =  new('parameters',c('mean.a0', 'mean.a1','mean.AR1','std.a0'),c(1,1,1,1))
   )
 )
@@ -28,6 +29,9 @@ setMethod("initialize","QhatModel.homo.normal.linear.AR1", function(.Object, use
   .Object@input.data <- input.data
   .Object@use.truncated.dist = use.truncated.dist
   .Object@nStates = ncol(transition.graph)
+  .Object@precip.delta = getStartEndIndex(input.data)
+
+
 
   # Set the number of parameter values per parameter name and set up model terms for mean and standard deviation and trend.
   if (is.na(state.dependent.mean.trend)) {
@@ -62,7 +66,21 @@ setMethod(f="is.stationary",signature=c("QhatModel.homo.normal.linear.AR1"),defi
 
 # Calculate the transformed flow at the mean annual precip
 setMethod(f="getMean",signature=c("QhatModel.homo.normal.linear.AR1","data.frame"),definition=function(.Object, data) {
-          return(getMean.AR1(.Object, data))
+            # Get delta periods if gaps in precip (or independent varaible), cycles through getmean.ar1 for each delta..
+
+            delta = .Object@precip.delta
+
+            Qhat.model.NAs = matrix(NA,NROW(data),.Object@nStates)
+
+            for(i in 1:NROW(delta)){
+              Qhat.model.NAs[delta[i,1]:delta[i,2],] = getMean.AR1(.Object, data[delta[i,1]:delta[i,2],])
+            }
+             #maybe use for each for parallel? but need output in vector form, not list, because hard to unlist into originial indeices...
+            # x <- foreach::foreach(i = 1:NROW(delta), b= data[delta[i,1]:delta[i,2],]) %do% {
+            #    getMean.AR1(.Object, b)
+            # }
+
+            return(Qhat.model.NAs)
   }
 )
 

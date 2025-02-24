@@ -50,6 +50,13 @@ setMethod("initialize","QhatModel.homo.gamma.linear.AR3", function(.Object,input
 
 setMethod(f="getMean",signature=c("QhatModel.homo.gamma.linear.AR3","data.frame"),definition=function(.Object, data)
 {
-  return(getMean.AR3(.Object, data))
+  Qhat.model.NAs = matrix(NA,NROW(data),.Object@nStates)
+
+  for(i in 1:NROW(.Object@precip.delta)){
+    Qhat.model.NAs[.Object@precip.delta[i,1]:.Object@precip.delta[i,2],] = getMean.AR3(.Object, data[.Object@precip.delta[i,1]:.Object@precip.delta[i,2],])
+  }
+
+  return(Qhat.model.NAs)
 }
+
 )

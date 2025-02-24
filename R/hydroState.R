@@ -327,85 +327,6 @@ setMethod(f="getTransitionProbabilities",
           }
 )
 
-# Get start and end indices for independent variable
-
-# @exportMethod getStartEndIndex
-setGeneric(name = "getStartEndIndex", def = function(data,...) {standardGeneric("getStartEndIndex")})
-setMethod(f="getStartEndIndex", signature = c(data = "data.frame"), definition = function(data){
-
-          # # Get the transformed flow, Qhat
-          # data = .Object@input.data
-          if('day' %in% colnames(data)){
-
-            end.index = which(diff(as.Date(lubridate::make_datetime(data$year, data$month, data$day, tz = "Australia/Melbourne"))) != 1)
-
-            if(length(end.index) > 1){ # if more than one continous period
-              end.index[NROW(end.index) + 1] = sum(is.finite(data$precipitation))
-            } else {
-              end.index = sum(is.finite(data$precipitation))
-            }
-
-            start.index = rep(NA,length(end.index))
-            start.index[1] = 1
-
-            if(length(start.index) > 1){
-              start.index[2:NROW(end.index)] = end.index[1:(NROW(end.index)-1)] + 1
-            }
-
-          }else if('month' %in% colnames(data)){
-
-            # check if data is monthly or seasonal by finding the longest sequence of years (12 = monthly, 4 = seasonal)
-            if(with(rle(data$year), max(lengths)) > 4){
-              end.index = which(diff(data$month) != 1 & diff(data$month) != -11)
-            }else{
-              end.index = which(diff(data$month) != 3 & diff(data$month) != -9)
-            }
-
-            if(length(end.index) > 1){ # if more than one continuous period
-              end.index[NROW(end.index) + 1] = sum(is.finite(data$precipitation))
-            } else {
-              end.index = sum(is.finite(data$precipitation))
-            }
-
-
-            start.index = rep(NA,length(end.index))
-            start.index[1] = 1
-
-            if(length(start.index) > 1){
-              start.index[2:NROW(end.index)] = end.index[1:(NROW(end.index)-1)] + 1
-            }
-
-          }else{#('year' %in% colnames(data)){ assume annual
-
-            end.index = which(diff(data$year != 1) & diff(data$year) != 0)
-
-            if(length(end.index) > 1){ # if more than one continous period
-              end.index[NROW(end.index) + 1] = sum(is.finite(data$precipitation))
-            } else {
-              end.index = sum(is.finite(data$precipitation))
-            }
-
-            start.index = rep(NA,length(end.index))
-            start.index[1] = 1
-
-            if(length(start.index) > 1){
-              start.index[2:NROW(end.index)] = end.index[1:(NROW(end.index)-1)] + 1
-            }
-          }
-
-          # print(delta)
-          delta <- cbind(start.index,end.index)
-
-          #re-compute index, if observations are less than minimum_period
-          # if(any(delta[,2] - delta[,1] < 2)){
-          #   delta <- delta[-which(delta[,2] - delta[,1] < 2),]
-          # }
-
-          return(delta)
-
-}
-)
-
 
 # Get the model negative log liklihood.
 # @exportMethod getNegLogLikelihood
@@ -430,22 +351,22 @@ setMethod(f="getNegLogLikelihood",signature=c(.Object="hydroState",parameters='m
             #data = cbind.data.frame(.Object@input.data,Qhat=Qhat)
 
             # Set-up to run for all periods with continuous observations of independent variable (precipitation)
-            delta = getStartEndIndex(data)
+            # delta = getStartEndIndex(data)
 
             # Get the markov likelihood and return. Importantly, the object QhatBar is passed so that
             # the markov object can get the model estimates of the transformed flow mean, standard deviation etc.
-            if(NROW(delta)>1){
+            # if(NROW(delta)>1){
 
               # Get the probabiity of the observed Qhat for each state at each time point.
-              emission.probs = lapply(1:NROW(delta), function(i) getEmissionDensity(.Object@QhatModel.object, data[delta[i,1]:delta[i,2],], NA))
+              # emission.probs = lapply(1:NROW(delta), function(i) getEmissionDensity(.Object@QhatModel.object, data[delta[i,1]:delta[i,2],], NA))
 
-                if (all(is.na(unlist(emission.probs))) || max(unlist(emission.probs), na.rm=T)==0) {
-                    return(Inf)
-                  }
+                # if (all(is.na(unlist(emission.probs))) || max(unlist(emission.probs), na.rm=T)==0) {
+                #     return(Inf)
+                #   }
 
-                nll <- lapply(1:NROW(delta), function(i) getLogLikelihood(.Object@markov.model.object, data[delta[i,1]:delta[i,2],], as.matrix(emission.probs[[i]],1:.Object@QhatModel.object@nStates)))
-                nll <- sum(unlist(nll))
-              }else{
+                # nll <- lapply(1:NROW(delta), function(i) getLogLikelihood(.Object@markov.model.object, data[delta[i,1]:delta[i,2],], as.matrix(emission.probs[[i]],1:.Object@QhatModel.object@nStates)))
+                # nll <- sum(unlist(nll))
+              # }else{
 
                 emission.probs = getEmissionDensity(.Object@QhatModel.object, data, NA)
 
@@ -454,7 +375,7 @@ setMethod(f="getNegLogLikelihood",signature=c(.Object="hydroState",parameters='m
                 }
 
                 nll <- getLogLikelihood(.Object@markov.model.object, data, emission.probs)
-              }
+              # }
 
             if (!is.finite(nll)) {
               return(Inf)
@@ -615,7 +536,7 @@ setMethod(f = "fit",signature="hydroState",definition=function(.Object,
 )
 
 
-# @exportMethod setStateNames
+#' @exportMethod setStateNames
 setGeneric(name="setStateNames",def=function(.Object, year.normalFlow) {standardGeneric("setStateNames")})
 setMethod(f="setStateNames",signature=c("hydroState","numeric"),definition=function(.Object, year.normalFlow)
 {
@@ -843,6 +764,7 @@ setMethod(f="viterbi",signature=c("hydroState","data.frame","logical","numeric",
           definition=function(.Object, data, do.plot=T, plot.percentiles = c(0.05, 0.5, 0.95), plot.yearRange=numeric(),plot.options)
   {
 
+            print("viterbi OG")
   if (!validObject(.Object))
     stop('The model parameters produced an INVALID MODEL.')
 
@@ -871,7 +793,7 @@ setMethod(f="viterbi",signature=c("hydroState","data.frame","logical","numeric",
   nStates = getNumStates(.Object@markov.model.object)
 
   # Built filter for non NAs.
-  filt <- !is.na(data$Qhat.flow)
+  filt <- !is.na(data$Qhat.flow)&!is.na(data$Qhat.precipitation)
 
   # Exit if modle has one state
   if (nStates==1) {
@@ -894,7 +816,10 @@ setMethod(f="viterbi",signature=c("hydroState","data.frame","logical","numeric",
     # Get transition probs.
     transProbs = getTransitionProbabilities(.Object@markov.model.object)
 
-    # get emiision probs.
+    # get delta if gaps then emision probs.
+    # delta = getStartEndIndex(data)
+
+    # Get the probabiity of the observed Qhat for each state at each time point.
     emissionProbs = getEmissionDensity(.Object@QhatModel.object, data, NA)
 
     # Get initial states
@@ -972,7 +897,7 @@ setMethod(f="viterbi",signature=c("hydroState","data.frame","logical","numeric",
     state.est = getDistributionPercentiles(.Object@QhatModel.object, data, plot.percentiles)
 
     # Remove NAs from the input data and Qhat
-    data <- data[filt,]
+    # data <- data[filt,]
     Qhat <- Qhat[filt]
     obsDates.withNAs <- obsDates
     if (is.vector(obsDates)) {
@@ -980,7 +905,6 @@ setMethod(f="viterbi",signature=c("hydroState","data.frame","logical","numeric",
     } else {
       obsDates <- obsDates[filt,]
     }
-    obsDates.asISO.withNAs <- obsDates.asISO
     obsDates.asISO <- obsDates.asISO[filt]
     viterbiPath <- viterbiPath[filt]
     nQhat = sum(filt)
@@ -1024,9 +948,10 @@ setMethod(f="viterbi",signature=c("hydroState","data.frame","logical","numeric",
       flow.normal.est[,i] <- getQ.backTransformed(.Object@Qhat.object,data.tmp)$flow.modelled[filt]
     }
 
+
     # Get the conditional probabilities.
     emissionProbs = getEmissionDensity(.Object@QhatModel.object, data, NA)
-    state.probs = getConditionalStateProbabilities(.Object@markov.model.object, data, emissionProbs)
+    state.probs = getConditionalStateProbabilities(.Object@markov.model.object, data[filt,], emissionProbs[filt,])
 
     # Collate returned data.
     if (is.vector(obsDates)) {
@@ -1036,7 +961,7 @@ setMethod(f="viterbi",signature=c("hydroState","data.frame","logical","numeric",
       results[,3] <-data.withNAs$flow
       results[filt,4:9] <- cbind(flow.viterbi.est, flow.normal.est)
       results[filt, 10:(10+nStates-1)] = t(state.probs)
-      results[filt, (10+nStates):(10+2*nStates-1)] = t(emissionProbs)
+      results[filt, (10+nStates):(10+2*nStates-1)] = t(emissionProbs[filt,])
       colnames(results) <- c('Year','Viterbi State Number', 'Obs. flow',
                              paste('Viterbi Flow -',plot.percentiles*100,'%ile',sep=''),
                              paste('Normal State Flow-',plot.percentiles*100,'%ile',sep=''),
@@ -1049,7 +974,7 @@ setMethod(f="viterbi",signature=c("hydroState","data.frame","logical","numeric",
       results[,4] <-data.withNAs$flow
       results[filt,5:10] <- cbind(flow.viterbi.est, flow.normal.est)
       results[filt, 11:(11+nStates-1)] = t(state.probs)
-      results[filt, (11+nStates):(11+2*nStates-1)] = t(emissionProbs)
+      results[filt, (11+nStates):(11+2*nStates-1)] = t(emissionProbs[filt,])
       colnames(results) <- c('Year','Month','Viterbi State Number', 'Obs. flow',
                              paste('Viterbi Flow -',plot.percentiles*100,'%ile',sep=''),
                              paste('Normal State Flow -',plot.percentiles*100,'%ile',sep=''),
@@ -1063,13 +988,13 @@ setMethod(f="viterbi",signature=c("hydroState","data.frame","logical","numeric",
       results <- matrix(NA,length(filt), 3)
       results[,1] <- obsDates
       results[filt,2] <-viterbiPath[filt]
-      results[,3] <-data$flow
+      results[,3] <-data$flow[filt]
       colnames(results) <- c('Year','Viterbi State Number', 'Obs. flow')
     } else {
       results <- matrix(NA,length(filt), 4)
       results[,1:2] <- obsDates
       results[filt,3] <-viterbiPath[filt]
-      results[,4] <-data$flow
+      results[,4] <-data$flow[filt]
       colnames(results) <- c('Year','Month','Viterbi State Number', 'Obs. flow')
     }
   }
@@ -1130,8 +1055,8 @@ setMethod(f="viterbi",signature=c("hydroState","data.frame","logical","numeric",
     }
 
     # Plot obs precip
-    # pframe = padr::thicken(padr::pad(data.frame(obsDates.asISO.withNAs, .Object@input.data$precipitation), interval = plot.units), "3 month")
-    pframe = padr::pad(data.frame(obsDates.asISO.withNAs, .Object@input.data$precipitation), interval = plot.units)
+    # pframe = padr::thicken(padr::pad(data.frame(obsDates.Precip.asISO, .Object@input.data$precipitation), interval = plot.units), "3 month")
+    pframe = padr::pad(data.frame(obsDates.Precip.asISO, .Object@input.data$precipitation), interval = plot.units)
     plot(pframe, type='s',col='grey', lwd=1,
          xlim=xlim, xlab='', ylab='', main='', xaxt='n')
     mtext("Precip.",side=2,line=3)
@@ -1144,7 +1069,7 @@ setMethod(f="viterbi",signature=c("hydroState","data.frame","logical","numeric",
     text(plot.range[1]+diff(plot.range[1:2])*0.025, plot.range[3]+diff(par("usr")[3:4])*0.95, labels="", font=1, cex=2,pos=1)
 
     # Plot obs flow
-    pframe = padr::pad(data.frame(obsDates.asISO.withNAs, data.withNAs$flow), interval = plot.units)
+    pframe = padr::pad(data.frame(obsDates.Precip.asISO, data.withNAs$flow), interval = plot.units)
     plot(pframe, type='l',col='grey', lwd=1, ylim=ylim.flow, xlim=xlim,
          xlab='', ylab='',xaxt='n')
     # ryticks.min = signif(1.2*max(data$precipitation,na.rm=T),1)
@@ -1190,7 +1115,7 @@ setMethod(f="viterbi",signature=c("hydroState","data.frame","logical","numeric",
                    ceiling(max( c(max(data$Qhat.flow,na.rm=T),max(viterbi.est,na.rm=T)))))
 
     # Plot obs Qhat
-    pframe = padr::pad(data.frame(obsDates.asISO.withNAs, data.tmp$Qhat.flow), interval = plot.units)
+    pframe = padr::pad(data.frame(obsDates.Precip.asISO, data.tmp$Qhat.flow), interval = plot.units)
     plot(pframe, type='l',col='grey', lwd=1,
          ylim=ylim.qhat, xlim=xlim, xlab='', ylab='',xaxt='n')
 
@@ -1258,16 +1183,20 @@ setMethod(f="viterbi",signature=c("hydroState","data.frame","logical","numeric",
 
     # Plot the conditional state probability for each state
     #if (nStates>1) {
-      emissionProbs = getEmissionDensity(.Object@QhatModel.object, data, NA)
-      state.probs = getConditionalStateProbabilities(.Object@markov.model.object, data, emissionProbs)
+    # ## # re-compute again because NA's removed from flow
+    # Get the conditional probabilities.
+    emissionProbs = getEmissionDensity(.Object@QhatModel.object, data, NA)
+    state.probs = getConditionalStateProbabilities(.Object@markov.model.object, data[filt,], emissionProbs[filt,])
 
       # Plot bar graph
       par(mar = c(4,5,0.2,5))
-      plot(obsDates.asISO, state.probs[1,], type = 'l', xlim=xlim, col=state.colours[1],
+      pframe = padr::pad(data.frame(obsDates.asISO, state.probs[1,]), interval = plot.units)
+      plot(pframe, type = 'l', xlim=xlim, col=state.colours[1],
            ylim=c(0,1),xlab='', ylab='', lwd=1, xaxt='n')
       if (nStates>1) {
         for ( i in 2:nStates) {
-          lines(obsDates.asISO, state.probs[i,], col=state.colours[i])
+          pframe = padr::pad(data.frame(obsDates.asISO, state.probs[i,]), interval = plot.units)
+          lines(pframe, col=state.colours[i])
         }
       }
       mtext("State Prob.",side=2,line=3)
@@ -1329,7 +1258,7 @@ setMethod(f="viterbi",signature=c("hydroState","data.frame","logical","numeric",
             nStates = getNumStates(.Object@markov.model.object)
 
             # Built filter for non NAs.
-            filt <- !is.na(data$Qhat.flow)
+            filt <- !is.na(data$Qhat.flow)&!is.na(data$Qhat.precipitation)
 
             # Exit if modle has one state
             if (nStates==1) {
@@ -1358,6 +1287,7 @@ setMethod(f="viterbi",signature=c("hydroState","data.frame","logical","numeric",
               # Get initial states
               startProbs = getInitialStateProbabilities(.Object@markov.model.object)
               States = 1:nStates
+
 
               # Set probs to zero if the is no obs. data
               transProbs[is.na(transProbs)]       = 0
@@ -1430,7 +1360,7 @@ setMethod(f="viterbi",signature=c("hydroState","data.frame","logical","numeric",
               state.est = getDistributionPercentiles(.Object@QhatModel.object, data, plot.percentiles)
 
               # Remove NAs from the input data and Qhat
-              data <- data[filt,]
+              # data <- data[filt,]
               Qhat <- Qhat[filt]
               obsDates.withNAs <- obsDates
               if (is.vector(obsDates)) {
@@ -1438,7 +1368,6 @@ setMethod(f="viterbi",signature=c("hydroState","data.frame","logical","numeric",
               } else {
                 obsDates <- obsDates[filt,]
               }
-              obsDates.asISO.withNAs <- obsDates.asISO
               obsDates.asISO <- obsDates.asISO[filt]
               viterbiPath <- viterbiPath[filt]
               nQhat = sum(filt)
@@ -1484,7 +1413,7 @@ setMethod(f="viterbi",signature=c("hydroState","data.frame","logical","numeric",
 
               # Get the conditional probabilities.
               emissionProbs = getEmissionDensity(.Object@QhatModel.object, data, NA)
-              state.probs = getConditionalStateProbabilities(.Object@markov.model.object, data, emissionProbs)
+              state.probs = getConditionalStateProbabilities(.Object@markov.model.object, data[filt,], emissionProbs[filt,])
 
               # Collate returned data.
               if (is.vector(obsDates)) {
@@ -1494,7 +1423,7 @@ setMethod(f="viterbi",signature=c("hydroState","data.frame","logical","numeric",
                 results[,3] <-data.withNAs$flow
                 results[filt,4:9] <- cbind(flow.viterbi.est, flow.normal.est)
                 results[filt, 10:(10+nStates-1)] = t(state.probs)
-                results[filt, (10+nStates):(10+2*nStates-1)] = t(emissionProbs)
+                results[filt, (10+nStates):(10+2*nStates-1)] = t(emissionProbs[filt,])
                 colnames(results) <- c('Year','Viterbi State Number', 'Obs. flow',
                                        paste('Viterbi Flow -',plot.percentiles*100,'%ile',sep=''),
                                        paste('Normal State Flow-',plot.percentiles*100,'%ile',sep=''),
@@ -1507,7 +1436,7 @@ setMethod(f="viterbi",signature=c("hydroState","data.frame","logical","numeric",
                 results[,4] <-data.withNAs$flow
                 results[filt,5:10] <- cbind(flow.viterbi.est, flow.normal.est)
                 results[filt, 11:(11+nStates-1)] = t(state.probs)
-                results[filt, (11+nStates):(11+2*nStates-1)] = t(emissionProbs)
+                results[filt, (11+nStates):(11+2*nStates-1)] = t(emissionProbs[filt,])
                 colnames(results) <- c('Year','Month','Viterbi State Number', 'Obs. flow',
                                        paste('Viterbi Flow -',plot.percentiles*100,'%ile',sep=''),
                                        paste('Normal State Flow -',plot.percentiles*100,'%ile',sep=''),
@@ -1521,13 +1450,13 @@ setMethod(f="viterbi",signature=c("hydroState","data.frame","logical","numeric",
                 results <- matrix(NA,length(filt), 3)
                 results[,1] <- obsDates
                 results[filt,2] <-viterbiPath[filt]
-                results[,3] <-data$flow
+                results[,3] <-data$flow[filt]
                 colnames(results) <- c('Year','Viterbi State Number', 'Obs. flow')
               } else {
                 results <- matrix(NA,length(filt), 4)
                 results[,1:2] <- obsDates
                 results[filt,3] <-viterbiPath[filt]
-                results[,4] <-data$flow
+                results[,4] <-data$flow[filt]
                 colnames(results) <- c('Year','Month','Viterbi State Number', 'Obs. flow')
               }
             }
@@ -1617,7 +1546,7 @@ setMethod(f="viterbi",signature=c("hydroState","data.frame","logical","numeric",
                 }
                 # Plot obs precip
 
-                pframe = padr::pad(data.frame(obsDates.asISO.withNAs, .Object@input.data$precipitation), interval = plot.units)
+                pframe = padr::pad(data.frame(obsDates.Precip.asISO, .Object@input.data$precipitation), interval = plot.units)
                 if(plot.units == "month"){ #if seasonal... adjust to get plot with connecting lines..
                   if(with(rle(data$year), max(lengths)) <= 4){
                     pframe$.Object.input.data.precipitation = zoo::na.approx(object = replace(pframe$.Object.input.data.precipitation, is.na(pframe$.Object.input.data.precipitation), NA), maxgap = 2)
@@ -1646,7 +1575,7 @@ setMethod(f="viterbi",signature=c("hydroState","data.frame","logical","numeric",
                 }
 
                 # Plot obs flow
-                pframe = padr::pad(data.frame(obsDates.asISO.withNAs, data.withNAs$flow), interval = plot.units)
+                pframe = padr::pad(data.frame(obsDates.Precip.asISO, data.withNAs$flow), interval = plot.units)
                 if(plot.units == "month"){ #if seasonal... adjust to get plot with connecting lines..
                   if(with(rle(data$year), max(lengths)) <= 4){
                     pframe$data.withNAs.flow = zoo::na.approx(object = replace(pframe$data.withNAs.flow, is.na(pframe$data.withNAs.flow), NA), maxgap = 2)
@@ -1716,7 +1645,7 @@ setMethod(f="viterbi",signature=c("hydroState","data.frame","logical","numeric",
                                ceiling(max( c(max(data$Qhat.flow,na.rm=T),max(viterbi.est,na.rm=T)))))
 
                 # Plot obs Qhat
-                pframe = padr::pad(data.frame(obsDates.asISO.withNAs, data.tmp$Qhat.flow), interval = plot.units)
+                pframe = padr::pad(data.frame(obsDates.Precip.asISO, data.tmp$Qhat.flow), interval = plot.units)
                 if(plot.units == "month"){ #if seasonal... adjust to get plot with connecting lines..
                   if(with(rle(data$year), max(lengths)) <= 4){
                     pframe$data.tmp.Qhat.flow = zoo::na.approx(object = replace(pframe$data.tmp.Qhat.flow, is.na(pframe$data.tmp.Qhat.flow), NA), maxgap = 2)
@@ -1805,17 +1734,20 @@ setMethod(f="viterbi",signature=c("hydroState","data.frame","logical","numeric",
                   par(mar = c(4,5,0.2,5))
                 }
                 # Plot the conditional state probability for each state
-                # if (nStates>1) {
+
+                # Get the conditional probabilities.
                 emissionProbs = getEmissionDensity(.Object@QhatModel.object, data, NA)
-                state.probs = getConditionalStateProbabilities(.Object@markov.model.object, data, emissionProbs)
+                state.probs = getConditionalStateProbabilities(.Object@markov.model.object, data[filt,], emissionProbs[filt,])
 
                 # Plot bar graph
                 # par(mar = c(4,5,0.2,5))
-                plot(obsDates.asISO, state.probs[1,], type = 'l', xlim=xlim, col=state.colours[1],
+                pframe = padr::pad(data.frame(obsDates.asISO, state.probs[1,]), interval = plot.units)
+                plot(pframe, type = 'l', xlim=xlim, col=state.colours[1],
                      ylim=c(0,1),xlab='', ylab='', lwd=1, xaxt='n')
                 if (nStates>1) {
                   for ( i in 2:nStates) {
-                    lines(obsDates.asISO, state.probs[i,], col=state.colours[i])
+                    pframe = padr::pad(data.frame(obsDates.asISO, state.probs[i,]), interval = plot.units)
+                    lines(pframe, col=state.colours[i])
                   }
                 }
                 mtext("State Prob.",side=2,line=3, cex = 0.7)
@@ -1915,7 +1847,7 @@ setMethod(f="check.viterbi",signature="hydroState",definition=function(.Object, 
 )
 
 
-# @exportMethod check.PseudoResiduals
+#' @exportMethod check.PseudoResiduals
 setGeneric(name="check.PseudoResiduals",def=function(.Object, nIncrements=20, do.plot=T) {standardGeneric("check.PseudoResiduals")})
 setMethod(f="check.PseudoResiduals",signature="hydroState",definition=function(.Object, nIncrements, do.plot)
 {
@@ -1938,22 +1870,39 @@ setMethod(f="check.PseudoResiduals",signature="hydroState",definition=function(.
     # get number of states
     nStates = getNumStates(.Object@markov.model.object)
 
-    # Built filter for non NAs.
-    filt <- !is.na(data$Qhat.flow)
+    # Built filter for non NAs of Q and P
+    filt <- !is.na(data$Qhat.flow)&!is.na(data$Qhat.precipitation)
 
-    # get emission densities
-    emissionDensity <- getEmissionDensity(.Object@QhatModel.object, data, NA)
-    emissionDensity[!filt,] <- NA
 
-    # Set the range in Qhat values at which to derive the conditional probs.
-    Qhat.increments = seq(floor(min(Qhat[filt])),ceiling(max(Qhat[filt])),length.out=100)
+    # Get the markov likelihood and return. Importantly, the object QhatBar is passed so that
+    # the markov object can get the model estimates of the transformed flow mean, standard deviation etc.
+    # if(NROW(delta)>1){
+
+      # Get the probabiity of the observed Qhat for each state at each time point.
+      # emissionDensity = lapply(1:NROW(delta), function(i) getEmissionDensity(.Object@QhatModel.object, data[delta[i,1]:delta[i,2],], NA))
+
+      # get emission densities
+      emissionDensity <- getEmissionDensity(.Object@QhatModel.object, data, NA)
+      emissionDensity[!filt,] <- NA
+
+      # Set the range in Qhat values at which to derive the conditional probs.
+      Qhat.increments = seq(floor(min(Qhat[filt])),ceiling(max(Qhat[filt])),length.out=100)
+
+
+    # Get the emmision cumulative prob (not density) at each Qhat.increments value at each tiem step
+    # cumProb.increments = array(NA, dim=c(n,nStates, length(Qhat.increments)))
+    # for (j in 1:length(Qhat.increments)) {
+    #   for (i in 1:NROW(delta)){
+    #     cumProb.increments[delta[i,1]:delta[i,2],,j] <- getEmissionDensity(.Object@QhatModel.object, data[delta[i,1]:delta[i,2],], cumProb.threshold.Qhat= rep(Qhat.increments[j], nrow(data[delta[i,1]:delta[i,2],])))
+    #       # getEmissionDensity(.Object@QhatModel.object, data, cumProb.threshold.Qhat= rep(Qhat.increments[j], nrow(data)))
+    #   }
+    # }
 
     # Get the emmision cumulative prob (not density) at each Qhat.increments value at each tiem step
     cumProb.increments = array(NA, dim=c(n,nStates, length(Qhat.increments)))
     for (j in 1:length(Qhat.increments)) {
-        cumProb.increments[,,j] <- getEmissionDensity(.Object@QhatModel.object, data, cumProb.threshold.Qhat= rep(Qhat.increments[j], nrow(data)))
-      }
-
+      cumProb.increments[,,j] <- getEmissionDensity(.Object@QhatModel.object, data, cumProb.threshold.Qhat= rep(Qhat.increments[j], nrow(data)))
+    }
 
     # # Get the emission cumulative probs and sort for each state.
     # emissionCumProbs <- getEmissionDensity(.Object@QhatModel.object, data, getCumProb=T)
@@ -1975,12 +1924,18 @@ setMethod(f="check.PseudoResiduals",signature="hydroState",definition=function(.
     #---------------------------------------------------------------------
     # NOTE, unlilke Zucchini, here the cumulative IS NOT USED. This is because cumProb.increments is
     # already the cumulative prob.
+    delta = getStartEndIndex(data)
 
-    cum.prob <- getConditionalProbabilities(.Object@markov.model.object, data, emissionDensity, cumProb.increments)
+    cum.prob = array(NA, dim=c(length(Qhat.increments),n))
+    for(i in 1:NROW(delta)){
+      cum.prob[,delta[i,1]:delta[i,2]] <- getConditionalProbabilities(.Object@markov.model.object, data[delta[i,1]:delta[i,2],], emissionDensity[delta[i,1]:delta[i,2],], cumProb.increments[delta[i,1]:delta[i,2],,])
+    }
+    # cum.prob <- getConditionalProbabilities(.Object@markov.model.object, data, emissionDensity, cumProb.increments)
     #cumdists <- rbind(rep(0,n), cdists)
     #cumProb.increments <- rbind(rep(0,nStates), cumProb.increments)
 
     P.est <- rep(NA,n)
+    npsr <- rep(NA,n)
     for (i in 1:n)
     {
       if (!filt[i])
@@ -2001,11 +1956,12 @@ setMethod(f="check.PseudoResiduals",signature="hydroState",definition=function(.
       } else{
         P.est[i] <- cum.prob[nrow(cum.prob),i]
       }
+      # print(P.est)
       # Limit to <0.999 to avoid problems withj acf().
       P.est[i] <- min(c(0.999,P.est[i]))
 
     }
-    npsr     <- qnorm(P.est)
+    npsr[filt]<- qnorm(P.est[filt])
     data <- cbind.data.frame(data, unif.pseuou.resid=P.est, norm.pseudo.resid=npsr)
     #
     #---------------------------------------------------------------------

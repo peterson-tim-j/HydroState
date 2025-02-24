@@ -18,6 +18,7 @@ QhatModel.subAnnual.homo.gamma.linear <- setClass(
   # Set the default values for the slots. (optional)
   prototype=list(
     input.data = data.frame(year=c(0),month=c(0),precipitation=c(0)),
+    precip.delta = data.frame(start.index = c(1),end.index = Inf),
     nStates = Inf,
     use.truncated.dist=F,
     subAnnual.Monthly.Steps = c(2, 5, 8, 11),
@@ -43,6 +44,8 @@ setMethod("initialize","QhatModel.subAnnual.homo.gamma.linear", function(.Object
   .Object@input.data <- input.data
   .Object@use.truncated.dist <- F
   .Object@nStates = ncol(transition.graph)
+  .Object@precip.delta = getStartEndIndex(input.data)
+
 
   # Check and set definition of seasons.
   .Object <- setSeasons(.Object, input.data)
@@ -63,15 +66,14 @@ setMethod(f="setSeasons",signature=c("QhatModel.subAnnual.homo.gamma.linear",'da
 {
 
   # Set-up to run for all periods with continuous observations of independent variable (precipitation)
-  delta = getStartEndIndex(input.data)
 
   subAnnual.Monthly.Steps = list()
 
-  for(j in 1:NROW(delta)){
+  for(j in 1:NROW(.Object@precip.delta)){
 
-    data = input.data[delta[j,1]:delta[j,2],]
+    data = input.data[.Object@precip.delta[j,1]:.Object@precip.delta[j,2],]
 
-    if(delta[j,2] - delta[j,1] > 12){
+    if(.Object@precip.delta[j,2] - .Object@precip.delta[j,1] > 12){
       # Get the seasons from the input data.
       subAnnual.Monthly.Steps[[j]] = sort(unique(data$month))
 
@@ -100,7 +102,14 @@ setMethod(f="setSeasons",signature=c("QhatModel.subAnnual.homo.gamma.linear",'da
       # # Check that there is number of days for each one time-step size for each month.
       for (i in 1:length(subAnnual.Monthly.Steps[[j]])) {
 
-        step.sizes = diff(data$month[which(data$month==subAnnual.Monthly.Steps[[j]][i])])
+        if(length(diff(data$month[which(data$month==subAnnual.Monthly.Steps[[j]][i])]))>1){
+
+          step.sizes = diff(data$month[which(data$month==subAnnual.Monthly.Steps[[j]][i])])
+
+        }else{
+          step.sizes = data$month[which(data$month==subAnnual.Monthly.Steps[[j]][i])]
+
+          }
 
         subAnnual.Monthly.StepSize.min[i] = min(step.sizes)
         subAnnual.Monthly.StepSize.max[i] = max(step.sizes)

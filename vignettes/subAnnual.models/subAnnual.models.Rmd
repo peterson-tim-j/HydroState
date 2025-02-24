@@ -69,7 +69,7 @@ For this analysis, an adjusted model is built on a monthly time-step:
 # Build monthly hydroState model with adjusted model, seasonal forcing
 model.monthly.adjusted = buildModel(input.data = streamflow_monthly_221201,
                           seasonal.parameters = list('a0'),
-                          data.transform = 'log')
+                          data.transform = list('log'))
 ```
 
 ## Fit the model
@@ -97,7 +97,7 @@ Set the state names relative to a year in the record using `setInitialYear`. Thi
 
 ```r
 # set the reference year to name the states
-model.monthly.adjusted= setInitialYear(model.monthly.adjusted, 1990)
+model.monthly.adjusted= setInitialYear(model.monthly.adjusted, 1950)
 
 
 # plot all four plots
@@ -110,7 +110,7 @@ To identify the best sub-annual model, a systematic evaluation of the possible m
 
 ```r
 # Build all possible models with the intercept, 'a0', as a seasonal parameter and state dependent parameter
-all.models.monthly = buildModelAll(input.data = streamflow_monthly_221201,
+all.models.monthly = buildModelAll(input.data = streamflow_monthly_415201,
                                         state.shift.parameter = list('a0','std'),
                                         seasonal.parameter = list('a0'))
 
@@ -118,13 +118,13 @@ all.models.monthly = buildModelAll(input.data = streamflow_monthly_221201,
 all.models.ref.table = showModelAll(all.models.monthly)
 
 # Re-build with adjusted reference table
-all.models.monthly = buildModelAll(input.data = streamflow_monthly_221201,
+all.models.monthly = buildModelAll(input.data = streamflow_monthly_415201,
                                         state.shift.parameter = list('a0','std'),
                                         seasonal.parameter = list('a0'),
                                         reference.table = all.models.ref.table)
 
 # Fit all models (uncomment to run)
-<!-- all.models.monthly = fitModel(all.models.monthly, pop.size.perParameter = 10, max.generations = 1000, doParallel = T) -->
+<!-- all.models.monthly = fitModel(all.models.monthly, pop.size.perParameter = 10, max.generations = 10000, doParallel = T) -->
 
 # Identify the best model with the lowest AIC
 get.AIC(all.models.monthly)

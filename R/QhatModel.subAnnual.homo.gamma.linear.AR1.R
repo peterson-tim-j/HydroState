@@ -31,6 +31,8 @@ setMethod("initialize","QhatModel.subAnnual.homo.gamma.linear.AR1", function(.Ob
   .Object@input.data <- input.data
   .Object@use.truncated.dist <- F
   .Object@nStates = ncol(transition.graph)
+  .Object@precip.delta = getStartEndIndex(input.data)
+
 
   # Check and set definition of seasons.
   .Object <- setSeasons(.Object, input.data)
@@ -44,7 +46,7 @@ setMethod("initialize","QhatModel.subAnnual.homo.gamma.linear.AR1", function(.Ob
   .Object
 }
 )
-
+#' @export getMean
 setMethod(f="getMean",signature=c("QhatModel.subAnnual.homo.gamma.linear.AR1","data.frame"),definition=function(.Object, data)
 {
   # Get object parameter list
@@ -61,12 +63,21 @@ setMethod(f="getMean",signature=c("QhatModel.subAnnual.homo.gamma.linear.AR1","d
     stop(paste('The number of parameters for the AR1 term of the mean model must must equal 1 or the number of states of ',.Object@nStates))
   }
 
+  # print('subAR1')
   # Get non-AR estimates.
   Qhat.model <- callNextMethod()
 
-  # Add AR components
-  for (i in 2:nrows) {
-    Qhat.model[i,] <-Qhat.model[i,] + Qhat.model[i-1,] * AR1.est[i,]
+  # Now run AR for each continuous period
+  for(j in 1:NROW(.Object@precip.delta)){ # could make for each in the future
+
+    # Add AR components
+    for (i in ((.Object@precip.delta[j,1]+1):.Object@precip.delta[j,2])) {
+
+      Qhat.model[i,] <- Qhat.model[i,] + Qhat.model[i-1,] * AR1.est[i,]
+
+    }
+
+
   }
 
   return(Qhat.model)

@@ -252,7 +252,7 @@ setMethod(f="getLogLikelihood", signature=c("markov.annualHomogeneous","data.fra
               stop('"data" must be a data.frame with the field "Qhat.flow".')
 
             # Built filter for non NAs.
-            filt <- is.finite(data$Qhat.flow)
+            filt <- is.finite(data$Qhat.flow)&is.finite(data$Qhat.precipitation)
 
             # Handle 1 state model.
             if (nStates==1) {

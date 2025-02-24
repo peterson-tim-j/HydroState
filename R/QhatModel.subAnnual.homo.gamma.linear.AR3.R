@@ -29,6 +29,8 @@ setMethod("initialize","QhatModel.subAnnual.homo.gamma.linear.AR3", function(.Ob
                                                                          state.dependent.mean.AR1=F, state.dependent.mean.AR2=F, state.dependent.mean.AR3=F,
                                                                          subAnnual.dependent.mean.a0=T, subAnnual.dependent.mean.a1=F,subAnnual.dependent.std.a0=F) {
   .Object@input.data <- input.data
+  .Object@precip.delta = getStartEndIndex(input.data)
+
   .Object@use.truncated.dist <- F
   .Object@nStates = ncol(transition.graph)
 
@@ -76,12 +78,22 @@ setMethod(f="getMean",signature=c("QhatModel.subAnnual.homo.gamma.linear.AR3","d
   # Get non-AR estimates.
   Qhat.model <- callNextMethod()
 
-  # Add AR components
-  Qhat.model[2,] <-Qhat.model[2,] + Qhat.model[1,] * AR1.est[2,]
-  Qhat.model[3,] <-Qhat.model[3,] + Qhat.model[2,] * AR1.est[3,] + Qhat.model[1,] * AR2.est[3,]
-  for (i in 4:nrows) {
-    Qhat.model[i,] <-Qhat.model[i,] + Qhat.model[i-1,] * AR1.est[i,] + Qhat.model[i-2,] * AR2.est[i,] + Qhat.model[i-3,] * AR3.est[i,]
+  # delta = getStartEndIndex(data)
+  delta = .Object@precip.delta
+
+  for(j in 1:NROW(delta)){ # could make foreach in the future
+
+    # Add AR components
+    Qhat.model[delta[j,1]+1,] <-Qhat.model[delta[j,1]+1,] + Qhat.model[delta[j,1],] * AR1.est[delta[j,1]+1,]
+    Qhat.model[delta[j,1]+2,] <-Qhat.model[delta[j,1]+2,] + Qhat.model[delta[j,1]+1,] * AR1.est[delta[j,1]+2,] + Qhat.model[delta[j,1],] * AR2.est[delta[j,1]+2,]
+
+    for (i in ((delta[j,1]+3):delta[j,2])) {
+      Qhat.model[i,] <-Qhat.model[i,] + Qhat.model[i-1,] * AR1.est[i,] + Qhat.model[i-2,] * AR2.est[i,] + Qhat.model[i-3,] * AR3.est[i,]
+
+    }
+
   }
+
 
   return(Qhat.model)
 }

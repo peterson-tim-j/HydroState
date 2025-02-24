@@ -6,7 +6,7 @@
 #' Aggregates monthly data to 4 seasons in a year.
 #'
 #' @details
-#' Sets 4 seasons
+#' Aggregates monthly data by taking the sum of runoff and precipitation in 4 seasons: Dec-Feb, Mar-May, Jun-Aug, Sep-Nov. Last month of each season becomes the time-step identifier.
 #'
 #' @param input.data dataframe of monthly runoff and precipitation observations. Gaps with missing data in either streamflow or precipitation are permitted, and the handling of them is further discussed in \code{buildModel}. Monthly data is required when using \code{seasonal.parameters} that assumes selected model parameters are better defined with a sinusoidal function.
 #'
@@ -134,6 +134,9 @@ select.transform <- function(func = 'boxcox', input.data=data.frame(year=c(), fl
 
 }
 
+
+#' @export select.stateModel
+
 select.stateModel <- function(input.data = data.frame(year=c(), flow=c(), precip=c()),
                               parameters = list('a0','a1','std'),
                               seasonal.parameters = list(),
@@ -145,7 +148,10 @@ select.stateModel <- function(input.data = data.frame(year=c(), flow=c(), precip
   if(!is.data.frame(input.data)){
     stop("'input.data' is not a dataframe")
   }
-  if(!('year' %in% colnames(input.data))){
+
+  data <- input.data
+
+  if(!('year' %in% colnames(data))){
     stop("'input.data' must contain a 'year' column with an integer of years")
   }
 
@@ -158,7 +164,7 @@ select.stateModel <- function(input.data = data.frame(year=c(), flow=c(), precip
     stop("'parameters' are not characters")
   }
 
-  if(any(input.data$flow < 0, na.rm=TRUE)){ # assume residual analysis with negative values in 'flow' which are residuals
+  if(any(data$flow < 0, na.rm=TRUE)){ # assume residual analysis with negative values in 'flow' which are residuals
 
     if(!('a0' %in% parameters && 'std.a0' %in% parameters)){
       stop("'parameters' must contain 'a0', 'std.a0' for residual analysis")
@@ -188,7 +194,7 @@ select.stateModel <- function(input.data = data.frame(year=c(), flow=c(), precip
   if('AR1' %in% seasonal.parameters || 'AR2' %in% seasonal.parameters || 'AR3' %in% seasonal.parameters){
     stop("'seasonal.parameters' cannot contain auto-correlation terms")
   }
-  if(!('month' %in% colnames(input.data)) && length(seasonal.parameters) > 0){
+  if(!('month' %in% colnames(data)) && length(seasonal.parameters) > 0){
     stop("Please include monthly data with a 'month' column in the 'input.data' for subannual analysis.
          hydroState defaults to subannual analysis when 'seasonal.parameters' are selected, but 'input.data' does not contain subannual data.
          Columns with data for 'month' requried, else consider annual analysis with no 'seasonal.parameters'")
@@ -230,23 +236,24 @@ select.stateModel <- function(input.data = data.frame(year=c(), flow=c(), precip
   }
 
   # If monthly data, sort in ascending order by year and month
-  if('month' %in% colnames(input.data)){
-    input.data = input.data[order(input.data[,'year'],input.data[,'month']),]
-  }else if('day' %in% colnames(input.data)){
-    input.data = input.data[order(input.data[,'year'],input.data[,'month'],input.data[,'day']),]
+  if('month' %in% colnames(data)){
+    data = data[order(data[,'year'],data[,'month']),]
+  }else if('day' %in% colnames(data)){
+    data = data[order(data[,'year'],data[,'month'],data[,'day']),]
   }
   #############################################################################
   # if input.data contains negative values, create Rhat.model
-  if(any(input.data$flow < 0, na.rm=TRUE)){
+  if(any(data$flow < 0, na.rm=TRUE)){
     error.distribution = 'normal'
     func = paste('RhatModel.homo.',error.distribution,'.linear',sep='')
+    message("Warning: RhatModel built to evaluate residuals because input.data contains negative flow values which are assumed residuals")
 
     if(length(parameters) == 2 && all(parameters %in% c('a0','std.a0'))){
 
       state.array = c(length(which(state.shift.parameters == 'a0')) > 0,
                       length(which(state.shift.parameters == 'std.a0')) > 0)
 
-      return(new(func, use.truncated.dist=T, input.data, transition.graph,
+      return(new(func, use.truncated.dist=T, data, transition.graph,
                  state.dependent.mean.a0 = state.array[1],
                  state.dependent.std.a0 = state.array[2],
                  state.dependent.mean.trend=NA,
@@ -258,7 +265,7 @@ select.stateModel <- function(input.data = data.frame(year=c(), flow=c(), precip
                       length(which(state.shift.parameters == 'std.a0')) > 0,
                       length(which(state.shift.parameters == 'std.a1')) > 0)
 
-    return(new(func,  use.truncated.dist=T, input.data, transition.graph,
+    return(new(func,  use.truncated.dist=T, data, transition.graph,
                state.dependent.mean.a0 = state.array[1],
                state.dependent.std.a0 = state.array[2],
                state.dependent.mean.trend=NA,
@@ -267,6 +274,84 @@ select.stateModel <- function(input.data = data.frame(year=c(), flow=c(), precip
 
   }
  #############################################################################
+  # Warnings if AR terms present...
+  #if auto-correlation give warning if independent observations do not have t-minus AR(i) from observed
+  if('AR1' %in% parameters){
+
+    delta = getStartEndIndex(data)
+
+    if(any(is.finite(data$flow[delta[,1]])) == TRUE){
+
+      output.values1 = delta[which(is.finite(data$flow[delta[,1]])),1]
+
+      data$flow[output.values1] = NA
+
+    }
+      message("AR1 model built, but initial precipitation observations did not preceed initial flow observations by 1 timestep at index: ", paste(shQuote(output.values1), collapse=", "),
+              ". For best performance, 'flow' removed at these indices in the input.data so AR1 model warms-up.")
+
+
+  }else if('AR2' %in% parameters){
+
+    delta = getStartEndIndex(data)
+
+    if(any(is.finite(data$flow[delta[,1]])) == TRUE){
+
+      output.values1 = delta[which(is.finite(data$flow[delta[,1]])),1]
+
+      data$flow[output.values1] = NA
+
+    }
+    if(any(is.finite(data$flow[delta[,1]+1])) == TRUE){
+
+      output.values2 = delta[which(is.finite(data$flow[delta[,1]+1])),1]+1
+
+      data$flow[output.values2] = NA
+
+
+    }
+
+      output.values = sort(cbind(output.values1,output.values2))
+
+      message("AR2 model built, but initial precipitation observations did not preceed initial flow observations by 2 timesteps at index: ", paste(shQuote(output.values), collapse=", "),
+              ". For best performance, 'flow' removed at these indices in the input.data so AR2 model warms-up.")
+
+  }else if('AR3' %in% parameters){
+
+    delta = getStartEndIndex(data)
+
+    if(any(is.finite(data$flow[delta[,1]])) == TRUE){
+
+      output.values1 = delta[which(is.finite(data$flow[delta[,1]])),1]
+
+      data$flow[output.values1] = NA
+
+    }
+    if(any(is.finite(data$flow[delta[,1]+1])) == TRUE){
+
+      output.values2 = delta[which(is.finite(data$flow[delta[,1]+1])),1]+1
+
+      data$flow[output.values2] = NA
+
+    }
+    if(any(is.finite(data$flow[delta[,1]+2])) == TRUE){
+
+
+      output.values3 = delta[which(is.finite(data$flow[delta[,1]+2])),1]+2
+
+      data$flow[output.values3] = NA
+
+    }
+
+    output.values = sort(cbind(output.values1,output.values2,output.values3))
+
+      message("AR3 model built, but initial precipitation observations did not preceed initial flow observations by 3 timesteps at index: ", paste(shQuote(output.values), collapse=", "),
+              ". For best performance, 'flow' removed at these indices in the input.data so AR3 model warms-up.")
+  }
+
+
+
+ ################################################################333
   # Curate state model
   if('AR1' %in% parameters || 'AR2' %in% parameters || 'AR3' %in% parameters){
     auto.array = c(length(which(parameters == 'AR1')) > 0,
@@ -330,7 +415,7 @@ select.stateModel <- function(input.data = data.frame(year=c(), flow=c(), precip
                            length(which(seasonal.parameters == 'a1')) > 0,
                            length(which(seasonal.parameters == 'std')) > 0)
 
-        return(new(func, input.data, transition.graph,
+        return(new(func, data, transition.graph,
                      state.dependent.mean.a0 = state.array[1],
                      state.dependent.mean.a1 = state.array[2],
                      state.dependent.std.a0 = state.array[3],
@@ -343,7 +428,7 @@ select.stateModel <- function(input.data = data.frame(year=c(), flow=c(), precip
 
         if(error.distribution %in% c('truc.normal','normal')){
 
-          return(new(func, input.data, use.truncated.dist, transition.graph,
+          return(new(func, data, use.truncated.dist, transition.graph,
                      state.dependent.mean.a0 = state.array[1],
                      state.dependent.mean.a1 = state.array[2],
                      state.dependent.mean.trend=NA,
@@ -351,7 +436,7 @@ select.stateModel <- function(input.data = data.frame(year=c(), flow=c(), precip
 
         }else{ #gamma does not need use.truncated.dist input
 
-          return(new(func, input.data, transition.graph,
+          return(new(func, data, transition.graph,
                      state.dependent.mean.a0 = state.array[1],
                      state.dependent.mean.a1 = state.array[2],
                      state.dependent.mean.trend=NA,
@@ -376,7 +461,7 @@ select.stateModel <- function(input.data = data.frame(year=c(), flow=c(), precip
                          length(which(seasonal.parameters == 'a1')) > 0,
                          length(which(seasonal.parameters == 'std')) > 0)
 
-        return(new(func, input.data, transition.graph,
+        return(new(func, data, transition.graph,
                    state.dependent.mean.a0 = state.array[1],
                    state.dependent.mean.a1 = state.array[2],
                    state.dependent.mean.AR1 = state.array[3],
@@ -390,7 +475,7 @@ select.stateModel <- function(input.data = data.frame(year=c(), flow=c(), precip
 
       if(error.distribution %in% c('truc.normal','normal')){
 
-        return(new(func, use.truncated.dist, input.data, transition.graph,
+        return(new(func, use.truncated.dist, data, transition.graph,
                    state.dependent.mean.a0 = state.array[1],
                    state.dependent.mean.a1 = state.array[2],
                    state.dependent.mean.trend=NA,
@@ -398,7 +483,7 @@ select.stateModel <- function(input.data = data.frame(year=c(), flow=c(), precip
                    state.dependent.std.a0 = state.array[4]))
       }else{ # gamma
 
-        return(new(func, input.data, transition.graph,
+        return(new(func, data, transition.graph,
                    state.dependent.mean.a0 = state.array[1],
                    state.dependent.mean.a1 = state.array[2],
                    state.dependent.mean.trend=NA,
@@ -424,7 +509,7 @@ select.stateModel <- function(input.data = data.frame(year=c(), flow=c(), precip
                          length(which(seasonal.parameters == 'a1')) > 0,
                          length(which(seasonal.parameters == 'std')) > 0)
 
-      return(new(func, input.data, transition.graph,
+      return(new(func, data, transition.graph,
                  state.dependent.mean.a0 = state.array[1],
                  state.dependent.mean.a1 = state.array[2],
                  state.dependent.mean.AR1 = state.array[3],
@@ -439,7 +524,7 @@ select.stateModel <- function(input.data = data.frame(year=c(), flow=c(), precip
 
       if(error.distribution %in% c('truc.normal','normal')){
 
-        return(new(func, input.data,use.truncated.dist, transition.graph,
+        return(new(func, data,use.truncated.dist, transition.graph,
                    state.dependent.mean.a0 = state.array[1],
                    state.dependent.mean.a1 = state.array[2],
                    state.dependent.mean.trend=NA,
@@ -448,7 +533,7 @@ select.stateModel <- function(input.data = data.frame(year=c(), flow=c(), precip
                    state.dependent.std.a0 = state.array[5]))
       }else{ # gamma
 
-        return(new(func, input.data, transition.graph,
+        return(new(func, data, transition.graph,
                    state.dependent.mean.a0 = state.array[1],
                    state.dependent.mean.a1 = state.array[2],
                    state.dependent.mean.trend=NA,
@@ -477,7 +562,7 @@ select.stateModel <- function(input.data = data.frame(year=c(), flow=c(), precip
                          length(which(seasonal.parameters == 'a1')) > 0,
                          length(which(seasonal.parameters == 'std')) > 0)
 
-      return(new(func, input.data, transition.graph,
+      return(new(func, data, transition.graph,
                  state.dependent.mean.a0 = state.array[1],
                  state.dependent.mean.a1 = state.array[2],
                  state.dependent.mean.AR1 = state.array[3],
@@ -493,7 +578,7 @@ select.stateModel <- function(input.data = data.frame(year=c(), flow=c(), precip
 
       if(error.distribution %in% c('truc.normal','normal')){
 
-        return(new(func, input.data,  use.truncated.dist, transition.graph,
+        return(new(func, data,  use.truncated.dist, transition.graph,
                    state.dependent.mean.a0 = state.array[1],
                    state.dependent.mean.a1 = state.array[2],
                    state.dependent.mean.trend=NA,
@@ -503,7 +588,7 @@ select.stateModel <- function(input.data = data.frame(year=c(), flow=c(), precip
                    state.dependent.std.a0 = state.array[6]))
       }else{ # gamma
 
-        return(new(func, input.data, transition.graph,
+        return(new(func, data, transition.graph,
                    state.dependent.mean.a0 = state.array[1],
                    state.dependent.mean.a1 = state.array[2],
                    state.dependent.mean.trend=NA,
@@ -548,7 +633,7 @@ select.Markov <- function(flickering = FALSE,
 #' @details
 #' There are a selection of items to consider when defining the rainfall-runoff relationship and investigating state shifts in this relationship. hydroState provides various options for modelling the rainfall-runoff relationship.
 #' \itemize{
-#' \item{Data gaps  with \code{input.data}}: When there is missing \code{input.data}, special care was taken to reduce the influence of the missing time periods while making the most of the given data without infilling. For time-periods where the dependent variable, streamflow, is missing, the transition probability for these missing periods is essentially ignored by setting the conditional probability of the missing time-steps equal to one. This results in the time-step after the missing period having the same probability of being in the given state as before the missing period. For time-periods where the independent variable is missing, precipitation, the missing periods are essentially ignored when fitting the models as the likelihood is calculated from only continuous periods with values for the independent variable. Since the log-likelihood is calculated for each continuous period, the sum of the log-likelihoods provides a total log-likelihood to fit models. The computation of the log-likelihood function involves evaluating the forward and backward probabilities so hydroState requires a minimum of 2 time-steps in each continuous period of the independent variable (i.e. 2 years, 2 months, or 2 seasons of precipitation). When the input data contains gaps, maintain the rows with missing information by keeping the time-stamps (i.e. year, month) while "NA" is in the fields of flow or precipitation, whichever is missing.
+#' \item{Data gaps  with \code{input.data}}: When there is missing \code{input.data}, special care was taken to reduce the influence of the missing time periods while making the most of the given data without infilling. For time-periods where either observations (streamflow or precipitation) are missing, the conditional probability of the missing time-steps is set to equal one. This results in the time-step after the missing period have the same probability of being in the given state as before the missing period. When auto-regressive terms are within the model (AR1, AR2, AR3), streamflow is removed from the input.data on the initial time-steps at the beginning of the record and whenever precipitation is missing. The models with auto-regressive terms (AR1, AR2, AR3) perform better when there is a warm-up of precipitation at an AR(X) number of timesteps (i.e. an AR2 model would have 2 timesteps of precipitation before streamflow begins). A message appears notifying the user which data have been removed. The Markov flow state is determined for all continuous periods of streamflow and precipitation. When the input.data contains gaps, maintain the rows with missing information by keeping the time-stamps (i.e. year, month) while "NA" is in the fields of flow or precipitation, whichever is missing.
 #' \item{Transform Observations with \code{data.transform}}: Transforms observations to remove heteroscedasticity. Often there is skew within hydrologic data. When defining relationships between observations, this skew results in an unequal variance in the residuals, heteroscedasticity. Transforming observations is often required with observations of streamflow and precipitation. There are several options to transform observations. Since the degree of transformation is not typically known, 'boxcox' is the default. Other options include: 'log', 'burbidge', and of course, 'none' when no transformation is performed.
 #' \item{Model Structure with \code{parameters} and \code{seasonal.parameters}}: The structure of the model depends on the \code{parameters}. hydroState simulates runoff, \eqn{Q}, as being in one of finite states, \eqn{i}, at every time-step, \eqn{t}, depending on the distribution of states at prior time steps. This results in a runoff distribution for each state that can vary overtime (\eqn{\widehat{_tQ_i}}). The model defines the relationship that is susceptible to state shifts with precipitation, \eqn{P_t}, as a predictor. This takes the form as a simple linear model \eqn{\widehat{_tQ_i} = f(P_t)}:
 #'
@@ -649,12 +734,6 @@ buildModel <- function(input.data = data.frame(year=c(), flow=c(), precip=c()),
   if(is.null(flickering))
     flickering = FALSE
 
-  # default data.transform if NULL
-  if(missing(data.transform)){
-    data.transform = select.transform(func = 'boxcox', input.data)
-  }else{
-    data.transform = select.transform(unlist(data.transform), input.data)
-  }
 
   # default state model error.distribution if NULL
   if(missing(error.distribution) && length(seasonal.parameters) < 1){
@@ -674,11 +753,18 @@ buildModel <- function(input.data = data.frame(year=c(), flow=c(), precip=c()),
                                    error.distribution = unlist(error.distribution),
                                    transition.graph = transition.graph)
 
+    # default data.transform if NULL
+    if(missing(data.transform)){
+      data.transform = select.transform(func = 'boxcox', stateModel@input.data)
+    }else{
+      data.transform = select.transform(unlist(data.transform), stateModel@input.data)
+    }
+
     # create Markov model
     Markov = select.Markov(flickering, transition.graph)
 
     # build default model
-    return(new('hydroState',input.data, data.transform, stateModel, Markov))
+    return(new('hydroState',stateModel@input.data, data.transform, stateModel, Markov))
 
   }else if(!is.null(parameters) && is.null(seasonal.parameters) && is.null(state.shift.parameters)){
 
@@ -690,11 +776,18 @@ buildModel <- function(input.data = data.frame(year=c(), flow=c(), precip=c()),
                                    error.distribution = unlist(error.distribution),
                                    transition.graph = transition.graph)
 
+    # default data.transform if NULL
+    if(missing(data.transform)){
+      data.transform = select.transform(func = 'boxcox', stateModel@input.data)
+    }else{
+      data.transform = select.transform(unlist(data.transform), stateModel@input.data)
+    }
+
     # create Markov model
     Markov = select.Markov(flickering, transition.graph)
 
     # build default model
-    return(new('hydroState',input.data, data.transform, stateModel, Markov))
+    return(new('hydroState',stateModel@input.data, data.transform, stateModel, Markov))
 
   }else if(!is.null(parameters) && !is.null(seasonal.parameters) && is.null(state.shift.parameters)){
 
@@ -707,11 +800,18 @@ buildModel <- function(input.data = data.frame(year=c(), flow=c(), precip=c()),
                                    error.distribution = unlist(error.distribution),
                                    transition.graph = transition.graph)
 
+    # default data.transform if NULL
+    if(missing(data.transform)){
+      data.transform = select.transform(func = 'boxcox', stateModel@input.data)
+    }else{
+      data.transform = select.transform(unlist(data.transform), stateModel@input.data)
+    }
+
     # create Markov model
     Markov = select.Markov(flickering, transition.graph)
 
     # build default model
-    return(new('hydroState',input.data, data.transform, stateModel, Markov))
+    return(new('hydroState',stateModel@input.data, data.transform, stateModel, Markov))
 
   }else if(!is.null(parameters) && !is.null(seasonal.parameters) && !is.null(state.shift.parameters)){
 
@@ -723,11 +823,18 @@ buildModel <- function(input.data = data.frame(year=c(), flow=c(), precip=c()),
                                    error.distribution = unlist(error.distribution),
                                    transition.graph = transition.graph)
 
+    # default data.transform if NULL
+    if(missing(data.transform)){
+      data.transform = select.transform(func = 'boxcox', stateModel@input.data)
+    }else{
+      data.transform = select.transform(unlist(data.transform), stateModel@input.data)
+    }
+
     # create Markov model
     Markov = select.Markov(flickering, transition.graph)
 
     # build default model
-    return(new('hydroState',input.data, data.transform, stateModel, Markov))
+    return(new('hydroState',stateModel@input.data, data.transform, stateModel, Markov))
 
   }else if(is.null(parameters) && is.null(seasonal.parameters) && !is.null(state.shift.parameters)){
 
@@ -739,11 +846,18 @@ buildModel <- function(input.data = data.frame(year=c(), flow=c(), precip=c()),
                                    error.distribution = unlist(error.distribution),
                                    transition.graph = transition.graph)
 
+    # default data.transform if NULL
+    if(missing(data.transform)){
+      data.transform = select.transform(func = 'boxcox', stateModel@input.data)
+    }else{
+      data.transform = select.transform(unlist(data.transform), stateModel@input.data)
+    }
+
     # create Markov model
     Markov = select.Markov(flickering, transition.graph)
 
     # build default model
-    return(new('hydroState',input.data, data.transform, stateModel, Markov))
+    return(new('hydroState',stateModel@input.data, data.transform, stateModel, Markov))
 
   }else if(is.null(parameters) && !is.null(seasonal.parameters) && !is.null(state.shift.parameters)){
 
@@ -755,11 +869,18 @@ buildModel <- function(input.data = data.frame(year=c(), flow=c(), precip=c()),
                                    error.distribution = unlist(error.distribution),
                                    transition.graph = transition.graph)
 
+    # default data.transform if NULL
+    if(missing(data.transform)){
+      data.transform = select.transform(func = 'boxcox', stateModel@input.data)
+    }else{
+      data.transform = select.transform(unlist(data.transform), stateModel@input.data)
+    }
+
     # create Markov model
     Markov = select.Markov(flickering, transition.graph)
 
     # build default model
-    return(new('hydroState',input.data, data.transform, stateModel, Markov))
+    return(new('hydroState',stateModel@input.data, data.transform, stateModel, Markov))
 
   }else if(!is.null(parameters) && is.null(seasonal.parameters) && !is.null(state.shift.parameters)){
 
@@ -771,11 +892,18 @@ buildModel <- function(input.data = data.frame(year=c(), flow=c(), precip=c()),
                                    error.distribution = unlist(error.distribution),
                                    transition.graph = transition.graph)
 
+    # default data.transform if NULL
+    if(missing(data.transform)){
+      data.transform = select.transform(func = 'boxcox', stateModel@input.data)
+    }else{
+      data.transform = select.transform(unlist(data.transform), stateModel@input.data)
+    }
+
     # create Markov model
     Markov = select.Markov(flickering, transition.graph)
 
     # build default model
-    return(new('hydroState',input.data, data.transform, stateModel, Markov))
+    return(new('hydroState',stateModel@input.data, data.transform, stateModel, Markov))
 
   }else if(is.null(parameters) && !is.null(seasonal.parameters) && is.null(state.shift.parameters)){
 
@@ -787,11 +915,18 @@ buildModel <- function(input.data = data.frame(year=c(), flow=c(), precip=c()),
                                    error.distribution = unlist(error.distribution),
                                    transition.graph = transition.graph)
 
+    # default data.transform if NULL
+    if(missing(data.transform)){
+      data.transform = select.transform(func = 'boxcox', stateModel@input.data)
+    }else{
+      data.transform = select.transform(unlist(data.transform), stateModel@input.data)
+    }
+
     # create Markov model
     Markov = select.Markov(flickering, transition.graph)
 
     # build default model
-    return(new('hydroState',input.data, data.transform, stateModel, Markov))
+    return(new('hydroState',stateModel@input.data, data.transform, stateModel, Markov))
 
   }
 }
@@ -957,7 +1092,6 @@ buildModelAll <-function(input.data = data.frame(year=c(), flow=c(), precip=c())
 
       build.all.model.count = 1
 
-      # seasonal first... if seasonal parameters
       for(i in 1:length(parameters)){
 
         temp.parameters = parameters[[i]]
@@ -1454,6 +1588,10 @@ plot.residuals <- function(model,
 
 get.residuals <- function(model){
 
+  if(!(class(model)[1] %in% c("hydroState","hydroState.allModels", "hydroState.subAnnual.allModels")))
+    stop('model is not an appropriate class. Please ensure input model is a built hydroState model with the class as either of the following: "hydroState", "hydroState.allModels", or "hydroState.subAnnual.allModels"')
+
+
     return(check.PseudoResiduals(model, do.plot = F))
 
 }
@@ -1495,8 +1633,27 @@ get.residuals <- function(model){
 
 setInitialYear <- function(model, initial.year){ #make go to first year of dataframe
 
-  #set state names
-  return(setStateNames(model, initial.year))
+  if(!(class(model)[1] %in% c("hydroState","hydroState.allModels", "hydroState.subAnnual.allModels")))
+    stop('model is not an appropriate class. Please ensure input model is a built hydroState model with the class as either of the following: "hydroState", "hydroState.allModels", or "hydroState.subAnnual.allModels"')
+
+  # initial.year must have flow and precipitation observations
+  # model@input.data$year
+  if(initial.year %in% model@input.data$year[which(!is.na(model@input.data$flow) & !is.na(model@input.data$precipitation))]){
+    #set state names
+    if('month' %in% colnames(model@input.data)){
+      if(all(is.finite(model@input.data$month[which(model@input.data$year == initial.year)]))){
+
+        return(setStateNames(model, initial.year))
+
+      }
+    }
+    return(setStateNames(model, initial.year))
+  }else{
+    stop('initial.year must contain flow and precipitation observations')
+  }
+
+
+
 
 
 }

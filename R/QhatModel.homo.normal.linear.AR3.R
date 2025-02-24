@@ -28,6 +28,7 @@ setMethod("initialize","QhatModel.homo.normal.linear.AR3", function(.Object, inp
                                                                     state.dependent.mean.AR1=F, state.dependent.mean.AR2=F,state.dependent.mean.AR3=F,
                                                                     state.dependent.std.a0=T) {
   .Object@input.data <- input.data
+  .Object@precip.delta =getStartEndIndex(input.data)
   .Object@use.truncated.dist = use.truncated.dist
   .Object@nStates = ncol(transition.graph)
 
@@ -85,7 +86,15 @@ setMethod(f="is.stationary",signature=c("QhatModel.homo.normal.linear.AR3"),defi
 
 # Calculate the transformed flow at the mean annual precip
 setMethod(f="getMean",signature=c("QhatModel.homo.normal.linear.AR3","data.frame"),definition=function(.Object, data) {
-  return(getMean.AR3(.Object, data))
+
+
+
+      Qhat.model.NAs = matrix(NA,NROW(data),.Object@nStates)
+
+      for(i in 1:NROW(.Object@precip.delta)){
+        Qhat.model.NAs[.Object@precip.delta[i,1]:.Object@precip.delta[i,2],] = getMean.AR3(.Object, data[.Object@precip.delta[i,1]:.Object@precip.delta[i,2],])
+      }
+      return(Qhat.model.NAs)
 }
 )
 
