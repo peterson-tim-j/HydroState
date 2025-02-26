@@ -94,7 +94,7 @@ setMethod(f="getDistributionPercentiles",
 )
 
 # Get transition matrix with no input data.
-#' @exportMethod getEmissionDensity
+# @exportMethod getEmissionDensity
 setMethod(f="getEmissionDensity",
           signature=c("QhatModel.homo.gamma.linear","data.frame"),
           definition=function(.Object, data, cumProb.threshold.Qhat)
@@ -110,6 +110,8 @@ setMethod(f="getEmissionDensity",
             # Get the Burr mean, dispersion and familty parameters.
             markov.mean = getMean(.Object, data)
             markov.variance = getVariance(.Object, data)
+
+            # If mean equal INF return, P = 0
 
             # Limit mean to >0
             filt = is.finite(markov.mean) & markov.mean <= sqrt(.Machine$double.eps)*1000
@@ -147,10 +149,11 @@ setMethod(f="getEmissionDensity",
                 }
               }
             } else {
-                for (i in 1:.Object@nStates) {
+                for (i in 1:.Object@nStates){#tryCatch({
 
                   # tt <- tryCatch(x(5),error=function(e) e, warning=function(w) w)
-                  P[,i] <- dgamma(data$Qhat.flow, shape=markov.shape[,i], scale=markov.scale[,i])
+                  # print(paste("start ",(dgamma(data$Qhat.flow, shape=markov.shape[,i], scale=markov.scale[,i]))[,1:5],sep=""))
+                  P[,i] <- suppressWarnings(dgamma(data$Qhat.flow, shape=markov.shape[,i], scale=markov.scale[,i]))#},warning = function(s){message('AR parameters not stationary')})
                 }
             }
 

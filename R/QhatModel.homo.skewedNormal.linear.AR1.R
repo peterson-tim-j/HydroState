@@ -26,6 +26,7 @@ setValidity("QhatModel.homo.skewedNormal.linear.AR1", validObject)
 setMethod("initialize","QhatModel.homo.skewedNormal.linear.AR1", function(.Object,input.data, transition.graph=matrix(T,2,2),state.dependent.mean.a0=T, state.dependent.mean.a1=F,
                                                                           state.dependent.mean.AR1=F, state.dependent.std.a0=T, state.dependent.shape.a0=T) {
   .Object@input.data <- input.data
+  .Object@precip.delta = getStartEndIndex(input.data)
   .Object@use.truncated.dist <- F
   .Object@nStates = ncol(transition.graph)
 

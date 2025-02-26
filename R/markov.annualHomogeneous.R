@@ -236,7 +236,7 @@ setMethod(f="getTransitionProbabilities",
 )
 
 # Get the log likelihood for the input data.
-#' @exportMethod getLogLikelihood
+# @exportMethod getLogLikelihood
 setMethod(f="getLogLikelihood", signature=c("markov.annualHomogeneous","data.frame","matrix"),
           definition=function(.Object, data, emission.probs)
           {

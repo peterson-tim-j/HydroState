@@ -95,6 +95,7 @@ setMethod(f="getMean",signature=c("QhatModel.homo.normal.linear.AR2","data.frame
 )
 
 # Calculate the transformed flow at the mean annual precip
+# @exportMethod getMean.AR2
 setGeneric(name="getMean.AR2",def=function(.Object, data) {standardGeneric("getMean.AR2")})
 setMethod(f="getMean.AR2",signature=c("QhatModel.homo.normal.linear.AR2","data.frame"),definition=function(.Object, data)
           {
@@ -157,7 +158,7 @@ setMethod(f="getMean.AR2",signature=c("QhatModel.homo.normal.linear.AR2","data.f
 
             # Calculate the mean with the AR1 componants
             a0.est <- 100 * a0.est
-            Qhat.model <- matrix(0, nrows, .Object@nStates)
+            Qhat.model <- matrix(NA, nrows, .Object@nStates)
             Qhat.model[1,] <- precip.data[1,] * a1.est[1,] + a0.est[1,] + time.vals[1,] * trend.est[1,]
             Qhat.model[2,] <- precip.data[2,] * a1.est[2,] + a0.est[2,] + Qhat.model[1,] * AR1.est[2,] + time.vals[2,] * trend.est[2,]
             for (i in 3:nrows) {

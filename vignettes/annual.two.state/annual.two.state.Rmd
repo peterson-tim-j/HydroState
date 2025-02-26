@@ -38,12 +38,12 @@ data(streamflow_annual_221201)
 # check input data
 head(streamflow_annual_221201)
 #>  year      flow precipitation
-#>1 1923 125.09053      961.6729
-#>2 1924  63.94195      795.7554
-#>3 1925 184.41702     1045.1675
-#>4 1926  71.62613      749.1795
-#>5 1927 130.10813      981.1049
-#>6 1928 269.01408      969.8059
+#> 1 1923 125.09053      961.6729
+#> 2 1924  63.94195      795.7554
+#> 3 1925 184.41702     1045.1675
+#> 4 1926  71.62613      749.1795
+#> 5 1927 130.10813      981.1049
+#> 6 1928 269.01408      969.8059
 ```
 
 ## Build a 2-state annual hydroState model
@@ -54,7 +54,7 @@ default.model.annual = buildModel(input.data = streamflow_annual_221201)
 ```
 
 ## Fit the model
-Fit the parameters of the built model with `fitModel` that calibrates the model through maximum likelihood estimation. The likelihood is estimated recursively across each time-step, for each continuous period of observations, and the sum of the negative log-likelihoods from each period is minimized too calibrate the model parameters. For more details on the likelihood function, refer to `fitModel` documentation. The calibration procedure optimizes the model parameters using the [DEoptim](https://github.com/ArdiaD/DEoptim) R-package. When `fitModel` is initiated, the output prints the initial negative log-likelihood value from the initial parameters, and the calibration settings. Every 25 iterations, the best set of parameter values, _bestmemit_, and lowest negative log-likelihood, _bestvalit_, are printed to the console. It will take a few seconds to completely calibrate the model. When calibration reaches the maximum number of generations, increase `max.generations`.
+Fit the parameters of the built model with `fitModel`. This calibrates the model parameters through maximum likelihood estimation by minimizing the negative log-likelihood. For more details on the likelihood function, refer to `fitModel` documentation. The calibration procedure optimizes the model parameters using the [DEoptim](https://github.com/ArdiaD/DEoptim) R-package. When `fitModel` is initiated, the output prints the initial negative log-likelihood value from the initial parameters, and the calibration settings. Every 25 iterations, the best set of parameter values, _bestmemit_, and lowest negative log-likelihood, _bestvalit_, are printed to the console. It will take a few seconds to completely calibrate the model. When calibration reaches the maximum number of generations, it is recommended to increase `max.generations`.
 
 ```r
 default.model.annual = fitModel(default.model.annual, pop.size.perParameter = 10, max.generations = 500)
@@ -104,14 +104,14 @@ model.residuals = get.residuals(default.model.annual)
 
 
 ## Evaluate the state-shifts
-Set the state names relative to a year in the record using `setInitialYear`. This provides a name for the states so they are easier to interpret in the following figures. Then plot the state-shifts overtime using `plot.states`. In this example, 1990 is chosen as the year of reference, but any year can be selected as the reference year. All four plots within the function are shown here, but either plot or combination of plots can be selected. Alternatively, the states can be reviewed without plotting using `get.states` which returns a data frame of states at each time-step.
+Set the state names relative to a year in the record using `setInitialYear`. This provides a name for the states so they are easier to interpret in the following figures. Then plot the state-shifts overtime using `plot.states`. In this example, 1990 is chosen as the year of reference, but any year can be selected as the reference year. All four plots within the function are shown here, but either plot or combination of plots can be selected, see `plot.states` in the [hydroState user manual](https://github.com/peterson-tim-j/HydroState/hydroState.pdf). Alternatively, the states can be reviewed without plotting using `get.states` which returns a data frame of states at each time-step.
 
 ```r
 # set the reference year to name the states
 default.model.annual = setInitialYear(default.model.annual, 1990)
 
 # plot all four plots
-plot.states(default.model.annual)
+plot.states(default.model.annual) 
 
 ```
 <center>

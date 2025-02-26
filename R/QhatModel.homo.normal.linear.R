@@ -66,7 +66,7 @@ setMethod("initialize","QhatModel.homo.normal.linear", function(.Object, input.d
 #get Delta
 # Get start and end indices for independent variable
 
-#' @exportMethod getStartEndIndex
+# @exportMethod getStartEndIndex
 setGeneric(name = "getStartEndIndex", def = function(input.data) {standardGeneric("getStartEndIndex")})
 setMethod(f = "getStartEndIndex", signature = c("data.frame"), function(input.data){
 
@@ -140,7 +140,7 @@ setMethod("get.SeaonalityPeriod","QhatModel.homo.normal.linear", function(.Objec
 )
 
 # Get transition matrix with no input data.
-#' @exportMethod getEmissionDensity
+# @exportMethod getEmissionDensity
 setMethod(f="getEmissionDensity",
           signature=c("QhatModel.homo.normal.linear","data.frame"),
           definition=function(.Object, data, cumProb.threshold.Qhat)

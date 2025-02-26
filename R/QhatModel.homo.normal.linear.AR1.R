@@ -141,7 +141,7 @@ setMethod(f="getMean.AR1",signature=c("QhatModel.homo.normal.linear.AR1","data.f
 
             # Calculate the mean with the AR1 componants
             a0.est <- 100 * a0.est
-            Qhat.model <- matrix(0, nrows, .Object@nStates)
+            Qhat.model <- matrix(NA, nrows, .Object@nStates)
             Qhat.model[1,] <- precip.data[1,] * a1.est[1,] + a0.est[1,] + time.vals[1,] * trend.est[1,]
             for (i in 2:nrows) {
               Qhat.model[i,] <- precip.data[i,] * a1.est[i,] + a0.est[i,] + Qhat.model[i-1,] * AR1.est[i,] + time.vals[i,] * trend.est[i,]

@@ -28,6 +28,7 @@ setMethod("initialize","QhatModel.homo.skewedNormal.linear.AR2", function(.Objec
                                                                           state.dependent.std.a0=T, state.dependent.shape.a0=T) {
 
   .Object@input.data <- input.data
+  .Object@precip.delta = getStartEndIndex(input.data)
   .Object@use.truncated.dist <- F
   .Object@nStates = ncol(transition.graph)
 

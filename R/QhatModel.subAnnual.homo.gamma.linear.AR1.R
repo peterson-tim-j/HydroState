@@ -46,7 +46,7 @@ setMethod("initialize","QhatModel.subAnnual.homo.gamma.linear.AR1", function(.Ob
   .Object
 }
 )
-#' @export getMean
+# @export getMean
 setMethod(f="getMean",signature=c("QhatModel.subAnnual.homo.gamma.linear.AR1","data.frame"),definition=function(.Object, data)
 {
   # Get object parameter list

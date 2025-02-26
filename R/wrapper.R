@@ -135,7 +135,11 @@ select.transform <- function(func = 'boxcox', input.data=data.frame(year=c(), fl
 }
 
 
-#' @export select.stateModel
+# @export select.stateModel
+
+
+#' @importFrom checkmate wl
+#' @importFrom checkmate wf
 
 select.stateModel <- function(input.data = data.frame(year=c(), flow=c(), precip=c()),
                               parameters = list('a0','a1','std'),
@@ -284,11 +288,11 @@ select.stateModel <- function(input.data = data.frame(year=c(), flow=c(), precip
 
       output.values1 = delta[which(is.finite(data$flow[delta[,1]])),1]
 
-      data$flow[output.values1] = NA
+      # data$flow[output.values1] = NA
 
     }
       message("AR1 model built, but initial precipitation observations did not preceed initial flow observations by 1 timestep at index: ", paste(shQuote(output.values1), collapse=", "),
-              ". For best performance, 'flow' removed at these indices in the input.data so AR1 model warms-up.")
+              ". For best performance, precipitation should preceed flow in the input.data so AR1 model warms-up.")
 
 
   }else if('AR2' %in% parameters){
@@ -299,14 +303,14 @@ select.stateModel <- function(input.data = data.frame(year=c(), flow=c(), precip
 
       output.values1 = delta[which(is.finite(data$flow[delta[,1]])),1]
 
-      data$flow[output.values1] = NA
+      # data$flow[output.values1] = NA
 
     }
     if(any(is.finite(data$flow[delta[,1]+1])) == TRUE){
 
       output.values2 = delta[which(is.finite(data$flow[delta[,1]+1])),1]+1
 
-      data$flow[output.values2] = NA
+      # data$flow[output.values2] = NA
 
 
     }
@@ -314,7 +318,7 @@ select.stateModel <- function(input.data = data.frame(year=c(), flow=c(), precip
       output.values = sort(cbind(output.values1,output.values2))
 
       message("AR2 model built, but initial precipitation observations did not preceed initial flow observations by 2 timesteps at index: ", paste(shQuote(output.values), collapse=", "),
-              ". For best performance, 'flow' removed at these indices in the input.data so AR2 model warms-up.")
+              ". For best performance, precipitation should preceed flow in the input.data so AR2 model warms-up.")
 
   }else if('AR3' %in% parameters){
 
@@ -324,14 +328,14 @@ select.stateModel <- function(input.data = data.frame(year=c(), flow=c(), precip
 
       output.values1 = delta[which(is.finite(data$flow[delta[,1]])),1]
 
-      data$flow[output.values1] = NA
+      # data$flow[output.values1] = NA
 
     }
     if(any(is.finite(data$flow[delta[,1]+1])) == TRUE){
 
       output.values2 = delta[which(is.finite(data$flow[delta[,1]+1])),1]+1
 
-      data$flow[output.values2] = NA
+      # data$flow[output.values2] = NA
 
     }
     if(any(is.finite(data$flow[delta[,1]+2])) == TRUE){
@@ -339,14 +343,14 @@ select.stateModel <- function(input.data = data.frame(year=c(), flow=c(), precip
 
       output.values3 = delta[which(is.finite(data$flow[delta[,1]+2])),1]+2
 
-      data$flow[output.values3] = NA
+      # data$flow[output.values3] = NA
 
     }
 
     output.values = sort(cbind(output.values1,output.values2,output.values3))
 
       message("AR3 model built, but initial precipitation observations did not preceed initial flow observations by 3 timesteps at index: ", paste(shQuote(output.values), collapse=", "),
-              ". For best performance, 'flow' removed at these indices in the input.data so AR3 model warms-up.")
+              ". For best performance, precipitation should preceed flow in the input.data so AR3 model warms-up.")
   }
 
 
@@ -1467,7 +1471,7 @@ get.AIC <- function(model){
 
 
   # Validate
-  if(length(model) >1){
+  if(class(model)[1] %in% c("hydroState.allModels", "hydroState.subAnnual.allModels")){
 
       return(getAIC.bestModel(model)$AIC)
 

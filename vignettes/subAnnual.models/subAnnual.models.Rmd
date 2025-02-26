@@ -68,6 +68,7 @@ For this analysis, an adjusted model is built on a monthly time-step:
 ```r
 # Build monthly hydroState model with adjusted model, seasonal forcing
 model.monthly.adjusted = buildModel(input.data = streamflow_monthly_221201,
+                          parameters = list('a0','a1','std','AR1'),
                           seasonal.parameters = list('a0'),
                           data.transform = list('log'))
 ```

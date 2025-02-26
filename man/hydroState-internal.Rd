@@ -70,6 +70,8 @@
 \alias{model.annual.fitted.221201}
 \alias{model.monthly.adjusted.fitted}
 \alias{all.models.monthly.fitted.221201}
+\alias{streamflow_annual_415201}
+\alias{streamflow_monthly_415201}
 \alias{get.summary.table}
 \alias{viterbi}
 \alias{select.stateModel}

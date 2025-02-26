@@ -52,7 +52,7 @@ setMethod(f="initialize",signature="hydroState.allModels",definition=function(.O
 
 
 # get summary of all models.
-#' @exportMethod get.summary.table
+# @exportMethod get.summary.table
 setGeneric(name="get.summary.table",def=function(.Object, models.summary = data.frame()){standardGeneric("get.summary.table")})
 setMethod(f="get.summary.table",signature="hydroState.allModels",definition=function(.Object, models.summary)
 {
@@ -451,8 +451,9 @@ setMethod(f = "fit",signature="hydroState.allModels",definition=function(.Object
 
       if (doParallel==T) {
         model <- .Object@models[[i]]
-        assign("model", model, envir=globalenv())
-                 #new.env(parent = baseenv()))
+
+        assign("model", model, envir=new.env())
+                 #myEnv  (parent = baseenv()))
 
         # error occurs after calling this...
         model <- fit(model, DEstrategy=DEstrategy, pop.size.perParameter=pop.size.perParameter, max.generations=max.generations, Domains=Domains, reltol=reltol, steptol=steptol, print.iterations=print.iterations,
@@ -586,8 +587,11 @@ setMethod(f="getAIC.bestModel",signature="hydroState.allModels",definition=funct
     for (i in 1:nModels) {
       current.model.name <- model.names[i]
       filt[i] <- F
-      if (.Object@calib.reference.criteria.met[[current.model.name]])
+      if (!(current.model.name %in% .Object@calib.reference.criteria.met)){
         filt[i] <- T
+      }else if(.Object@calib.reference.criteria.met[[current.model.name]]){
+        filt[i] <- T
+      }
     }
   }
   AIC <- AIC[filt,]

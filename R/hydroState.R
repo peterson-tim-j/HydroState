@@ -339,7 +339,7 @@ setMethod(f="getNegLogLikelihood",signature=c(.Object="hydroState",parameters="l
             return(getNegLogLikelihood(.Object))
           }
           )
-#'@exportMethod getNegLogLikelihood
+# @exportMethod getNegLogLikelihood
 #setGeneric(name="getNegLogLikelihood",def=function(.Object) {standardGeneric("getNegLogLikelihood")})
 setMethod(f="getNegLogLikelihood",signature=c(.Object="hydroState",parameters='missing'),definition=function(.Object)
           {
@@ -536,7 +536,7 @@ setMethod(f = "fit",signature="hydroState",definition=function(.Object,
 )
 
 
-#' @exportMethod setStateNames
+# @exportMethod setStateNames
 setGeneric(name="setStateNames",def=function(.Object, year.normalFlow) {standardGeneric("setStateNames")})
 setMethod(f="setStateNames",signature=c("hydroState","numeric"),definition=function(.Object, year.normalFlow)
 {
@@ -764,7 +764,7 @@ setMethod(f="viterbi",signature=c("hydroState","data.frame","logical","numeric",
           definition=function(.Object, data, do.plot=T, plot.percentiles = c(0.05, 0.5, 0.95), plot.yearRange=numeric(),plot.options)
   {
 
-            print("viterbi OG")
+            # print("viterbi OG")
   if (!validObject(.Object))
     stop('The model parameters produced an INVALID MODEL.')
 
@@ -988,13 +988,13 @@ setMethod(f="viterbi",signature=c("hydroState","data.frame","logical","numeric",
       results <- matrix(NA,length(filt), 3)
       results[,1] <- obsDates
       results[filt,2] <-viterbiPath[filt]
-      results[,3] <-data$flow[filt]
+      results[,3] <-data$flow
       colnames(results) <- c('Year','Viterbi State Number', 'Obs. flow')
     } else {
       results <- matrix(NA,length(filt), 4)
       results[,1:2] <- obsDates
       results[filt,3] <-viterbiPath[filt]
-      results[,4] <-data$flow[filt]
+      results[,4] <-data$flow
       colnames(results) <- c('Year','Month','Viterbi State Number', 'Obs. flow')
     }
   }
@@ -1450,13 +1450,13 @@ setMethod(f="viterbi",signature=c("hydroState","data.frame","logical","numeric",
                 results <- matrix(NA,length(filt), 3)
                 results[,1] <- obsDates
                 results[filt,2] <-viterbiPath[filt]
-                results[,3] <-data$flow[filt]
+                results[,3] <-data$flow
                 colnames(results) <- c('Year','Viterbi State Number', 'Obs. flow')
               } else {
                 results <- matrix(NA,length(filt), 4)
                 results[,1:2] <- obsDates
                 results[filt,3] <-viterbiPath[filt]
-                results[,4] <-data$flow[filt]
+                results[,4] <-data$flow
                 colnames(results) <- c('Year','Month','Viterbi State Number', 'Obs. flow')
               }
             }
@@ -1833,7 +1833,7 @@ setMethod(f="check.viterbi",signature="hydroState",definition=function(.Object, 
 
   Pr.df = data.frame(Pr)
   state.names = .Object@state.labels
-  if (length(.Object@state.labels)==0 || nchar(state.names)==0) {
+  if (length(.Object@state.labels)==0 || any(nchar(state.names)==0)) {
     names(Pr.df) = paste("Inferred State",1:nStates)
     row.names(Pr.df) = paste("Known State",1:nStates)
   } else {
@@ -1847,7 +1847,7 @@ setMethod(f="check.viterbi",signature="hydroState",definition=function(.Object, 
 )
 
 
-#' @exportMethod check.PseudoResiduals
+# @exportMethod check.PseudoResiduals
 setGeneric(name="check.PseudoResiduals",def=function(.Object, nIncrements=20, do.plot=T) {standardGeneric("check.PseudoResiduals")})
 setMethod(f="check.PseudoResiduals",signature="hydroState",definition=function(.Object, nIncrements, do.plot)
 {
