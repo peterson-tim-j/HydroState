@@ -26,10 +26,10 @@ Aggregates monthly data by taking the sum of runoff and precipitation in 4 seaso
 \examples{
 
 # Load data
-data(streamflow_monthly_221201)
+data(streamflow_monthly_415201)
 
 # aggregate monthly data to seasonal
-streamflow_seasonal_221201 = set.seasons(streamflow_monthly_221201)
+streamflow_seasonal_415201 = set.seasons(streamflow_monthly_415201)
 
 
 }

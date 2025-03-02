@@ -21,10 +21,10 @@
 #' @examples
 #'
 #' # Load data
-#' data(streamflow_monthly_221201)
+#' data(streamflow_monthly_415201)
 #'
 #' # aggregate monthly data to seasonal
-#' streamflow_seasonal_221201 = set.seasons(streamflow_monthly_221201)
+#' streamflow_seasonal_415201 = set.seasons(streamflow_monthly_415201)
 #'
 #'
 
@@ -637,8 +637,8 @@ select.Markov <- function(flickering = FALSE,
 #' @details
 #' There are a selection of items to consider when defining the rainfall-runoff relationship and investigating state shifts in this relationship. hydroState provides various options for modelling the rainfall-runoff relationship.
 #' \itemize{
-#' \item{Data gaps  with \code{input.data}}: When there is missing \code{input.data}, special care was taken to reduce the influence of the missing time periods while making the most of the given data without infilling. For time-periods where either observations (streamflow or precipitation) are missing, the conditional probability of the missing time-steps is set to equal one. This results in the time-step after the missing period have the same probability of being in the given state as before the missing period. When auto-regressive terms are within the model (AR1, AR2, AR3), streamflow is removed from the input.data on the initial time-steps at the beginning of the record and whenever precipitation is missing. The models with auto-regressive terms (AR1, AR2, AR3) perform better when there is a warm-up of precipitation at an AR(X) number of timesteps (i.e. an AR2 model would have 2 timesteps of precipitation before streamflow begins). A message appears notifying the user which data have been removed. The Markov flow state is determined for all continuous periods of streamflow and precipitation. When the input.data contains gaps, maintain the rows with missing information by keeping the time-stamps (i.e. year, month) while "NA" is in the fields of flow or precipitation, whichever is missing.
-#' \item{Transform Observations with \code{data.transform}}: Transforms observations to remove heteroscedasticity. Often there is skew within hydrologic data. When defining relationships between observations, this skew results in an unequal variance in the residuals, heteroscedasticity. Transforming observations is often required with observations of streamflow and precipitation. There are several options to transform observations. Since the degree of transformation is not typically known, 'boxcox' is the default. Other options include: 'log', 'burbidge', and of course, 'none' when no transformation is performed.
+#' \item{Data gaps  in \code{input.data}}: When there is missing \code{input.data}, special care was taken to reduce the influence of the missing time periods while making the most of the given data without infilling. For time-periods where either observations (streamflow or precipitation) are missing, the conditional probability of the missing time-steps is set to equal one. This results in the time-step after the missing period having the same probability of being in the given state as before the missing period. The models with auto-regressive terms (AR1, AR2, AR3) perform better when there is a warm-up of precipitation at an AR(X) number of timesteps (i.e. an AR2 model would have 2 timesteps of precipitation before streamflow begins). A message appears notifying the user when precipitation does not preclude streamflow observatins. The Markov flow state is determined for all continuous periods of streamflow and precipitation. When the input.data contains gaps, maintain the rows with missing information by keeping the time-stamps (i.e. year, month) while "NA" is in the fields of flow or precipitation, whichever is missing.
+#' \item{Transform Observations with \code{data.transform}}: Transforms observations to remove heteroscedasticity. Often there is skew within hydrologic data. When defining relationships between observations, this skew results in an unequal variance in the residuals. Transforming observations is often required with observations of streamflow and precipitation. There are several options to transform observations. Since the degree of transformation is not typically known, 'boxcox' is the default. Other options include: 'log', 'burbidge', and of course, 'none' when no transformation is performed.
 #' \item{Model Structure with \code{parameters} and \code{seasonal.parameters}}: The structure of the model depends on the \code{parameters}. hydroState simulates runoff, \eqn{Q}, as being in one of finite states, \eqn{i}, at every time-step, \eqn{t}, depending on the distribution of states at prior time steps. This results in a runoff distribution for each state that can vary overtime (\eqn{\widehat{_tQ_i}}). The model defines the relationship that is susceptible to state shifts with precipitation, \eqn{P_t}, as a predictor. This takes the form as a simple linear model \eqn{\widehat{_tQ_i} = f(P_t)}:
 #'
 #' \eqn{\widehat{_tQ_i} = P_ta_1 + a_0}
@@ -667,7 +667,7 @@ select.Markov <- function(flickering = FALSE,
 #' @param state.shift.parameters character list of one or all parameters (\code{a0}, \code{a1}, \code{std}, \code{AR1}, \code{AR2}, \code{AR3}) able to shift as dependent on state. Default is \code{a0} and \code{std}.
 #' @param error.distribution character list of the distribution in the HMM error. Default is 'truc.normal'. Others include: 'normal' or 'gamma'
 #' @param flickering logical T/F. T = allows more sensitive markov flickering between states over time, F = less sensitive and is default.
-#' @param transition.graph matrix given the number of states. Default is a 2-state matrix (2 by 2): matrix(TRUE,2,2)
+#' @param transition.graph matrix given the number of states. Default is a 2-state matrix (2 by 2): matrix(TRUE,2,2). Others include 1-state: matrix(TRUE,1,1) and 3-states: matrix(TRUE,3,3).
 #'
 #' @return
 #' A built hydroState model object ready to be fitted with \code{fitModel}
@@ -687,7 +687,7 @@ select.Markov <- function(flickering = FALSE,
 #'
 #' # OR
 #'
-#' ## Build annual hydroState model with specified objects
+#' ## Build annual hydroState model with adjusted state model
 
 #' # Build hydroState model with: 2-state, normal error distribution,
 #' # 1-lag of auto-correlation, and state dependent parameters ('a1', 'std')
@@ -1280,7 +1280,7 @@ showModelAll <- function(all.models){
 #' \code{fitModel} fits hydrostate model(s) using global optimization by differential evolution \href{https://cran.r-project.org/web/packages/DEoptim/index.html}{DEoptim} library.
 #'
 #' @details
-#' After a hydroState model object is built, the model is ready to be fitted through minimizing the negative log-likelihood function. The likelihood is estimated recursively across each time-step, for each continous period of observations, and the sum of the negative log-likelihood is minimized too calibrate the model parameters. The only required input is the built hydroState model. \code{fitModel} works for one built model (\code{buildModel}) or all (\code{buildModelAll}). If fitting all models be sure to install and load the \href{https://cran.r-project.org/web/packages/parallelly/index.html}{parallelly} library. Details on the likelihood function is as follows:
+#' After a hydroState model object is built, the model is ready to be fitted through minimizing the negative log-likelihood function. The likelihood is estimated recursively across each time-step and the negative log-likelihood is minimized too calibrate the model parameters. The only required input is the built hydroState model. \code{fitModel} works for one built model (\code{buildModel}) or all (\code{buildModelAll}). If fitting all models be sure to install and load the \href{https://cran.r-project.org/web/packages/parallelly/index.html}{parallelly} library. Details on the likelihood function is as follows:
 #'
 #' The likelihood function is estimated as:
 #'
@@ -1338,7 +1338,7 @@ showModelAll <- function(all.models){
 #' all.annual.models = buildModelAll(input.data = streamflow_annual_221201, siteID = '221201')
 #'
 #' ## Fit all
-#' model = fitModel(all.annual.models)
+#' all.annual.models = fitModel(all.annual.models)
 #'
 #' }
 #'
@@ -1440,13 +1440,14 @@ fitModel <- function(model,
 #' \code{get.AIC} retrieves Akaike information criteria from a fitted model.
 #'
 #' @details
-#' The AIC is the negative log-likelihood of the model plus a penealty for model parameters. This function can be performed on a single model or a selection of models to find the lowest AIC of the set.
+#' The AIC is the negative log-likelihood of the model plus a penealty for model parameters. This function can be performed on a single model or a selection of models to find the lowest AIC of the set. Set the `sample.penalty` to TRUE for finding the AICc.
 #'
 #' @param model fitted \code{hydroState} model object.
+#' @param sample.penalty TRUE/FALSE. TRUE finds AICc, FALSE finds AIC
 #'
-#' @return AIC value
+#' @return AIC or AICc value(s)
 #'
-#' @keywords AIC
+#' @keywords AIC AICc
 #'
 #'
 #' @export get.AIC
@@ -1459,11 +1460,14 @@ fitModel <- function(model,
 #' get.AIC(model.annual.fitted.221201)
 #'
 #' ## Lowest AIC of a model set
-#' # get.AIC()
+#' data(all.models.annual.fitted.407211)
+#'
+#' get.AIC(all.models.annual.fitted.407211)
+#'
 #'
 
 
-get.AIC <- function(model){
+get.AIC <- function(model, sample.penalty = FALSE){
 
 
   if(!(class(model)[1] %in% c("hydroState","hydroState.allModels", "hydroState.subAnnual.allModels")))
@@ -1473,12 +1477,19 @@ get.AIC <- function(model){
   # Validate
   if(class(model)[1] %in% c("hydroState.allModels", "hydroState.subAnnual.allModels")){
 
-      return(getAIC.bestModel(model)$AIC)
+
+
+      return(getAIC.bestModel(model, use.sampleSize.penality = sample.penalty)$AIC)
+
+
 
   }else{
 
-
-      return(getAIC(model))
+      if(sample.penalty){
+        return(getAICc(model))
+      }else{
+        return(getAIC(model))
+      }
 
   }
 
@@ -1502,7 +1513,7 @@ get.AIC <- function(model){
 #'  \item{D)}{ Histogram of normal-pseudo residuals should show normal distribution centered on zero and with no skew}
 #'  \item{E)}{ Quantile-Quantile (Q-Q) plot where normal-pseudo residuals vs. theoretical quantities should align on the diagonal line. The last plot contains the Akaike information criterion (AIC) and Shapiro-Wilk p-value. The AIC is an estimator to determine the most parsimonious, best performing model given the number of parameters. When comparing models, the lowest AIC is the best performing model. Shapiro-Wilks test for normality in the residuals and a p-value greater than 0.05 (chosen alpha level) indicates the residuals are normally distributed; the null hypothesis that the residuals are normally distributed is not rejected.}
 #'  }
-#'  It is recommended to export the residual plot as a PDF due to it's size. If the R plot windor is too small, two common errors can occur:
+#'  It is recommended to export the residual plot as a PDF due to it's size. If the R plot window is too small, two common errors can occur:
 #'  \itemize{
 #'  \item{"Error in plot.new() : figure margins too large":} reset plot window with "dev.off()", enlarge plot area and re-run \code{plot.residuals}.
 #'  \item{"Error in par(op) : invalid value specified for graphical parameter "pin"} if the R plot window is not reset with "dev.off", an additional \code{plot.residuals} attempt will result in this error.
@@ -2033,7 +2044,7 @@ get.states <- function(model){
 #' @param n.samples integer of samples to re-sample. Default is 100000.
 #'
 #' @return
-#' table of the prbability of the inferred state equals the known state
+#' table of the probability of the inferred state equals the known state
 #'
 #' @keywords check model viterbi
 #'

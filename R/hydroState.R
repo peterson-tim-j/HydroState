@@ -1884,6 +1884,7 @@ setMethod(f="check.PseudoResiduals",signature="hydroState",definition=function(.
       # get emission densities
       emissionDensity <- getEmissionDensity(.Object@QhatModel.object, data, NA)
       emissionDensity[!filt,] <- NA
+      # emissionDensity = matrix(emissionDensity,NROW(data),ntates)
 
       # Set the range in Qhat values at which to derive the conditional probs.
       Qhat.increments = seq(floor(min(Qhat[filt])),ceiling(max(Qhat[filt])),length.out=100)
@@ -1924,11 +1925,12 @@ setMethod(f="check.PseudoResiduals",signature="hydroState",definition=function(.
     #---------------------------------------------------------------------
     # NOTE, unlilke Zucchini, here the cumulative IS NOT USED. This is because cumProb.increments is
     # already the cumulative prob.
-    delta = getStartEndIndex(data)
+    delta = .Object@QhatModel.object@precip.delta
 
     cum.prob = array(NA, dim=c(length(Qhat.increments),n))
     for(i in 1:NROW(delta)){
-      cum.prob[,delta[i,1]:delta[i,2]] <- getConditionalProbabilities(.Object@markov.model.object, data[delta[i,1]:delta[i,2],], emissionDensity[delta[i,1]:delta[i,2],], cumProb.increments[delta[i,1]:delta[i,2],,])
+      cum.prob[,delta[i,1]:delta[i,2]] <- getConditionalProbabilities(.Object@markov.model.object, data[delta[i,1]:delta[i,2],], as.matrix(emissionDensity[delta[i,1]:delta[i,2],]),
+                                                                      cumProb.increments[delta[i,1]:delta[i,2],1:nStates,1:length(Qhat.increments)])
     }
     # cum.prob <- getConditionalProbabilities(.Object@markov.model.object, data, emissionDensity, cumProb.increments)
     #cumdists <- rbind(rep(0,n), cdists)

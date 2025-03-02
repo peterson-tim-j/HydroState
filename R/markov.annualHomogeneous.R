@@ -453,6 +453,7 @@ setMethod(f="getConditionalStateProbabilities", signature="markov.annualHomogene
 )
 
 # Get the conditional probability of a givn Qhat observation at time t given all other observations.
+# @exportMethod getConditionalProbabilities
 setMethod(f="getConditionalProbabilities", signature="markov.annualHomogeneous",
           definition=function(.Object, data, emission.probs, cumprob.atQhatIncrements)
           {
@@ -470,7 +471,7 @@ setMethod(f="getConditionalProbabilities", signature="markov.annualHomogeneous",
 
             n          <- nrow(data)
             m          <- nStates
-            nxc       <- dim(cumprob.atQhatIncrements)[3]
+            nxc       <- dim(cumprob.atQhatIncrements)[length(dim(cumprob.atQhatIncrements))] # to get last dim
             dxc       <- matrix(NA,nrow=nxc,ncol=n)
 
 
@@ -490,7 +491,12 @@ setMethod(f="getConditionalProbabilities", signature="markov.annualHomogeneous",
               # time. However, here the time-varying means and auto-regressive terms make the emmision probs
               # time-dependent and so here a 3D array is passed to this function with the depth dimension
               # containing the cumulative probs. at pre-defined incrementts of Qhat for a given state and time point.
-              Px <- cumprob.atQhatIncrements[i,,]
+
+              if(nStates ==1){ # had to include this because cumprob.atQhatIncrements ignored one state dim
+                Px <- cumprob.atQhatIncrements[i,]
+              }else{
+                Px <- cumprob.atQhatIncrements[i,,]
+              }
 
               dxc[,i]  <- as.vector(foo%*%Px)
 

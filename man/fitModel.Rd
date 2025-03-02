@@ -30,7 +30,7 @@ A fitted hydroState model
 \code{fitModel}
 
 
-After a hydroState model object is built, the model is ready to be fitted through minimizing the negative log-likelihood function. The likelihood is estimated recursively across each time-step, for each continous period of observations, and the sum of the negative log-likelihood is minimized too calibrate the model parameters. The only required input is the built hydroState model. \code{fitModel} works for one built model (\code{buildModel}) or all (\code{buildModelAll}). If fitting all models be sure to install and load the \href{https://cran.r-project.org/web/packages/parallelly/index.html}{parallelly} library. Details on the likelihood function is as follows:
+After a hydroState model object is built, the model is ready to be fitted through minimizing the negative log-likelihood function. The likelihood is estimated recursively across each time-step and the negative log-likelihood is minimized too calibrate the model parameters. The only required input is the built hydroState model. \code{fitModel} works for one built model (\code{buildModel}) or all (\code{buildModelAll}). If fitting all models be sure to install and load the \href{https://cran.r-project.org/web/packages/parallelly/index.html}{parallelly} library. Details on the likelihood function is as follows:
 
 The likelihood function is estimated as:
 
@@ -70,7 +70,7 @@ data(streamflow_annual_221201)
 all.annual.models = buildModelAll(input.data = streamflow_annual_221201, siteID = '221201')
 
 ## Fit all
-model = fitModel(all.annual.models)
+all.annual.models = fitModel(all.annual.models)
 
 }
 
