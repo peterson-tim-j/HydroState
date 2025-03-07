@@ -48,14 +48,23 @@ A list of built hydroState models with every combination of objects ready to be 
 \code{buildModelAll}
 
 
-All possible combinations of hydroState models are built for each data transformations, auto-correlation lag, and residual distribution from 1 to 3 states for investigating only state changes in the 'a0' and 'std' parameters. To reduce the number of models in the search, specify which field(s) to remain constant. For example, to investigate the best model with the number of auto-correlation terms and number of states with a 'boxcox' data transform and 'gamma' distribution of the residuals, set \code{data.transform} to 'boxcox' and \code{error.distribution} to 'gamma'. If no fields are specified, all possible model combinations are built.
+All possible combinations of hydroState models are built for each data transformations, auto-correlation lag, and residual distribution from 1 to 3 states for investigating state changes in the 'a0' and 'std' parameters or 'a1' and 'std' parameters. To reduce the number of models in the search, specify which field(s) to remain constant. For example, to investigate the best model with the number of auto-correlation terms and number of states with a 'boxcox' data transform and 'gamma' distribution of the residuals, set \code{data.transform} to 'boxcox' and \code{error.distribution} to 'gamma'. If no fields are specified, all possible model combinations are built. If investigating state shifts in the intercept 'a0' and slope 'a1', build and fit the model combinations separately.
 }
 \examples{
 # Load data
 data(streamflow_annual_221201)
 
-# Build all annual models
-all.annual.models = buildModelAll(input.data = streamflow_annual_221201, siteID = '221201')
+# Build all annual models with state shift in intercept 'a0'
+all.annual.models = buildModelAll(input.data = streamflow_annual_221201,
+                                    state.shift.parameters = list('a0','std'),
+                                     siteID = '221201')
+
+# OR
+
+# Build all annual models with state shift in slope 'a1'
+all.annual.models = buildModelAll(input.data = streamflow_annual_221201,
+                                    state.shift.parameters = list('a1','std'),
+                                     siteID = '221201')
 
 }
 \keyword{all}

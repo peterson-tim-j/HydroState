@@ -4,15 +4,13 @@
 \alias{get.AIC}
 \title{get AIC}
 \usage{
-get.AIC(model, sample.penalty = FALSE)
+get.AIC(model.name)
 }
 \arguments{
-\item{model}{fitted \code{hydroState} model object.}
-
-\item{sample.penalty}{TRUE/FALSE. TRUE finds AICc, FALSE finds AIC}
+\item{model.name}{is the name of the fitted \code{hydroState} model object.}
 }
 \value{
-AIC or AICc value(s)
+AIC value
 }
 \description{
 \code{get.AIC} retrieves Akaike information criteria from a fitted model.
@@ -21,7 +19,7 @@ AIC or AICc value(s)
 \code{get.AIC}
 
 
-The AIC is the negative log-likelihood of the model plus a penealty for model parameters. This function can be performed on a single model or a selection of models to find the lowest AIC of the set. Set the `sample.penalty` to TRUE for finding the AICc.
+The AIC is the negative log-likelihood of the model plus a penealty for model parameters. This function can be performed on a single model or a selection of models to find the lowest AIC of the set.
 }
 \examples{
 # Load fitted model
@@ -31,11 +29,7 @@ data(model.annual.fitted.221201)
 get.AIC(model.annual.fitted.221201)
 
 ## Lowest AIC of a model set
-data(all.models.annual.fitted.407211)
-
-get.AIC(all.models.annual.fitted.407211)
-
+# get.AIC()
 
 }
 \keyword{AIC}
-\keyword{AICc}

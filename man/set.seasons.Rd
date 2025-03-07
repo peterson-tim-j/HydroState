@@ -21,15 +21,15 @@ Aggregates monthly data to 4 seasons in a year.
 \code{set.seasons}
 
 
-Aggregates monthly data by taking the sum of runoff and precipitation in 4 seasons: Dec-Feb, Mar-May, Jun-Aug, Sep-Nov. Last month of each season becomes the time-step identifier.
+Sets 4 seasons
 }
 \examples{
 
 # Load data
-data(streamflow_monthly_415201)
+data(streamflow_monthly_221201)
 
 # aggregate monthly data to seasonal
-streamflow_seasonal_415201 = set.seasons(streamflow_monthly_415201)
+streamflow_seasonal_221201 = set.seasons(streamflow_monthly_221201)
 
 
 }

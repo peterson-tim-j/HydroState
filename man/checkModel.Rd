@@ -12,7 +12,7 @@ checkModel(model, n.samples)
 \item{n.samples}{integer of samples to re-sample. Default is 100000.}
 }
 \value{
-table of the probability of the inferred state equals the known state
+data frame of results to evaluate the rainfall-runoff states overtime
 }
 \description{
 \code{checkModel} validates the model's states at each time-step through re-sampleing the input data and re-runnning the Viterbi algorithm.

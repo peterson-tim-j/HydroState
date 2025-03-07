@@ -30,7 +30,7 @@ buildModel(
 
 \item{flickering}{logical T/F. T = allows more sensitive markov flickering between states over time, F = less sensitive and is default.}
 
-\item{transition.graph}{matrix given the number of states. Default is a 2-state matrix (2 by 2): matrix(TRUE,2,2). Others include 1-state: matrix(TRUE,1,1) and 3-states: matrix(TRUE,3,3).}
+\item{transition.graph}{matrix given the number of states. Default is a 2-state matrix (2 by 2): matrix(TRUE,2,2)}
 }
 \value{
 A built hydroState model object ready to be fitted with \code{fitModel}
@@ -44,8 +44,8 @@ A built hydroState model object ready to be fitted with \code{fitModel}
 
 There are a selection of items to consider when defining the rainfall-runoff relationship and investigating state shifts in this relationship. hydroState provides various options for modelling the rainfall-runoff relationship.
 \itemize{
-\item{Data gaps  in \code{input.data}}: When there is missing \code{input.data}, special care was taken to reduce the influence of the missing time periods while making the most of the given data without infilling. For time-periods where either observations (streamflow or precipitation) are missing, the conditional probability of the missing time-steps is set to equal one. This results in the time-step after the missing period having the same probability of being in the given state as before the missing period. The models with auto-regressive terms (AR1, AR2, AR3) perform better when there is a warm-up of precipitation at an AR(X) number of timesteps (i.e. an AR2 model would have 2 timesteps of precipitation before streamflow begins). A message appears notifying the user when precipitation does not preclude streamflow observatins. The Markov flow state is determined for all continuous periods of streamflow and precipitation. When the input.data contains gaps, maintain the rows with missing information by keeping the time-stamps (i.e. year, month) while "NA" is in the fields of flow or precipitation, whichever is missing.
-\item{Transform Observations with \code{data.transform}}: Transforms observations to remove heteroscedasticity. Often there is skew within hydrologic data. When defining relationships between observations, this skew results in an unequal variance in the residuals. Transforming observations is often required with observations of streamflow and precipitation. There are several options to transform observations. Since the degree of transformation is not typically known, 'boxcox' is the default. Other options include: 'log', 'burbidge', and of course, 'none' when no transformation is performed.
+\item{Data gaps  with \code{input.data}}: When there is missing \code{input.data}, special care was taken to reduce the influence of the missing time periods while making the most of the given data without infilling. For time-periods where the dependent variable, streamflow, is missing, the transition probability for these missing periods is essentially ignored by setting the conditional probability of the missing time-steps equal to one. This results in the time-step after the missing period having the same probability of being in the given state as before the missing period. For time-periods where the independent variable is missing, precipitation, the missing periods are essentially ignored when fitting the models as the likelihood is calculated from only continuous periods with values for the independent variable. Since the log-likelihood is calculated for each continuous period, the sum of the log-likelihoods provides a total log-likelihood to fit models. Again, there is no infilling of missing data.
+\item{Transform Observations with \code{data.transform}}: Transforms observations to remove heteroscedasticity. Often there is skew within hydrologic data. When defining relationships between observations, this skew results in an unequal variance in the residuals, heteroscedasticity. Transforming observations is often required with observations of streamflow and precipitation. There are several options to transform observations. Since the degree of transformation is not typically known, 'boxcox' is the default. Other options include: 'log', 'burbidge', and of course, 'none' when no transformation is performed.
 \item{Model Structure with \code{parameters} and \code{seasonal.parameters}}: The structure of the model depends on the \code{parameters}. hydroState simulates runoff, \eqn{Q}, as being in one of finite states, \eqn{i}, at every time-step, \eqn{t}, depending on the distribution of states at prior time steps. This results in a runoff distribution for each state that can vary overtime (\eqn{\widehat{_tQ_i}}). The model defines the relationship that is susceptible to state shifts with precipitation, \eqn{P_t}, as a predictor. This takes the form as a simple linear model \eqn{\widehat{_tQ_i} = f(P_t)}:
 
 \eqn{\widehat{_tQ_i} = P_ta_1 + a_0}
@@ -76,7 +76,7 @@ model = buildModel(input.data = streamflow_annual_221201)
 
 # OR
 
-## Build annual hydroState model with adjusted state model
+## Build annual hydroState model with specified objects
 # Build hydroState model with: 2-state, normal error distribution,
 # 1-lag of auto-correlation, and state dependent parameters ('a1', 'std')
 model = buildModel(input.data = streamflow_annual_221201,
