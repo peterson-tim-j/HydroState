@@ -4,16 +4,16 @@
 \alias{get.residuals}
 \title{Get residuals}
 \usage{
-get.residuals(model.name)
+get.residuals(model)
 }
 \arguments{
-\item{model.name}{name of the fitted hydroState model object.}
+\item{model}{fitted hydroState model object.}
 }
 \value{
 Data frame of residuals for each time-step
 }
 \description{
-The normal pseudo residuals are retrieved from the fitted model.
+The pseudo residuals were derived from the conditional probabilities of the observations. At each time-step, the pseudo residual is the probability of an observation occurring given the prior observations and latter observations.
 }
 \details{
 \code{get.residuals}
@@ -26,7 +26,7 @@ The normal pseudo residuals are retrieved from the fitted model.
 data(model.annual.fitted.221201)
 
 ## Get residuals in a dataframe
-get.residuals(model.name = model.annual.fitted.221201)
+get.residuals(model = model.annual.fitted.221201)
 
 
 }

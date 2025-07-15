@@ -1,4 +1,5 @@
 ##' @include abstracts.R
+##' @import methods
 ## @export
 parameters <- setClass(
   # Set the name for the class

@@ -226,13 +226,22 @@ setMethod(f="get.summary.table",signature="hydroState.allModels",definition=func
 
           if('none' %in% temp.models$state.shift){
             temp.models$ref.model[1] = ""
-            temp.models$ref.model[2:NROW(temp.models)] = temp.models$model.names[1:(NROW(temp.models)-1)]
+
+            if(NROW(temp.models)>1){
+              temp.models$ref.model[2:NROW(temp.models)] = temp.models$model.names[1:(NROW(temp.models)-1)]
+            }
           }else if('mean.a0' %in% temp.models$state.shift){
             temp.models$ref.model[1] =  ifelse(i == 1, "",max.temp.normal.log.model)
-            temp.models$ref.model[2:NROW(temp.models)] = temp.models$model.names[1:(NROW(temp.models)-1)]
+
+            if(NROW(temp.models)>1){
+              temp.models$ref.model[2:NROW(temp.models)] = temp.models$model.names[1:(NROW(temp.models)-1)]
+            }
           }else if('mean.a1' %in% temp.models$state.shift){
             temp.models$ref.model[1] =  ifelse(i == 1, "",max.temp.normal.log.model)
-            temp.models$ref.model[2:NROW(temp.models)] = temp.models$model.names[1:(NROW(temp.models)-1)]
+
+            if(NROW(temp.models)>1){
+              temp.models$ref.model[2:NROW(temp.models)] = temp.models$model.names[1:(NROW(temp.models)-1)]
+            }
           }
 
           # reestablish in all. models.
@@ -247,13 +256,22 @@ setMethod(f="get.summary.table",signature="hydroState.allModels",definition=func
 
           if('none' %in% temp.models$state.shift){
             temp.models$ref.model[1] = ""
-            temp.models$ref.model[2:NROW(temp.models)] = temp.models$model.names[1:(NROW(temp.models)-1)]
+
+            if(NROW(temp.models)>1){
+              temp.models$ref.model[2:NROW(temp.models)] = temp.models$model.names[1:(NROW(temp.models)-1)]
+            }
           }else if('mean.a0' %in% temp.models$state.shift){
             temp.models$ref.model[1] =  ifelse(i == 1, "",max.temp.truc.normal.log.model)
-            temp.models$ref.model[2:NROW(temp.models)] = temp.models$model.names[1:(NROW(temp.models)-1)]
+
+            if(NROW(temp.models)>1){
+              temp.models$ref.model[2:NROW(temp.models)] = temp.models$model.names[1:(NROW(temp.models)-1)]
+            }
           }else if('mean.a1' %in% temp.models$state.shift){
             temp.models$ref.model[1] =  ifelse(i == 1, "",max.temp.truc.normal.log.model)
-            temp.models$ref.model[2:NROW(temp.models)] = temp.models$model.names[1:(NROW(temp.models)-1)]
+
+            if(NROW(temp.models)>1){
+              temp.models$ref.model[2:NROW(temp.models)] = temp.models$model.names[1:(NROW(temp.models)-1)]
+            }
           }
 
           # reestablish in all. models.
@@ -269,13 +287,22 @@ setMethod(f="get.summary.table",signature="hydroState.allModels",definition=func
 
           if('none' %in% temp.models$state.shift){
             temp.models$ref.model[1] = ""
-            temp.models$ref.model[2:NROW(temp.models)] = temp.models$model.names[1:(NROW(temp.models)-1)]
+
+            if(NROW(temp.models)>1){
+              temp.models$ref.model[2:NROW(temp.models)] = temp.models$model.names[1:(NROW(temp.models)-1)]
+            }
           }else if('mean.a0' %in% temp.models$state.shift){
             temp.models$ref.model[1] =  ifelse(i == 1, "",max.temp.gamma.log.model)
-            temp.models$ref.model[2:NROW(temp.models)] = temp.models$model.names[1:(NROW(temp.models)-1)]
+
+            if(NROW(temp.models)>1){
+              temp.models$ref.model[2:NROW(temp.models)] = temp.models$model.names[1:(NROW(temp.models)-1)]
+            }
           }else if('mean.a1' %in% temp.models$state.shift){
             temp.models$ref.model[1] =  ifelse(i == 1, "",max.temp.gamma.log.model)
-            temp.models$ref.model[2:NROW(temp.models)] = temp.models$model.names[1:(NROW(temp.models)-1)]
+
+            if(NROW(temp.models)>1){
+              temp.models$ref.model[2:NROW(temp.models)] = temp.models$model.names[1:(NROW(temp.models)-1)]
+            }
           }
 
           # reestablish in all. models.
@@ -295,13 +322,22 @@ setMethod(f="get.summary.table",signature="hydroState.allModels",definition=func
 
           if('none' %in% temp.models$state.shift){
             temp.models$ref.model[1] = ifelse('log' %in% all.models.matrix.set$data.trans,log.models$model.names[which(log.models$error.dist == 'normal')][1],"")
-            temp.models$ref.model[2:NROW(temp.models)] = temp.models$model.names[1:(NROW(temp.models)-1)]
+
+            if(NROW(temp.models)>1){
+              temp.models$ref.model[2:NROW(temp.models)] = temp.models$model.names[1:(NROW(temp.models)-1)]
+            }
           }else if('mean.a0' %in% temp.models$state.shift){
             temp.models$ref.model[1] =  ifelse(i == 1, "", max.temp.normal.boxcox.model)
-            temp.models$ref.model[2:NROW(temp.models)] = temp.models$model.names[1:(NROW(temp.models)-1)]
+
+            if(NROW(temp.models)>1){
+              temp.models$ref.model[2:NROW(temp.models)] = temp.models$model.names[1:(NROW(temp.models)-1)]
+            }
           }else if('mean.a1' %in% temp.models$state.shift){
             temp.models$ref.model[1] =  ifelse(i == 1, "", max.temp.normal.boxcox.model)
-            temp.models$ref.model[2:NROW(temp.models)] = temp.models$model.names[1:(NROW(temp.models)-1)]
+
+            if(NROW(temp.models)>1){
+              temp.models$ref.model[2:NROW(temp.models)] = temp.models$model.names[1:(NROW(temp.models)-1)]
+            }
           }
 
           # reestablish in all. models.
@@ -316,13 +352,22 @@ setMethod(f="get.summary.table",signature="hydroState.allModels",definition=func
 
           if('none' %in% temp.models$state.shift){
             temp.models$ref.model[1] = ifelse('log' %in% all.models.matrix.set$data.trans,log.models$model.names[which(log.models$error.dist == 'truc.normal')][1],"")
-            temp.models$ref.model[2:NROW(temp.models)] = temp.models$model.names[1:(NROW(temp.models)-1)]
+
+            if(NROW(temp.models)>1){
+              temp.models$ref.model[2:NROW(temp.models)] = temp.models$model.names[1:(NROW(temp.models)-1)]
+            }
           }else if('mean.a0' %in% temp.models$state.shift){
             temp.models$ref.model[1] =  ifelse(i == 1, "", max.temp.truc.normal.boxcox.model)
-            temp.models$ref.model[2:NROW(temp.models)] = temp.models$model.names[1:(NROW(temp.models)-1)]
+
+            if(NROW(temp.models)>1){
+              temp.models$ref.model[2:NROW(temp.models)] = temp.models$model.names[1:(NROW(temp.models)-1)]
+            }
           }else if('mean.a1' %in% temp.models$state.shift){
             temp.models$ref.model[1] =  ifelse(i == 1, "", max.temp.truc.normal.boxcox.model)
-            temp.models$ref.model[2:NROW(temp.models)] = temp.models$model.names[1:(NROW(temp.models)-1)]
+
+            if(NROW(temp.models)>1){
+              temp.models$ref.model[2:NROW(temp.models)] = temp.models$model.names[1:(NROW(temp.models)-1)]
+            }
           }
 
           # reestablish in all. models.
@@ -338,13 +383,22 @@ setMethod(f="get.summary.table",signature="hydroState.allModels",definition=func
 
           if('none' %in% temp.models$state.shift){
             temp.models$ref.model[1] = ifelse('log' %in% all.models.matrix.set$data.trans,log.models$model.names[which(log.models$error.dist == 'gamma')][1],"")
-            temp.models$ref.model[2:NROW(temp.models)] = temp.models$model.names[1:(NROW(temp.models)-1)]
+
+            if(NROW(temp.models)>1){
+              temp.models$ref.model[2:NROW(temp.models)] = temp.models$model.names[1:(NROW(temp.models)-1)]
+            }
           }else if('mean.a0' %in% temp.models$state.shift){
             temp.models$ref.model[1] =  ifelse(i == 1, "",max.temp.gamma.boxcox.model)
-            temp.models$ref.model[2:NROW(temp.models)] = temp.models$model.names[1:(NROW(temp.models)-1)]
+
+            if(NROW(temp.models)>1){
+              temp.models$ref.model[2:NROW(temp.models)] = temp.models$model.names[1:(NROW(temp.models)-1)]
+            }
           }else if('mean.a1' %in% temp.models$state.shift){
             temp.models$ref.model[1] =  ifelse(i == 1, "",max.temp.gamma.boxcox.model)
-            temp.models$ref.model[2:NROW(temp.models)] = temp.models$model.names[1:(NROW(temp.models)-1)]
+
+            if(NROW(temp.models)>1){
+              temp.models$ref.model[2:NROW(temp.models)] = temp.models$model.names[1:(NROW(temp.models)-1)]
+            }
           }
 
           # reestablish in all. models.
@@ -389,6 +443,7 @@ setMethod(f="get.summary.table",signature="hydroState.allModels",definition=func
 )
 
 # @exportMethod fit
+# @rdname fit
 setMethod(f = "fit",signature="hydroState.allModels",definition=function(.Object,
                                                                          pop.size.perParameter=25,
                                                                          max.generations=10000,
@@ -404,9 +459,6 @@ setMethod(f = "fit",signature="hydroState.allModels",definition=function(.Object
   # Set the min and max numbe rof calibrations per model
   minTrialsPerModel=5
   maxTrialsPerModel=20
-
-  # if(is.NUll(doParallel))
-  #   doParallel == F
 
 
   model.names <- names(.Object@models)

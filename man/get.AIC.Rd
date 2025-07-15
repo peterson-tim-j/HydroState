@@ -4,22 +4,22 @@
 \alias{get.AIC}
 \title{get AIC}
 \usage{
-get.AIC(model.name)
+get.AIC(model)
 }
 \arguments{
-\item{model.name}{is the name of the fitted \code{hydroState} model object.}
+\item{model}{fitted \code{hydroState} model object.}
 }
 \value{
-AIC value
+AIC value of a single model or a list variable of AIC values for al models
 }
 \description{
-\code{get.AIC} retrieves Akaike information criteria from a fitted model.
+\code{get.AIC} retrieves Akaike information criteria from a fitted hydroState model object or all models.
 }
 \details{
 \code{get.AIC}
 
 
-The AIC is the negative log-likelihood of the model plus a penealty for model parameters. This function can be performed on a single model or a selection of models to find the lowest AIC of the set.
+The AIC is the negative log-likelihood of the model plus a penalty for model parameters. This function can be performed on a single model or a selection of models to find the lowest AIC of the set.
 }
 \examples{
 # Load fitted model

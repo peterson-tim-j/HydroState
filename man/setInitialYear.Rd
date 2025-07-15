@@ -4,15 +4,15 @@
 \alias{setInitialYear}
 \title{Sets state names given initial year}
 \usage{
-setInitialYear(model.name, initial.year)
+setInitialYear(model, initial.year)
 }
 \arguments{
-\item{model.name}{name of the fitted hydroState model object.}
+\item{model}{fitted hydroState model object.}
 
 \item{initial.year}{integer with year (YYYY). Default is first year in input.data.}
 }
 \value{
-A fitted hydroState model object with state names for each time-step ready for \code{plot.states}
+A fitted hydroState model object with state names for each time-step ready for \code{plot}
 }
 \description{
 sets the state names for each time-step relative to the initial year given
@@ -29,7 +29,7 @@ data(model.annual.fitted.221201)
 
 ## Set initial year to set state names
 model.annual.fitted.221201 =
-                setInitialYear(model.name = model.annual.fitted.221201,
+                setInitialYear(model = model.annual.fitted.221201,
                                initial.year = 1990)
 
 

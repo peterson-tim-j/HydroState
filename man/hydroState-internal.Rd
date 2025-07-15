@@ -28,7 +28,6 @@
 \alias{check.PseudoResiduals}
 \alias{check.viterbi}
 \alias{drought.resilience.index}
-\alias{fit}
 \alias{forecast}
 \alias{getAIC}
 \alias{getAIC.bestModel}

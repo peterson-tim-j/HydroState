@@ -1,5 +1,6 @@
 # @export
 ##'
+##' @import methods
 
 parameters <- setClass("parameters", package='hydroState')
 

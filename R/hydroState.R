@@ -431,7 +431,6 @@ setMethod(f="getAICc",signature="hydroState",definition=function(.Object)
 )
 
 
-# @exportMethod fit
 setGeneric(name="fit",def=function(.Object,
                                    DEstrategy=NA,
                                    pop.size.perParameter=NA,
@@ -443,6 +442,8 @@ setGeneric(name="fit",def=function(.Object,
                                    use.initial.parameters=NA,
                                    doParallel=NA,
                                    ...) {standardGeneric("fit")})
+
+# @rdname fit
 setMethod(f = "fit",signature="hydroState",definition=function(.Object,
                                                                DEstrategy=3,
                                                                pop.size.perParameter=25,
@@ -471,6 +472,9 @@ setMethod(f = "fit",signature="hydroState",definition=function(.Object,
   # Set population size
   NP = nvars*pop.size.perParameter
 
+  # issure with parallel
+
+
   # Create and initial population WITH the existing model parameters.
   # DEstrategy <- 3
   # DEstrategy <- 2
@@ -482,7 +486,6 @@ setMethod(f = "fit",signature="hydroState",definition=function(.Object,
     }
 
     # Set optimizer options
-    #if parallel
     if (doParallel==T){
       controls = list(initialpop=par.initial,reltol=reltol, steptol=steptol, itermax=max.generations, trace=print.iterations, NP=NP,
                       c=0.01, strategy=DEstrategy, parallelType = "auto",...)
