@@ -147,7 +147,7 @@ all.models = build.all(input.data = streamflow_annual_407211,
 #> ... Minimum number of calibration per model:  5
 #> ... Maximum number of calibration per model:  20
 #> ************************************
-#> Calibrating Model: model.1State.truc.normal.boxcox.AR0.a0
+#> Calibrating Model: model.1State.truc.normal.boxcox.AR0.a0std
 #> Reference model name for maximum acceptable calib. solution: 
 #> Reference model maximum acceptable calib. solution: -Inf
 #> ...
@@ -155,12 +155,13 @@ all.models = build.all(input.data = streamflow_annual_407211,
 # get table of AIC values for each model
 get.AIC(all.models)
 
-#>                                             AIC nParameters  AIC.weights
-#> model.2State.gamma.boxcox.AR2.a0        72.29543          10 2.269986e-01
-#> model.2State.gamma.boxcox.AR3.a0        72.73455          11 1.822509e-01
-#> model.2State.gamma.boxcox.AR0.a0        74.86469           8 6.282261e-02
-#> model.2State.gamma.boxcox.AR1.a0        76.77487           9 2.417276e-02
-#> model.3State.gamma.boxcox.AR0.a0        81.88396          15 1.878888e-03
+#>                                               AIC    nParameters
+#> model.2State.gamma.boxcox.AR0.a0std        79.36469           8
+#> model.2State.gamma.boxcox.AR2.a0std        79.39221          10
+#> model.2State.gamma.boxcox.AR3.a0std        81.39029          11
+#> model.2State.gamma.boxcox.AR1.a0std        82.48915           9
+#> model.1State.gamma.boxcox.AR2.a0std        89.13483           5
+#> model.1State.gamma.boxcox.AR3.a0std        91.83986           6
 #>...
 ```
 
