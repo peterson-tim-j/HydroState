@@ -8,8 +8,7 @@ fit.hydroState(
   model,
   pop.size.perParameter = 10,
   max.generations = 500,
-  doParallel = FALSE,
-  ...
+  doParallel = FALSE
 )
 }
 \arguments{
@@ -59,8 +58,9 @@ data(streamflow_annual_221201)
 model = build(input.data = streamflow_annual_221201)
 
 ## Fit built model
+\dontrun{
 model = fit.hydroState(model)
-
+}
 ## Fit all built models
 \dontrun{
 

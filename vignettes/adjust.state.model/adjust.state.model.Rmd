@@ -129,7 +129,7 @@ Below is a an example of how to set up `build.all`, and perform the steps to adj
 ```{r  eval = FALSE}
 # Build all model combinations with 'a0' and 'std' as state-dependent parameters 
 all.models = build.all(input.data = streamflow_annual_407211,
-                           state.shift.parameters =list('a0','std'),
+                           state.shift.parameters =c('a0','std'),
                            siteID = "407211")
 
 # Review the order of the reference models, adjust reference models if needed.
@@ -137,17 +137,17 @@ all.models.ref.table = summary(all.models)
 
 # If reference models are adjusted, then re-build models
 all.models = build.all(input.data = streamflow_annual_407211,
-                               state.shift.parameters = list('a0','std'),
+                               state.shift.parameters = c('a0','std'),
                                summary.table = all.models.ref.table)
 
 # Fit all models (uncomment to run)
 <!-- all.models = fit.hydroState(all.models, pop.size.perParameter = 10, max.generations = 5000, doParallel = T) -->
 
-#> Calibrating  72 Models.
+#> Calibrating  36 Models.
 #> ... Minimum number of calibration per model:  5
 #> ... Maximum number of calibration per model:  20
 #> ************************************
-#> Calibrating Model: model.1State.truc.normal.log.AR0.a0
+#> Calibrating Model: model.1State.truc.normal.boxcox.AR0.a0
 #> Reference model name for maximum acceptable calib. solution: 
 #> Reference model maximum acceptable calib. solution: -Inf
 #> ...

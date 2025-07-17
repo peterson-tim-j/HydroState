@@ -4,10 +4,22 @@
 \alias{plot.hydroState}
 \title{plot}
 \usage{
-\method{plot}{hydroState}(x, ...)
+\method{plot}{hydroState}(
+  x,
+  ...,
+  pse.residuals = FALSE,
+  ind.variable = TRUE,
+  dep.variable = TRUE,
+  dep.variable.transformed = TRUE,
+  cond.state.prob = TRUE,
+  siteID = NULL,
+  do.pdf = FALSE
+)
 }
 \arguments{
 \item{x}{is the fitted hydroState model object.}
+
+\item{...}{additional arguments passed for plotting, none available at this time.}
 
 \item{pse.residuals}{option to plot pseudo residuals. Default is FALSE.}
 

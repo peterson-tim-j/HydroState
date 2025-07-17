@@ -32,7 +32,6 @@ An example of how to adjust the default model is demonstrated within the \code{v
 There is an additional option to construct all possible types of models using the \code{build.all}, and compare them using the same \code{fit.hydroState} function. The most likely model can be selected based on the AIC where the best model will have the lowest AIC. An example of this is demonstrated at the end of the \code{vignette("adjust.state.model", package = "hydroState")} and \code{vignette("subAnnual.models", package = "hydroState")}. To begin, it is recommended to evaluate the default model at first with one state and again with two states.
 }
 
-
 \section{Authors}{
 Except where indicated otherwise, the methods and functions in this package were written by Tim Peterson and Thomas Westfall.
 }

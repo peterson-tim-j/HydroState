@@ -1,6 +1,6 @@
 % These are internal functions not intended for the user
+\keyword{internal}
 \name{hydroState-internal}
-\alias{hydroState-internal}
 \title{hydroState-internal}
 
 \description{There are several undocumented internal functions not intended for the user. These functions are not listed here but are shown within the file: hydroState-internal.Rd}

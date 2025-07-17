@@ -1117,6 +1117,7 @@ summary.hydroState.allModels <- function(object, ...){
 #' @param pop.size.perParameter integer that should be greater than or equal to the number of parameters in the model. The default is '10' and is sufficient for all models.
 #' @param max.generations integer that will stop the optimizer when set number of generations are reached. The default is '500'.
 #' @param doParallel TRUE/FALSE to perform fitting in parallel on all computer cores. Default is FALSE
+# @param ... additional calibration settings to pass.
 #'
 #' @return
 #' A fitted hydroState model
@@ -1144,8 +1145,9 @@ summary.hydroState.allModels <- function(object, ...){
 #' model = build(input.data = streamflow_annual_221201)
 #'
 #' ## Fit built model
+#' \dontrun{
 #' model = fit.hydroState(model)
-#'
+#' }
 #' ## Fit all built models
 #' \dontrun{
 #'
@@ -1167,8 +1169,8 @@ summary.hydroState.allModels <- function(object, ...){
 fit.hydroState <- function(model,
                 pop.size.perParameter = 10,
                 max.generations = 500,
-                doParallel = FALSE,
-                ...) {
+                doParallel = FALSE
+                ) {
 
   if (methods::is(model, "hydroState")) {
     return(fit(model,
@@ -1355,7 +1357,7 @@ get.AIC <- function(model){
 
 
   # Validate
-  if(length(model) >1){
+  if((class(model)[1] %in% c("hydroState.allModels", "hydroState.subAnnual.allModels"))){
 
       return(getAIC.bestModel(model)$AIC)
 
@@ -1487,22 +1489,14 @@ setInitialYear <- function(model, initial.year){ #make go to first year of dataf
 #'  }
 #'
 #' @param x is the fitted hydroState model object.
-#' @param ... Additional arguments passed for plotting, such as:
-#'   \code{pse.residuals} option to plot pseudo residuals. Default is FALSE.
-#'   \code{ind.variable} option to plot independent variable over time. Default is TRUE.
-#'   \code{dep.variable} option to plot dependent variable and states over time. Default is TRUE.
-#'   \code{dep.variable.transformed} option to plot transformed dependent variable and states over time. Default is TRUE.
-#'   \code{cond.state.prob} option to plot the conditional state probabilities over time for each state. Default is TRUE.
-#'   \code{siteID} character string of catchment identifier (i.e. gauge ID). Default is NULL. Only recommended when do.pdf = TRUE.
-#'   \code{do.pdf} option to export figures as a pdf. Default is FALSE.
-#'
-# @param pse.residuals
-# @param ind.variable option to plot independent variable over time. Default is TRUE.
-# @param dep.variable option to plot dependent variable and states over time. Default is TRUE.
-# @param dep.variable.transformed option to plot transformed dependent variable and states over time. Default is TRUE.
-# @param cond.state.prob option to plot the conditional state probabilities over time for each state. Default is TRUE.
-# @param siteID character string of catchment identifier (i.e. gauge ID). Default is NULL. Only recommended when do.pdf = TRUE.
-# @param do.pdf option to export figures as a pdf. Default is FALSE.
+#' @param pse.residuals option to plot pseudo residuals. Default is FALSE.
+#' @param ind.variable option to plot independent variable over time. Default is TRUE.
+#' @param dep.variable option to plot dependent variable and states over time. Default is TRUE.
+#' @param dep.variable.transformed option to plot transformed dependent variable and states over time. Default is TRUE.
+#' @param cond.state.prob option to plot the conditional state probabilities over time for each state. Default is TRUE.
+#' @param siteID character string of catchment identifier (i.e. gauge ID). Default is NULL. Only recommended when do.pdf = TRUE.
+#' @param do.pdf option to export figures as a pdf. Default is FALSE.
+#' @param ... additional arguments passed for plotting, none available at this time.
 #'
 #' @return
 #' plots to evaluate rainfall-runoff states over time along with observations and the conditional probabilities of each state.
@@ -1542,20 +1536,17 @@ setInitialYear <- function(model, initial.year){ #make go to first year of dataf
 #'
 
 
-plot.hydroState <- function(x, ...){
-                        # pse.residuals = FALSE,
-                        # ind.variable = TRUE,
-                        # dep.variable = TRUE,
-                        # dep.variable.transformed = TRUE,
-                        # cond.state.prob = TRUE,
-                        # siteID = NULL,
-                        # do.pdf = FALSE
-                       # ){
+plot.hydroState <- function(x, ...,
+                       pse.residuals = FALSE,
+                       ind.variable = TRUE,
+                       dep.variable = TRUE,
+                       dep.variable.transformed = TRUE,
+                       cond.state.prob = TRUE,
+                       siteID = NULL,
+                       do.pdf = FALSE
+                       ){
 
   model = x
-
-  args <- list(...)
-
 
     if(pse.residuals == TRUE & do.pdf == TRUE){
 
