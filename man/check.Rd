@@ -2,7 +2,7 @@
 % Please edit documentation in R/wrapper.R
 \name{check}
 \alias{check}
-\title{Check Model}
+\title{Check reliability of state predictions}
 \usage{
 check(model, n.samples = 1e+05)
 }
@@ -24,7 +24,7 @@ A data frame is returned with a matrix depending on the number of states. For a 
 This validates the model's states at each time-step through re-sampling the input data and re-running the Viterbi algorithm. The input data is duplicated 100 times, and a synthetic series is generated from the model with sample states. This provides a time series of the transformed streamflow observations that can be compared with observations of the `known' state. The Viterbi states of the re-sampled transformed observations are inferred, and the probability of the inferred state equaling the 'known' state is calculated.
 }
 \examples{
-## Check fitted model
+## Check reliability of state predictions
 check(model = model.annual.fitted.221201)
 
 }

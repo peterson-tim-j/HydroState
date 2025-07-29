@@ -2,7 +2,7 @@
 % Please edit documentation in R/wrapper.R
 \name{get.seasons}
 \alias{get.seasons}
-\title{get Seasons}
+\title{Get seasons}
 \usage{
 get.seasons(
   input.data = data.frame(year = c(), month = c(), flow = c(), precip = c())
@@ -21,7 +21,7 @@ Aggregates monthly data to 4 seasons in a year.
 \code{get.seasons}
 
 
-Sets 4 seasons
+This function takes sums monthly runoff and precipitation observations into 4 seasons of a year.
 }
 \examples{
 

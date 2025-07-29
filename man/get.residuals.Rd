@@ -2,7 +2,7 @@
 % Please edit documentation in R/wrapper.R
 \name{get.residuals}
 \alias{get.residuals}
-\title{Get residuals}
+\title{Get pseudo residuals}
 \usage{
 get.residuals(model)
 }

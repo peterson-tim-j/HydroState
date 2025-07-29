@@ -2,7 +2,7 @@
 % Please edit documentation in R/wrapper.R
 \name{plot.hydroState}
 \alias{plot.hydroState}
-\title{plot}
+\title{Plot states over time or pseudo residuals}
 \usage{
 \method{plot}{hydroState}(
   x,

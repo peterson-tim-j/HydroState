@@ -2,7 +2,7 @@
 % Please edit documentation in R/wrapper.R
 \name{build}
 \alias{build}
-\title{Builds hydroState model object}
+\title{Builds hydroState model}
 \usage{
 build(
   input.data = data.frame(year = c(), flow = c(), precip = c()),

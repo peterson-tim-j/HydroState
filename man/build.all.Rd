@@ -20,7 +20,7 @@ build.all(
 \arguments{
 \item{input.data}{dataframe of annual, seasonal, or monthly runoff and precipitation observations. Gaps with missing data in either streamflow or precipitation are permitted, and the handling of them is further discussed in \code{build}. Monthly data is required when using \code{seasonal.parameters} that assumes selected model parameters are better defined with a sinusoidal function.}
 
-\item{data.transform}{character string of method of transformation. If empty, the default builds all possible combinations of models with 'boxcox' data transformation.}
+\item{data.transform}{character string of method of transformation. If empty, the default builds all possible combinations of models with \code{boxcox} data transformation.}
 
 \item{parameters}{character vector of parameters to determine model form. If empty, the default builds all possible combinations of model forms.}
 
@@ -28,13 +28,13 @@ build.all(
 
 \item{state.shift.parameters}{character vector of one or all parameters to identify state dependent parameters. Only one set of parameters permitted. If empty, the default builds all possible model combinations with \code{c('a0','std')} as state shift parameters.}
 
-\item{error.distribution}{character string of the distribution in the HMM error. If empty, the default builds models with all possible combinations of error distribution: c('truc.normal', 'normal','gamma')}
+\item{error.distribution}{character string of the distribution in the HMM error. If empty, the default builds models with all possible combinations of error distribution: \code{c('truc.normal', 'normal','gamma')}}
 
-\item{flickering}{logical TRUE/FALSE. TRUE = allows more sensitive markov flickering between states over time. When FALSE (default), state needs to persist for at least three time steps before state shift can occur.}
+\item{flickering}{logical \code{TRUE}/\code{FALSE}. \code{TRUE} = allows more sensitive markov flickering between states over time. When \code{FALSE} (default), state needs to persist for at least three time steps before state shift can occur.}
 
-\item{transition.graph}{matrix given the number of states. If empty, the default builds models with all possible combinations of states: 1-state matrix (1 by 1): matrix(TRUE,1,1),  2-state matrix (2 by 2): matrix(TRUE,2,2), 3-state matrix (3 by 3): matrix(TRUE,3,3).}
+\item{transition.graph}{matrix given the number of states. If empty, the default builds models with all possible combinations of states: 1-state matrix (1 by 1): code{matrix(TRUE,1,1)},  2-state matrix (2 by 2): \code{matrix(TRUE,2,2)}, 3-state matrix (3 by 3): \code{matrix(TRUE,3,3)}.}
 
-\item{summary.table}{data frame with a table summarizing all built models and corresponding reference model. From function \code{summary}. If empty, summary table will be built automatically.}
+\item{summary.table}{data frame with a table summarizing all built models and corresponding reference model. From function \code{summary()}. If empty, summary table will be built automatically.}
 
 \item{siteID}{character string of site identifier.}
 }
@@ -42,13 +42,12 @@ build.all(
 A list of built hydroState models with every combination of objects ready to be fitted
 }
 \description{
-\code{build.all} builds all possible combinations of hydroState models. The same fields are available as in \code{build} in order to specify the type of models to be built. After all models are built, they are fitted using the same \code{fit} function.
+\code{build.all} builds all possible combinations of hydroState models. The same fields are available as in \code{build()} in order to specify the type of models to be built. After all models are built, they are fitted using the same \code{fit.hydroState()} function.
 }
 \details{
 \code{build.all}
 
-
-All possible combinations of hydroState models are built for each auto-correlation lag and residual distribution from 1 to 3 states for a specified data transformation. This allows for investigation of state changes in the \code{state.shift.parameters}: the intercept ('a0', 'std') or slope ('a1', 'std'). To reduce the number of models in the search, specify which field(s) to remain constant. For example, to investigate the best model with the number of auto-correlation terms and number of states with a 'boxcox' data transform and 'gamma' distribution of the residuals, set \code{data.transform} to 'boxcox' and \code{error.distribution} to 'gamma'. If no fields are specified, all possible model combinations are built. If investigating state shifts in the intercept 'a0' and slope 'a1', it is recommended to build and fit the model combinations separately.
+All possible combinations of hydroState models are built for each auto-correlation lag and residual distribution from 1 to 3 states for a specified data transformation. This allows for investigation of state changes in the \code{state.shift.parameters}: the intercept \code{c('a0', 'std')} or slope \code{c('a1', 'std')}. To reduce the number of models in the search, specify which field(s) to remain constant. For example, to investigate the best model with the number of auto-correlation terms and number of states with a \code{boxcox} data transform and \code{gamma} distribution of the residuals, set \code{data.transform} to \code{boxcox} and \code{error.distribution} to \code{gamma}. If no fields are specified, all possible model combinations are built. If investigating state shifts in the intercept \code{a0} and slope \code{a1}, it is recommended to build and fit the model combinations separately.
 }
 \examples{
 # Load data

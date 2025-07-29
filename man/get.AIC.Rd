@@ -2,7 +2,7 @@
 % Please edit documentation in R/wrapper.R
 \name{get.AIC}
 \alias{get.AIC}
-\title{get AIC}
+\title{Get AIC}
 \usage{
 get.AIC(model)
 }

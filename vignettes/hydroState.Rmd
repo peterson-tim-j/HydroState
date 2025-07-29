@@ -16,12 +16,6 @@ knitr::opts_chunk$set(
 
 ```{r setup}
 library(hydroState)
-
-# citr::tidy_bib_file(
-#   rmd_file = c("annual.two.state.Rmd", "monthly.two.state.Rmd"),
-#   messy_bibliography = "Dissertation.bib", #updated by Zotero
-#   file = "references.bib" #read in by R
-# )
 ```
 
 # Introduction
@@ -47,14 +41,14 @@ head(streamflow_annual_221201)
 ```
 
 ## Build a 2-state annual hydroState model
-Build the the 2-state annual hydroState model with `build`. This model is the default and only requires input data. The input data can have gaps in flow or precipitation. A message will appear when gaps are in the data, but the model is still built. Handling the gaps are discussed in the `build` documentation. In order to adjust the default model, resort to the next vignette: [adjust.state.model](https://github.com/peterson-tim-j/HydroState/tree/master/vignettes/adjust.state.model/adjust.state.model.html). This `build` command also accepts seasonal or monthly data if the input data contains these time-step. See vignette:  [subAnnual.models](https://github.com/peterson-tim-j/HydroState/tree/master/vignettes/subAnnual.models/subAnnual.models.html). 
+Build the the 2-state annual hydroState model with `build()`. This model is the default and only requires input data. The input data can have gaps in flow or precipitation. A message will appear when gaps are in the data, but the model is still built. Handling the gaps are discussed in the `build` documentation. In order to adjust the default model, resort to the next vignette: `vignette("adjust.state.model")`. This `build()` command also accepts seasonal or monthly data if the input data contains these time-step. See vignette: `vignette("subAnnual.models")`.
 
 ```r
 default.model.annual = build(input.data = streamflow_annual_221201)
 ```
 
 ## Fit the model
-Fit the parameters of the built model with `fit.hydroState`. This calibrates the model parameters through maximum likelihood estimation by minimizing the negative log-likelihood. For more details on the likelihood function, refer to `fit.hydroState` documentation. The calibration procedure optimizes the model parameters using the [DEoptim](https://github.com/ArdiaD/DEoptim) R-package. When `fit.hydroState` is initiated, the output prints the initial negative log-likelihood value from the initial parameters, and the calibration settings. Every 25 iterations, the best set of parameter values, _bestmemit_, and lowest negative log-likelihood, _bestvalit_, are printed to the console. It will take a few seconds to completely calibrate the model. When calibration reaches the maximum number of generations, it is recommended to increase `max.generations`.
+Fit the parameters of the built model with `fit.hydroState()`. This calibrates the model parameters through maximum likelihood estimation by minimizing the negative log-likelihood. For more details on the likelihood function, refer to `fit.hydroState` documentation. The calibration procedure optimizes the model parameters using the [DEoptim](https://github.com/ArdiaD/DEoptim) R-package. When `fit.hydroState` is initiated, the output prints the initial negative log-likelihood value from the initial parameters, and the calibration settings. Every 25 iterations, the best set of parameter values, _bestmemit_, and lowest negative log-likelihood, _bestvalit_, are printed to the console. It will take a few seconds to completely calibrate the model. When calibration reaches the maximum number of generations, it is recommended to increase `max.generations`.
 
 ```r
 default.model.annual = fit.hydroState(default.model.annual, pop.size.perParameter = 10, max.generations = 500)
@@ -80,7 +74,7 @@ default.model.annual = fit.hydroState(default.model.annual, pop.size.perParamete
 ```
 
 ## Review the residuals
-Review the model's residuals from figures using `plot` to ensure they are uniform and normally distributed with no trends or auto-correlation. A large plot with five figures (A-E) is produced and the check for each is discussed below. There is also an option to export the plot as a PDF with `do.pdf = T` and label plots with the site ID (i.e. `ID = 221201`). Alternatively, the residuals can be reviewed without plotting using `get.residuals` which returns a data frame of the normal pseudo residuals at each time-step. If the residuals of the fitted model do not meet these checks below, consider adjusting the model as discussed in the next vignette ([adjust.state.model](https://github.com/peterson-tim-j/HydroState/tree/master/vignettes/adjust.state.model/adjust.state.model.html)).
+Review the model's residuals from figures using `plot()` to ensure they are uniform and normally distributed with no trends or auto-correlation. A large plot with five figures (A-E) is produced and the check for each is discussed below. There is also an option to export the plot as a PDF with `do.pdf = T` and label plots with the site ID (i.e. `ID = 221201`). Alternatively, the residuals can be reviewed without plotting using `get.residuals()` which returns a data frame of the normal pseudo residuals at each time-step. If the residuals of the fitted model do not meet these checks below, consider adjusting the model as discussed in the next vignette ([adjust.state.model](https://github.com/peterson-tim-j/HydroState/tree/master/vignettes/adjust.state.model/adjust.state.model.html)).
 
 A)  Time-series of normal-pseudo residuals to ensure the residuals each year are within the confidence intervals.
 B)  Auto-correlation function (ACF) of normal-pseudo residuals to ensure there is no serial correlation in residuals. Lag spikes should be below confidence interval at each lag (except 0).
@@ -104,7 +98,7 @@ model.residuals = get.residuals(default.model.annual)
 
 
 ## Evaluate the state-shifts
-Set the state names relative to a year in the record using `setInitialYear`. This provides a name for the states so they are easier to interpret in the following figures. Then plot the state-shifts overtime using `plot`. In this example, 1990 is chosen as the year of reference, but any year can be selected as the reference year. All four plots within the function are shown here, but either plot or combination of plots can be selected, see `plot` in the [hydroState user manual](https://github.com/peterson-tim-j/HydroState/hydroState.pdf). Alternatively, the states can be reviewed without plotting using `get.states` which returns a data frame of states at each time-step.
+Set the state names relative to a year in the record using `setInitialYear`. This provides a name for the states so they are easier to interpret in the following figures. Then plot the state-shifts overtime using `plot`. In this example, 1990 is chosen as the year of reference, but any year can be selected as the reference year. All four plots within the function are shown here, but either plot or combination of plots can be selected, see `plot()` in the [hydroState user manual](https://github.com/peterson-tim-j/HydroState/hydroState.pdf). Alternatively, the states can be reviewed without plotting using `get.states` which returns a data frame of states at each time-step.
 
 ```r
 # set the reference year to name the states

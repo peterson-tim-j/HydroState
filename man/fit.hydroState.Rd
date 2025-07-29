@@ -61,7 +61,7 @@ model = build(input.data = streamflow_annual_221201)
 \dontrun{
 model = fit.hydroState(model)
 }
-## Fit all built models
+## Fit all built models (will take hours to run)
 \dontrun{
 
 # Load data
@@ -74,10 +74,6 @@ all.annual.models = build.all(input.data = streamflow_annual_221201, siteID = '2
 all.annual.models = fit.hydroState(all.annual.models)
 
 }
-
-
-
-
 
 }
 \keyword{fit}

@@ -1,4 +1,4 @@
-#' get Seasons
+#' Get seasons
 #'
 #' \code{get.seasons}
 #'
@@ -6,7 +6,7 @@
 #' Aggregates monthly data to 4 seasons in a year.
 #'
 #' @details
-#' Sets 4 seasons
+#' This function takes sums monthly runoff and precipitation observations into 4 seasons of a year.
 #'
 #' @param input.data dataframe of monthly runoff and precipitation observations. Gaps with missing data in either streamflow or precipitation are permitted, and the handling of them is further discussed in \code{build}. Monthly data is required when using \code{seasonal.parameters} that assumes selected model parameters are better defined with a sinusoidal function.
 #'
@@ -485,7 +485,7 @@ select.Markov <- function(flickering = FALSE,
 
 }
 
-#'Builds hydroState model object
+#' Builds hydroState model
 #'
 #' \code{build}
 #'
@@ -1040,7 +1040,7 @@ build.all <-function(input.data = data.frame(year=c(), flow=c(), precip=c()),
 
 }
 
-#'Summarize all models
+#' Summarize all models
 #'
 #'\code{summary}
 #'
@@ -1086,7 +1086,7 @@ summary.hydroState.allModels <- function(object, ...){
 }
 
 
-#'Fit hydroState model
+#' Fit hydroState model
 #'
 #' \code{fit.hydroState}
 #'
@@ -1117,7 +1117,6 @@ summary.hydroState.allModels <- function(object, ...){
 #' @param pop.size.perParameter integer that should be greater than or equal to the number of parameters in the model. The default is '10' and is sufficient for all models.
 #' @param max.generations integer that will stop the optimizer when set number of generations are reached. The default is '500'.
 #' @param doParallel TRUE/FALSE to perform fitting in parallel on all computer cores. Default is FALSE
-# @param ... additional calibration settings to pass.
 #'
 #' @return
 #' A fitted hydroState model
@@ -1132,7 +1131,6 @@ summary.hydroState.allModels <- function(object, ...){
 #' @import stats
 #' @import truncnorm
 #' @importFrom utils relist
-# @importMethodsFrom methods fit
 #'
 #'
 #'
@@ -1148,7 +1146,7 @@ summary.hydroState.allModels <- function(object, ...){
 #' \dontrun{
 #' model = fit.hydroState(model)
 #' }
-#' ## Fit all built models
+#' ## Fit all built models (will take hours to run)
 #' \dontrun{
 #'
 #' # Load data
@@ -1162,10 +1160,7 @@ summary.hydroState.allModels <- function(object, ...){
 #'
 #' }
 #'
-#'
-#'
-#'
-#'
+
 fit.hydroState <- function(model,
                 pop.size.perParameter = 10,
                 max.generations = 500,
@@ -1204,121 +1199,10 @@ fit.hydroState <- function(model,
   stop("Invalid model class. Expecting 'hydroState', 'hydroState.allModels', or 'hydroState.subAnnual.allModels'.")
 }
 
-# fit <- function(model,
-#                   pop.size.perParameter = 10,
-#                   max.generations = 500,
-#                   doParallel = F,...){
-#
-#
-#   # Validate
-#   if(class(model)[1] == "hydroState"){
-#
-#     if(doParallel == T){
-#
-#       if (methods::is(model, "hydroState")) {
-#
-#         return(methods::selectMethod("fit", signature = "hydroState")(model,
-#                    DEstrategy=3,
-#                    pop.size.perParameter = pop.size.perParameter,
-#                    max.generations=max.generations,
-#                    Domains = NA,
-#                    reltol=1e-8,
-#                    steptol=50,
-#                    print.iterations = 25,
-#                    use.initial.parameters=F,
-#                    doParallel = T))
-#       } else {
-#         stop("Invalid model class.")
-#       }
-#
-#     }else{
-#
-#       if (methods::is(model, "hydroState")) {
-#
-#         return(methods::selectMethod("fit", signature = "hydroState")(model,
-#                    DEstrategy=3,
-#                    pop.size.perParameter = pop.size.perParameter,
-#                    max.generations=max.generations,
-#                    Domains = NA,
-#                    reltol=1e-8,
-#                    steptol=50,
-#                    print.iterations = 25,
-#                    use.initial.parameters=F,
-#                    doParallel = F))
-#       } else {
-#         stop("Invalid model class.")
-#       }
-#     }
-#
-#   }else if(class(model)[1] == "hydroState.allModels"){
-#
-#     if(doParallel == T){
-#
-#       if (methods::is(model, "hydroState.allModels")) {
-#
-#         return(methods::selectMethod("fit", signature = "hydroState.allModels")(model,
-#                  DEstrategy=3,
-#                  pop.size.perParameter = pop.size.perParameter,
-#                  max.generations=10000,
-#                  Domains = NA,
-#                  reltol=1e-8,
-#                  steptol=50,
-#                  print.iterations = 25,
-#                  use.initial.parameters=F,
-#                  doParallel = T))
-#       } else {
-#         stop("Invalid model class.")
-#       }
-#
-#     }else{
-#
-#       if (methods::is(model, "hydroState.allModels")) {
-#
-#         return(methods::selectMethod("fit", signature = "hydroState.allModels")(model,
-#                    DEstrategy=3,
-#                    pop.size.perParameter = pop.size.perParameter,
-#                    max.generations=10000,
-#                    Domains = NA,
-#                    reltol=1e-8,
-#                    steptol=50,
-#                    print.iterations = 25,
-#                    use.initial.parameters=F,
-#                    doParallel = F))
-#     } else {
-#       stop("Invalid model class.")
-#     }
-#
-#     }
-#
-#   }else if(class(model)[1] == "hydroState.subAnnual.allModels"){
-#
-#     if (methods::is(model, "hydroState.subAnnual.allModels")) {
-#
-#     return(methods::selectMethod("fit", signature = "hydroState.allModels")(model,
-#                DEstrategy=3,
-#                pop.size.perParameter = pop.size.perParameter,
-#                max.generations=10000,
-#                Domains = NA,
-#                reltol=1e-8,
-#                steptol=50,
-#                print.iterations = 25,
-#                use.initial.parameters=F,
-#                doParallel = T))
-#   } else {
-#     stop("Invalid model class.")
-#   }
-#
-#   }else{
-#
-#
-#     stop('model is not an appropriate class. Please ensure input model is a built hydroState model with the class as either of the following: "hydroState", "hydroState.allModels", or "hydroState.subAnnual.allModels"')
-#
-#   }
-#
-# }
 
 
-#'get AIC
+
+#' Get AIC
 #'
 #' \code{get.AIC}
 #'
@@ -1372,7 +1256,7 @@ get.AIC <- function(model){
 
 
 
-#'Get residuals
+#' Get pseudo residuals
 #'
 #' \code{get.residuals}
 #'
@@ -1456,7 +1340,7 @@ setInitialYear <- function(model, initial.year){ #make go to first year of dataf
 }
 
 
-#'plot
+#' Plot states over time or pseudo residuals
 #'
 #' \code{plot}
 #'
@@ -1798,7 +1682,7 @@ plot.hydroState <- function(x, ...,
 
 }
 
-#'get states
+#' Get states
 #'
 #' \code{get.states}
 #'
@@ -1848,7 +1732,7 @@ get.states <- function(model){
 
 }
 
-#'Check Model
+#' Check reliability of state predictions
 #'
 #' \code{check}
 #'
@@ -1870,7 +1754,7 @@ get.states <- function(model){
 #' @export check
 #'
 #' @examples
-#' ## Check fitted model
+#' ## Check reliability of state predictions
 #' check(model = model.annual.fitted.221201)
 #'
 

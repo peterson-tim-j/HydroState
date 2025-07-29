@@ -2,7 +2,7 @@
 % Please edit documentation in R/wrapper.R
 \name{get.states}
 \alias{get.states}
-\title{get states}
+\title{Get states}
 \usage{
 get.states(model)
 }

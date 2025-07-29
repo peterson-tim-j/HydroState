@@ -20,7 +20,6 @@ A data.frame with a summary table of all models and reference models
 \details{
 \code{summary}
 
-
 For every model object in \code{build.all}, there is a reference model for calibration. The reference model is a slightly simpler model with one less parameter. During calibration with \code{fit}, the model performance must exceed the the performance of the reference model else the model is rejected. This function is used to output the \code{summary.table} and adjust the reference models. Afterwards, all models can be re-build with including this \code{summary.table} in the \code{build.all} function.
 }
 \examples{
