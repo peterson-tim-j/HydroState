@@ -1,5 +1,5 @@
 ##' @include abstracts.R parameters.R
-##' @export
+## @export
 Qhat.log <- setClass(
   # Set the name for the class
   "Qhat.log",

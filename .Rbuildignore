@@ -1,2 +1,17 @@
 ^.*\.Rproj$
+^\.Rproj.user$
+.Rd2pdf15704
+.Rd2pdf17628
+.Rd2pdf26092
+.Rd2pdf26568
+.Rd2pdf28108
+Build_commands_hydroState.R
+hydroState.pdf
+vignette
+^_pkgdown\.yml$
+^docs$
+^pkgdown$
+^\.RData$
+^\.vscode$
+^\.DS_Store$
 ^\.Rproj\.user$

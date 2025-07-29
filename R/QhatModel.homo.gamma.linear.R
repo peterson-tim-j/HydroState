@@ -1,5 +1,5 @@
 ##' @include abstracts.R QhatModel.homo.normal.linear.R
-##' @export
+## @export
 QhatModel.homo.gamma.linear <- setClass(
   # Set the name for the class
   "QhatModel.homo.gamma.linear",
@@ -10,7 +10,8 @@ QhatModel.homo.gamma.linear <- setClass(
 
     # Set the default values for the slots. (optional)
   prototype=list(
-    input.data = data.frame(year=c(0),month=c(0),precipitation=c(0)),
+    input.data = data.frame(),
+    precip.delta = data.frame(),
     nStates = Inf,
     use.truncated.dist=F,
     parameters = new('parameters',c('mean.a0', 'mean.a1','std.a0'),c(1,1,1))
@@ -28,6 +29,9 @@ setValidity("QhatModel.homo.gamma.linear", validObject)
 #setGeneric(name="initialize",def=function(.Object,input.data){standardGeneric("initialize")})
 setMethod("initialize","QhatModel.homo.gamma.linear", function(.Object, input.data, transition.graph=matrix(T,2,2),state.dependent.mean.a0=T,
                                                                       state.dependent.mean.a1=F, state.dependent.mean.trend=NA,state.dependent.std.a0=T) {
+
+  .Object@input.data <- input.data
+  .Object@precip.delta = getStartEndIndex(input.data) # for precipitation / independent variable
   .Object@use.truncated.dist <- F
   .Object@nStates = ncol(transition.graph)
 
@@ -90,6 +94,7 @@ setMethod(f="getDistributionPercentiles",
 )
 
 # Get transition matrix with no input data.
+# @exportMethod getEmissionDensity
 setMethod(f="getEmissionDensity",
           signature=c("QhatModel.homo.gamma.linear","data.frame"),
           definition=function(.Object, data, cumProb.threshold.Qhat)
@@ -105,6 +110,8 @@ setMethod(f="getEmissionDensity",
             # Get the Burr mean, dispersion and familty parameters.
             markov.mean = getMean(.Object, data)
             markov.variance = getVariance(.Object, data)
+
+            # If mean equal INF return, P = 0
 
             # Limit mean to >0
             filt = is.finite(markov.mean) & markov.mean <= sqrt(.Machine$double.eps)*1000
@@ -142,8 +149,11 @@ setMethod(f="getEmissionDensity",
                 }
               }
             } else {
-                for (i in 1:.Object@nStates) {
-                  P[,i] <- dgamma(data$Qhat.flow, shape=markov.shape[,i], scale=markov.scale[,i])
+                for (i in 1:.Object@nStates){#tryCatch({
+
+                  # tt <- tryCatch(x(5),error=function(e) e, warning=function(w) w)
+                  # print(paste("start ",(dgamma(data$Qhat.flow, shape=markov.shape[,i], scale=markov.scale[,i]))[,1:5],sep=""))
+                  P[,i] <- suppressWarnings(dgamma(data$Qhat.flow, shape=markov.shape[,i], scale=markov.scale[,i]))#},warning = function(s){message('AR parameters not stationary')})
                 }
             }
 

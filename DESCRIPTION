@@ -1,19 +1,27 @@
 Package: hydroState
 Title: Hidden Markov Modelling of hydrological state change
-Version: 0.1.0.2
+Version: 0.2.0.0
 Authors@R: c(
-    person("Tim", "Peterson", email = "tim.peterson@monash.edu", role = c("aut", "cre"), comment = c(ORCID = "0000-0002-1885-0826"))) 
+    person("Tim", "Peterson", email = "tim.peterson@monash.edu", role = c("aut", "cre"), comment = c(ORCID = "0000-0002-1885-0826")),
+    person("Thomas", "Westfall", email = "thomas.westfall1@monash.edu", role = "aut", comment = c(ORCID = "0009-0000-0529-881X"))) 
 Maintainer: Tim Peterson <tim.peterson@monash.edu>
-Depends: R (>= 3.4.2)
-Description: HydroState idenifies regime changes in streamflow runoff nor explained by varioations in precipitation. The package allows a flexible set of Hidden Markov Models of annual, seasonal or monthly streamflow runoff to be built that includes precipitation as a predictor of runoff. Suites of models can be build for a single site, ranging from from one to three states can be build and each with differing combinations of error models and auto-correlation terms, allowing the most parsimineous model (by AIC) to easily be idenified. The entire package is written in R S4 object oriented code. See Peterson TJ, Saft M, Peel MC & John A (2021), Watersheds may not recover from drought, Science, DOI: 10.1126/science.abd5085
-Imports: DEoptim, sn, truncnorm, diagram
+Depends: R (>= 3.5.0)
+Description: HydroState identifies regime changes in streamflow runoff not explained by variations in precipitation. The package builds a flexible set of Hidden Markov Models of annual, seasonal or monthly streamflow runoff with precipitation as a predictor. Suites of models can be built for a single site, ranging from one to three states and each with differing combinations of error models and auto-correlation terms. The most parsimonious model is easily identified by AIC. The entire package is written in R S4 object oriented code, but is accesible with specific functions and vignettes for users. See Peterson TJ, Saft M, Peel MC & John A (2021), Watersheds may not recover from drought, Science, DOI: 10.1126/science.abd5085.
+Imports: methods, DEoptim, sn, truncnorm, diagram, padr, zoo, graphics, checkmate
 BugReports: https://github.com/peterson-tim-j/HydroState/issues
 URL: https://github.com/peterson-tim-j/HydroState
 License: GPL-3
 Encoding: UTF-8
 LazyData: true
-RoxygenNote: 7.1.0
+RoxygenNote: 7.3.1
+Roxygen: list(markdown = TRUE)
 ByteCompile: true
+Suggests: 
+    knitr,
+    rmarkdown,
+    testthat (>= 3.0.0)
+Config/testthat/edition: 3
+VignetteBuilder: knitr
 Collate: 
     'abstracts.R'
     'parameters.R'
@@ -37,8 +45,11 @@ Collate:
     'QhatModel.subAnnual.homo.gamma.linear.AR1.R'
     'QhatModel.subAnnual.homo.gamma.linear.AR2.R'
     'QhatModel.subAnnual.homo.gamma.linear.AR3.R'
+    'RhatModel.homo.normal.linear.R'
+    'hydroState-package.R'
     'markov.annualHomogeneous.R'
     'hydroState.R'
     'hydroState.allModels.R'
     'hydroState.subAnnual.allModels.R'
     'markov.annualHomogeneous.flickering.R'
+    'wrapper.R'

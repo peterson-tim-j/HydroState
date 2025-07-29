@@ -1,5 +1,5 @@
 ##' @include abstracts.R QhatModel.homo.normal.linear.R
-##' @export
+## @export
 QhatModel.homo.normal.linear.AR2 <- setClass(
   # Set the name for the class
   "QhatModel.homo.normal.linear.AR2",
@@ -28,6 +28,7 @@ setMethod("initialize","QhatModel.homo.normal.linear.AR2", function(.Object, inp
                                                                     state.dependent.mean.AR1=F, state.dependent.mean.AR2=F,
                                                                     state.dependent.std.a0=T) {
   .Object@input.data <- input.data
+  .Object@precip.delta =getStartEndIndex(input.data)
   .Object@use.truncated.dist = use.truncated.dist
   .Object@nStates = ncol(transition.graph)
 
@@ -81,11 +82,20 @@ setMethod(f="is.stationary",signature=c("QhatModel.homo.normal.linear.AR2"),defi
 
 setMethod(f="getMean",signature=c("QhatModel.homo.normal.linear.AR2","data.frame"),definition=function(.Object, data)
         {
-          return(getMean.AR2(.Object, data))
+
+
+        Qhat.model.NAs = matrix(NA,NROW(data),.Object@nStates)
+
+        for(i in 1:NROW(.Object@precip.delta)){
+          Qhat.model.NAs[.Object@precip.delta[i,1]:.Object@precip.delta[i,2],] = getMean.AR2(.Object, data[.Object@precip.delta[i,1]:.Object@precip.delta[i,2],])
+        }
+
+          return(Qhat.model.NAs)
         }
 )
 
 # Calculate the transformed flow at the mean annual precip
+# @exportMethod getMean.AR2
 setGeneric(name="getMean.AR2",def=function(.Object, data) {standardGeneric("getMean.AR2")})
 setMethod(f="getMean.AR2",signature=c("QhatModel.homo.normal.linear.AR2","data.frame"),definition=function(.Object, data)
           {
@@ -129,12 +139,12 @@ setMethod(f="getMean.AR2",signature=c("QhatModel.homo.normal.linear.AR2","data.f
             }
             if (ncols.AR1==1 || ncols.AR1 ==.Object@nStates) {
               AR1.est = matrix(rep(parameters$mean.AR1,each=nrows),nrows,.Object@nStates);
-            } else if (mean.AR1<.Object@nStates) {
+            } else if (ncols.AR1<.Object@nStates) {
               stop(paste('The number of parameters for the AR1 term of the mean model must must equal 1 or the number of states of ',.Object@nStates))
             }
             if (ncols.AR2==1 || ncols.AR2 ==.Object@nStates) {
               AR2.est = matrix(rep(parameters$mean.AR2,each=nrows),nrows,.Object@nStates);
-            } else if (mean.AR2<.Object@nStates) {
+            } else if (ncols.AR2<.Object@nStates) {
               stop(paste('The number of parameters for the AR2 term of the mean model must must equal 1 or the number of states of ',.Object@nStates))
             }
             if (ncols.trend==1 || ncols.trend==.Object@nStates) {
@@ -148,7 +158,7 @@ setMethod(f="getMean.AR2",signature=c("QhatModel.homo.normal.linear.AR2","data.f
 
             # Calculate the mean with the AR1 componants
             a0.est <- 100 * a0.est
-            Qhat.model <- matrix(0, nrows, .Object@nStates)
+            Qhat.model <- matrix(NA, nrows, .Object@nStates)
             Qhat.model[1,] <- precip.data[1,] * a1.est[1,] + a0.est[1,] + time.vals[1,] * trend.est[1,]
             Qhat.model[2,] <- precip.data[2,] * a1.est[2,] + a0.est[2,] + Qhat.model[1,] * AR1.est[2,] + time.vals[2,] * trend.est[2,]
             for (i in 3:nrows) {

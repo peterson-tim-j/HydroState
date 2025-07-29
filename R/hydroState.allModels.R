@@ -1,17 +1,20 @@
 ##' @include hydroState.R
-##' @export
+## @export
 hydroState.allModels <- setClass(
   # Set the name for the class
   "hydroState.allModels",
 
   package='hydroState',
 
+  # contains=c('hydroState'),
+
   # Define the slots
   slots = c(
     siteID= 'character',
     calib.reference.model.name = 'list',
     calib.reference.criteria.met = 'logical',
-    models = 'list'
+    models = 'list',
+    models.summary = 'data.frame'
 
   ),
 
@@ -20,7 +23,8 @@ hydroState.allModels <- setClass(
     siteID = '(not set)',
     calib.reference.model.name= vector('list',1),
     calib.reference.criteria.met= vector('logical',1),
-    models  = vector('list',1)
+    models  = vector('list',1),
+    models.summary = data.frame()
   )
 )
 
@@ -31,263 +35,415 @@ validObject <- function(object) {
 setValidity("hydroState.allModels", validObject)
 
 # Initialise the object.
-#setGeneric(name="initialize",def=function(.Object,input.data, Qhat.object, QhatModel.object, markov.model.object, ...){standardGeneric("initialize")})
-setMethod(f="initialize",signature="hydroState.allModels",definition=function(.Object, siteID, input.data, allow.flickering=F, state.dependent.mean.trend=NA)
-{
+# setGeneric(name="initialize",def=function(.Object, ...){standardGeneric("initialize")})
+setMethod(f="initialize",signature="hydroState.allModels",definition=function(.Object, models, siteID)
+  {
+
 
   .Object@siteID <- siteID
 
-  # Define transition graphs
-  transition.graph.1State <- matrix(TRUE,1,1)
-  transition.graph.2State <- matrix(TRUE,2,2)
-  transition.graph.3State.unstructured <- matrix(TRUE,3,3)
-  transition.graph.3State <- matrix(TRUE,3,3)
-  transition.graph.3State[1,3] <- FALSE
-  transition.graph.3State[2,1] <- FALSE
-  transition.graph.3State[3,2] <- FALSE
-
-  # Build Qhat flow transform objects.
-  Qhat.boxcox = new('Qhat.boxcox', input.data=input.data)
-  Qhat.log = new('Qhat.log', input.data=input.data)
-
-  # Check if flickering between states is allows
-  model.extension=''
-  if (allow.flickering) {
-    model.extension.markov = '.flickering'
-  } else {
-    model.extension.markov = ''
-  }
-
-  # Build Qhat models
-  QhatModel.1State = new(paste('QhatModel.homo.normal.linear',model.extension,sep=''), input.data=input.data,state.dependent.mean.trend=state.dependent.mean.trend,  transition.graph=transition.graph.1State)
-  QhatModel.1State.AR1 = new(paste('QhatModel.homo.normal.linear.AR1',model.extension,sep=''), input.data=input.data,state.dependent.mean.trend=state.dependent.mean.trend,  transition.graph=transition.graph.1State)
-  QhatModel.1State.AR2 = new(paste('QhatModel.homo.normal.linear.AR2',model.extension,sep=''), input.data=input.data,state.dependent.mean.trend=state.dependent.mean.trend,  transition.graph=transition.graph.1State)
-  QhatModel.1State.AR3 = new(paste('QhatModel.homo.normal.linear.AR3',model.extension,sep=''), input.data=input.data,state.dependent.mean.trend=state.dependent.mean.trend,  transition.graph=transition.graph.1State)
-
-  QhatModel.1State.gamma = new(paste('QhatModel.homo.gamma.linear',model.extension,sep=''), input.data=input.data,state.dependent.mean.trend=state.dependent.mean.trend,  transition.graph=transition.graph.1State)
-  QhatModel.1State.gamma.AR1 = new(paste('QhatModel.homo.gamma.linear.AR1',model.extension,sep=''), input.data=input.data,state.dependent.mean.trend=state.dependent.mean.trend,  transition.graph=transition.graph.1State)
-  QhatModel.1State.gamma.AR2 = new(paste('QhatModel.homo.gamma.linear.AR2',model.extension,sep=''), input.data=input.data,state.dependent.mean.trend=state.dependent.mean.trend,  transition.graph=transition.graph.1State)
-  QhatModel.1State.gamma.AR3 = new(paste('QhatModel.homo.gamma.linear.AR3',model.extension,sep=''), input.data=input.data,state.dependent.mean.trend=state.dependent.mean.trend,  transition.graph=transition.graph.1State)
-
-  QhatModel.2State = new(paste('QhatModel.homo.normal.linear',model.extension,sep=''), input.data=input.data,state.dependent.mean.trend=state.dependent.mean.trend,  transition.graph=transition.graph.2State)
-  QhatModel.2State.AR1 = new(paste('QhatModel.homo.normal.linear.AR1',model.extension,sep=''), input.data=input.data,state.dependent.mean.trend=state.dependent.mean.trend,  transition.graph=transition.graph.2State)
-  QhatModel.2State.AR2 = new(paste('QhatModel.homo.normal.linear.AR2',model.extension,sep=''), input.data=input.data,state.dependent.mean.trend=state.dependent.mean.trend,  transition.graph=transition.graph.2State)
-  QhatModel.2State.AR3 = new(paste('QhatModel.homo.normal.linear.AR3',model.extension,sep=''), input.data=input.data,state.dependent.mean.trend=state.dependent.mean.trend,  transition.graph=transition.graph.2State)
-
-  QhatModel.2State.gamma = new(paste('QhatModel.homo.gamma.linear',model.extension,sep=''), input.data=input.data,state.dependent.mean.trend=state.dependent.mean.trend,  transition.graph=transition.graph.2State)
-  QhatModel.2State.gamma.AR1 = new(paste('QhatModel.homo.gamma.linear.AR1',model.extension,sep=''), input.data=input.data,state.dependent.mean.trend=state.dependent.mean.trend,  transition.graph=transition.graph.2State)
-  QhatModel.2State.gamma.AR2 = new(paste('QhatModel.homo.gamma.linear.AR2',model.extension,sep=''), input.data=input.data,state.dependent.mean.trend=state.dependent.mean.trend,  transition.graph=transition.graph.2State)
-  QhatModel.2State.gamma.AR3 = new(paste('QhatModel.homo.gamma.linear.AR3',model.extension,sep=''), input.data=input.data,state.dependent.mean.trend=state.dependent.mean.trend,  transition.graph=transition.graph.2State)
-
-  QhatModel.3State = new(paste('QhatModel.homo.normal.linear',model.extension,sep=''), input.data=input.data,state.dependent.mean.trend=state.dependent.mean.trend,  transition.graph=transition.graph.3State)
-  QhatModel.3State.AR1 = new(paste('QhatModel.homo.normal.linear.AR1',model.extension,sep=''), input.data=input.data,state.dependent.mean.trend=state.dependent.mean.trend,  transition.graph=transition.graph.3State)
-  QhatModel.3State.AR2 = new(paste('QhatModel.homo.normal.linear.AR2',model.extension,sep=''), input.data=input.data,state.dependent.mean.trend=state.dependent.mean.trend,  transition.graph=transition.graph.3State)
-  QhatModel.3State.AR3 = new(paste('QhatModel.homo.normal.linear.AR3',model.extension,sep=''), input.data=input.data,state.dependent.mean.trend=state.dependent.mean.trend,  transition.graph=transition.graph.3State)
-
-  QhatModel.3State.gamma = new(paste('QhatModel.homo.gamma.linear',model.extension,sep=''), input.data=input.data,state.dependent.mean.trend=state.dependent.mean.trend,  transition.graph=transition.graph.3State)
-  QhatModel.3State.gamma.AR1 = new(paste('QhatModel.homo.gamma.linear.AR1',model.extension,sep=''), input.data=input.data,state.dependent.mean.trend=state.dependent.mean.trend,  transition.graph=transition.graph.3State)
-  QhatModel.3State.gamma.AR2 = new(paste('QhatModel.homo.gamma.linear.AR2',model.extension,sep=''), input.data=input.data,state.dependent.mean.trend=state.dependent.mean.trend,  transition.graph=transition.graph.3State)
-  QhatModel.3State.gamma.AR3 = new(paste('QhatModel.homo.gamma.linear.AR3',model.extension,sep=''), input.data=input.data,state.dependent.mean.trend=state.dependent.mean.trend,  transition.graph=transition.graph.3State)
-
-  QhatModel.3State.US = new(paste('QhatModel.homo.normal.linear',model.extension,sep=''), input.data=input.data,state.dependent.mean.trend=state.dependent.mean.trend,  transition.graph=transition.graph.3State.unstructured)
-  QhatModel.3State.US.AR1 = new(paste('QhatModel.homo.normal.linear.AR1',model.extension,sep=''), input.data=input.data,state.dependent.mean.trend=state.dependent.mean.trend,  transition.graph=transition.graph.3State.unstructured)
-  QhatModel.3State.US.AR2 = new(paste('QhatModel.homo.normal.linear.AR2',model.extension,sep=''), input.data=input.data,state.dependent.mean.trend=state.dependent.mean.trend,  transition.graph=transition.graph.3State.unstructured)
-  QhatModel.3State.US.AR3 = new(paste('QhatModel.homo.normal.linear.AR3',model.extension,sep=''), input.data=input.data,state.dependent.mean.trend=state.dependent.mean.trend,  transition.graph=transition.graph.3State.unstructured)
-
-  QhatModel.3State.US.gamma = new(paste('QhatModel.homo.gamma.linear',model.extension,sep=''), input.data=input.data,state.dependent.mean.trend=state.dependent.mean.trend,  transition.graph=transition.graph.3State.unstructured)
-  QhatModel.3State.US.gamma.AR1 = new(paste('QhatModel.homo.gamma.linear.AR1',model.extension,sep=''), input.data=input.data,state.dependent.mean.trend=state.dependent.mean.trend,  transition.graph=transition.graph.3State.unstructured)
-  QhatModel.3State.US.gamma.AR2 = new(paste('QhatModel.homo.gamma.linear.AR2',model.extension,sep=''), input.data=input.data,state.dependent.mean.trend=state.dependent.mean.trend,  transition.graph=transition.graph.3State.unstructured)
-  QhatModel.3State.US.gamma.AR3 = new(paste('QhatModel.homo.gamma.linear.AR3',model.extension,sep=''), input.data=input.data,state.dependent.mean.trend=state.dependent.mean.trend,  transition.graph=transition.graph.3State.unstructured)
-
-  # Build Markov model object
-  markov.1State = new(paste('markov.annualHomogeneous',model.extension.markov,sep=''), transition.graph=transition.graph.1State)
-  markov.2State = new(paste('markov.annualHomogeneous',model.extension.markov,sep=''), transition.graph=transition.graph.2State)
-  markov.3State = new(paste('markov.annualHomogeneous',model.extension.markov,sep=''), transition.graph=transition.graph.3State)
-  markov.3State.US = new(paste('markov.annualHomogeneous',model.extension.markov,sep=''), transition.graph=transition.graph.3State.unstructured)
-
-
-  # Build hydrostate models
-  .Object@models <- list(
-    model.1State.log = new('hydroState',    input.data=input.data, Qhat.object = Qhat.log, QhatModel.object = QhatModel.1State    , markov.model.object=markov.1State),
-    model.1State.log.AR1 = new('hydroState',input.data=input.data, Qhat.object = Qhat.log, QhatModel.object = QhatModel.1State.AR1, markov.model.object=markov.1State),
-    model.1State.log.AR2 = new('hydroState',input.data=input.data, Qhat.object = Qhat.log, QhatModel.object = QhatModel.1State.AR2, markov.model.object=markov.1State),
-    model.1State.log.AR3 = new('hydroState',input.data=input.data, Qhat.object = Qhat.log, QhatModel.object = QhatModel.1State.AR3, markov.model.object=markov.1State),
-
-    model.1State.gamma.log = new('hydroState',    input.data=input.data, Qhat.object = Qhat.log, QhatModel.object = QhatModel.1State.gamma    , markov.model.object=markov.1State),
-    model.1State.gamma.log.AR1 = new('hydroState',input.data=input.data, Qhat.object = Qhat.log, QhatModel.object = QhatModel.1State.gamma.AR1, markov.model.object=markov.1State),
-    model.1State.gamma.log.AR2 = new('hydroState',input.data=input.data, Qhat.object = Qhat.log, QhatModel.object = QhatModel.1State.gamma.AR2, markov.model.object=markov.1State),
-    model.1State.gamma.log.AR3 = new('hydroState',input.data=input.data, Qhat.object = Qhat.log, QhatModel.object = QhatModel.1State.gamma.AR3, markov.model.object=markov.1State),
-
-    model.1State.BC = new('hydroState',    input.data=input.data, Qhat.object = Qhat.boxcox, QhatModel.object = QhatModel.1State    , markov.model.object=markov.1State),
-    model.1State.BC.AR1 = new('hydroState',input.data=input.data, Qhat.object = Qhat.boxcox, QhatModel.object = QhatModel.1State.AR1, markov.model.object=markov.1State),
-    model.1State.BC.AR2 = new('hydroState',input.data=input.data, Qhat.object = Qhat.boxcox, QhatModel.object = QhatModel.1State.AR2, markov.model.object=markov.1State),
-    model.1State.BC.AR3 = new('hydroState',input.data=input.data, Qhat.object = Qhat.boxcox, QhatModel.object = QhatModel.1State.AR3, markov.model.object=markov.1State),
-
-    model.1State.gamma.BC = new('hydroState',    input.data=input.data, Qhat.object = Qhat.boxcox, QhatModel.object = QhatModel.1State.gamma    , markov.model.object=markov.1State),
-    model.1State.gamma.BC.AR1 = new('hydroState',input.data=input.data, Qhat.object = Qhat.boxcox, QhatModel.object = QhatModel.1State.gamma.AR1, markov.model.object=markov.1State),
-    model.1State.gamma.BC.AR2 = new('hydroState',input.data=input.data, Qhat.object = Qhat.boxcox, QhatModel.object = QhatModel.1State.gamma.AR2, markov.model.object=markov.1State),
-    model.1State.gamma.BC.AR3 = new('hydroState',input.data=input.data, Qhat.object = Qhat.boxcox, QhatModel.object = QhatModel.1State.gamma.AR3, markov.model.object=markov.1State),
-
-    model.2State.log = new('hydroState',    input.data=input.data, Qhat.object = Qhat.log, QhatModel.object = QhatModel.2State    , markov.model.object=markov.2State),
-    model.2State.log.AR1 = new('hydroState',input.data=input.data, Qhat.object = Qhat.log, QhatModel.object = QhatModel.2State.AR1, markov.model.object=markov.2State),
-    model.2State.log.AR2 = new('hydroState',input.data=input.data, Qhat.object = Qhat.log, QhatModel.object = QhatModel.2State.AR2, markov.model.object=markov.2State),
-    model.2State.log.AR3 = new('hydroState',input.data=input.data, Qhat.object = Qhat.log, QhatModel.object = QhatModel.2State.AR3, markov.model.object=markov.2State),
-
-    model.2State.gamma.log = new('hydroState',    input.data=input.data, Qhat.object = Qhat.log, QhatModel.object = QhatModel.2State.gamma    , markov.model.object=markov.2State),
-    model.2State.gamma.log.AR1 = new('hydroState',input.data=input.data, Qhat.object = Qhat.log, QhatModel.object = QhatModel.2State.gamma.AR1, markov.model.object=markov.2State),
-    model.2State.gamma.log.AR2 = new('hydroState',input.data=input.data, Qhat.object = Qhat.log, QhatModel.object = QhatModel.2State.gamma.AR2, markov.model.object=markov.2State),
-    model.2State.gamma.log.AR3 = new('hydroState',input.data=input.data, Qhat.object = Qhat.log, QhatModel.object = QhatModel.2State.gamma.AR3, markov.model.object=markov.2State),
-
-    model.2State.BC = new('hydroState',    input.data=input.data, Qhat.object = Qhat.boxcox, QhatModel.object = QhatModel.2State    , markov.model.object=markov.2State),
-    model.2State.BC.AR1 = new('hydroState',input.data=input.data, Qhat.object = Qhat.boxcox, QhatModel.object = QhatModel.2State.AR1, markov.model.object=markov.2State),
-    model.2State.BC.AR2 = new('hydroState',input.data=input.data, Qhat.object = Qhat.boxcox, QhatModel.object = QhatModel.2State.AR2, markov.model.object=markov.2State),
-    model.2State.BC.AR3 = new('hydroState',input.data=input.data, Qhat.object = Qhat.boxcox, QhatModel.object = QhatModel.2State.AR3, markov.model.object=markov.2State),
-
-    model.2State.gamma.BC = new('hydroState',    input.data=input.data, Qhat.object = Qhat.boxcox, QhatModel.object = QhatModel.2State.gamma    , markov.model.object=markov.2State),
-    model.2State.gamma.BC.AR1 = new('hydroState',input.data=input.data, Qhat.object = Qhat.boxcox, QhatModel.object = QhatModel.2State.gamma.AR1, markov.model.object=markov.2State),
-    model.2State.gamma.BC.AR2 = new('hydroState',input.data=input.data, Qhat.object = Qhat.boxcox, QhatModel.object = QhatModel.2State.gamma.AR2, markov.model.object=markov.2State),
-    model.2State.gamma.BC.AR3 = new('hydroState',input.data=input.data, Qhat.object = Qhat.boxcox, QhatModel.object = QhatModel.2State.gamma.AR3, markov.model.object=markov.2State),
-
-    model.3State.log = new('hydroState',    input.data=input.data, Qhat.object = Qhat.log, QhatModel.object = QhatModel.3State    , markov.model.object=markov.3State),
-    model.3State.log.AR1 = new('hydroState',input.data=input.data, Qhat.object = Qhat.log, QhatModel.object = QhatModel.3State.AR1, markov.model.object=markov.3State),
-    model.3State.log.AR2 = new('hydroState',input.data=input.data, Qhat.object = Qhat.log, QhatModel.object = QhatModel.3State.AR2, markov.model.object=markov.3State),
-    model.3State.log.AR3 = new('hydroState',input.data=input.data, Qhat.object = Qhat.log, QhatModel.object = QhatModel.3State.AR3, markov.model.object=markov.3State),
-    #
-    model.3State.gamma.log = new('hydroState',    input.data=input.data, Qhat.object = Qhat.log, QhatModel.object = QhatModel.3State.gamma    , markov.model.object=markov.3State),
-    model.3State.gamma.log.AR1 = new('hydroState',input.data=input.data, Qhat.object = Qhat.log, QhatModel.object = QhatModel.3State.gamma.AR1, markov.model.object=markov.3State),
-    model.3State.gamma.log.AR2 = new('hydroState',input.data=input.data, Qhat.object = Qhat.log, QhatModel.object = QhatModel.3State.gamma.AR2, markov.model.object=markov.3State),
-    model.3State.gamma.log.AR3 = new('hydroState',input.data=input.data, Qhat.object = Qhat.log, QhatModel.object = QhatModel.3State.gamma.AR3, markov.model.object=markov.3State),
-
-    model.3State.BC = new('hydroState',    input.data=input.data, Qhat.object = Qhat.boxcox, QhatModel.object = QhatModel.3State    , markov.model.object=markov.3State),
-    model.3State.BC.AR1 = new('hydroState',input.data=input.data, Qhat.object = Qhat.boxcox, QhatModel.object = QhatModel.3State.AR1, markov.model.object=markov.3State),
-    model.3State.BC.AR2 = new('hydroState',input.data=input.data, Qhat.object = Qhat.boxcox, QhatModel.object = QhatModel.3State.AR2, markov.model.object=markov.3State),
-    model.3State.BC.AR3 = new('hydroState',input.data=input.data, Qhat.object = Qhat.boxcox, QhatModel.object = QhatModel.3State.AR3, markov.model.object=markov.3State),
-    #
-    model.3State.gamma.BC = new('hydroState',    input.data=input.data, Qhat.object = Qhat.boxcox, QhatModel.object = QhatModel.3State.gamma    , markov.model.object=markov.3State),
-    model.3State.gamma.BC.AR1 = new('hydroState',input.data=input.data, Qhat.object = Qhat.boxcox, QhatModel.object = QhatModel.3State.gamma.AR1, markov.model.object=markov.3State),
-    model.3State.gamma.BC.AR2 = new('hydroState',input.data=input.data, Qhat.object = Qhat.boxcox, QhatModel.object = QhatModel.3State.gamma.AR2, markov.model.object=markov.3State),
-    model.3State.gamma.BC.AR3 = new('hydroState',input.data=input.data, Qhat.object = Qhat.boxcox, QhatModel.object = QhatModel.3State.gamma.AR3, markov.model.object=markov.3State),
-
-    model.3StateUS.log = new('hydroState',    input.data=input.data, Qhat.object = Qhat.log, QhatModel.object = QhatModel.3State    , markov.model.object=markov.3State.US),
-    model.3StateUS.log.AR1 = new('hydroState',input.data=input.data, Qhat.object = Qhat.log, QhatModel.object = QhatModel.3State.AR1, markov.model.object=markov.3State.US),
-    model.3StateUS.log.AR2 = new('hydroState',input.data=input.data, Qhat.object = Qhat.log, QhatModel.object = QhatModel.3State.AR2, markov.model.object=markov.3State.US),
-    model.2StateUS.log.AR3 = new('hydroState',input.data=input.data, Qhat.object = Qhat.log, QhatModel.object = QhatModel.3State.AR3, markov.model.object=markov.3State.US),
-
-    model.3StateUS.gamma.log = new('hydroState',    input.data=input.data, Qhat.object = Qhat.log, QhatModel.object = QhatModel.3State.gamma    , markov.model.object=markov.3State.US),
-    model.3StateUS.gamma.log.AR1 = new('hydroState',input.data=input.data, Qhat.object = Qhat.log, QhatModel.object = QhatModel.3State.gamma.AR1, markov.model.object=markov.3State.US),
-    model.3StateUS.gamma.log.AR2 = new('hydroState',input.data=input.data, Qhat.object = Qhat.log, QhatModel.object = QhatModel.3State.gamma.AR2, markov.model.object=markov.3State.US),
-    model.3StateUS.gamma.log.AR3 = new('hydroState',input.data=input.data, Qhat.object = Qhat.log, QhatModel.object = QhatModel.3State.gamma.AR3, markov.model.object=markov.3State.US),
-    #
-    model.3StateUS.BC = new('hydroState',    input.data=input.data, Qhat.object = Qhat.boxcox, QhatModel.object = QhatModel.3State    , markov.model.object=markov.3State.US),
-    model.3StateUS.BC.AR1 = new('hydroState',input.data=input.data, Qhat.object = Qhat.boxcox, QhatModel.object = QhatModel.3State.AR1, markov.model.object=markov.3State.US),
-    model.3StateUS.BC.AR2 = new('hydroState',input.data=input.data, Qhat.object = Qhat.boxcox, QhatModel.object = QhatModel.3State.AR2, markov.model.object=markov.3State.US),
-    model.3StateUS.BC.AR3 = new('hydroState',input.data=input.data, Qhat.object = Qhat.boxcox, QhatModel.object = QhatModel.3State.AR3, markov.model.object=markov.3State.US),
-    #
-    model.3StateUS.gamma.BC = new('hydroState',    input.data=input.data, Qhat.object = Qhat.boxcox, QhatModel.object = QhatModel.3State.gamma    , markov.model.object=markov.3State.US),
-    model.3StateUS.gamma.BC.AR1 = new('hydroState',input.data=input.data, Qhat.object = Qhat.boxcox, QhatModel.object = QhatModel.3State.gamma.AR1, markov.model.object=markov.3State.US),
-    model.3StateUS.gamma.BC.AR2 = new('hydroState',input.data=input.data, Qhat.object = Qhat.boxcox, QhatModel.object = QhatModel.3State.gamma.AR2, markov.model.object=markov.3State.US),
-    model.3StateUS.gamma.BC.AR3 = new('hydroState',input.data=input.data, Qhat.object = Qhat.boxcox, QhatModel.object = QhatModel.3State.gamma.AR3, markov.model.object=markov.3State.US)
-
-  )
-
-  # Define Refernce models. That is, the calibration obecjive function that this models needs to meet or exceed.
-  .Object@calib.reference.model.name <- list(
-    model.1State.log = '',
-    model.1State.log.AR1 = 'model.1State.log',
-    model.1State.log.AR2 = 'model.1State.log.AR1',
-    model.1State.log.AR3 = 'model.1State.log.AR2',
-
-    model.1State.gamma.log = 'model.1State.log',
-    model.1State.gamma.log.AR1 = 'model.1State.gamma.log',
-    model.1State.gamma.log.AR2 = 'model.1State.gamma.log.AR1',
-    model.1State.gamma.log.AR3 = 'model.1State.gamma.log.AR2',
-
-    model.1State.BC = 'model.1State.log',
-    model.1State.BC = '',
-    model.1State.BC.AR1 = 'model.1State.BC',
-    model.1State.BC.AR2 = 'model.1State.BC.AR1',
-    model.1State.BC.AR3 = 'model.1State.BC.AR2',
-
-    model.1State.gamma.BC = 'model.1State.BC',
-    model.1State.gamma.BC.AR1 = 'model.1State.gamma.BC',
-    model.1State.gamma.BC.AR2 = 'model.1State.gamma.BC.AR1',
-    model.1State.gamma.BC.AR3 = 'model.1State.gamma.BC.AR2',
-
-    model.2State.log = 'model.1State.log',
-    model.2State.log.AR1 = 'model.2State.log',
-    model.2State.log.AR2 = 'model.2State.log.AR1',
-    model.2State.log.AR3 = 'model.2State.log.AR2',
-
-    model.2State.gamma.log = 'model.2State.log',
-    model.2State.gamma.log.AR1 = 'model.2State.gamma.log',
-    model.2State.gamma.log.AR2 = 'model.2State.gamma.log.AR1',
-    model.2State.gamma.log.AR3 = 'model.2State.gamma.log.AR2',
-
-    model.2State.BC = 'model.2State.log',
-    model.2State.BC = 'model.1State.BC',
-    model.2State.BC.AR1 = 'model.2State.BC',
-    model.2State.BC.AR2 = 'model.2State.BC.AR1',
-    model.2State.BC.AR3 = 'model.2State.BC.AR2',
-
-    model.2State.gamma.BC = 'model.1State.gamma.BC',
-    model.2State.gamma.BC = 'model.2State.BC',
-    model.2State.gamma.BC.AR1 = 'model.2State.gamma.BC',
-    model.2State.gamma.BC.AR2 = 'model.2State.gamma.BC.AR1',
-    model.2State.gamma.BC.AR3 = 'model.2State.gamma.BC.AR2',
-
-    model.3State.log = 'model.2State.log',
-    model.3State.log.AR1 = 'model.3State.log',
-    model.3State.log.AR2 = 'model.3State.log.AR1',
-    model.3State.log.AR3 = 'model.3State.log.AR2',
-
-    model.3State.gamma.log = 'model.3State.log',
-    model.3State.gamma.log.AR1 = 'model.3State.gamma.log',
-    model.3State.gamma.log.AR2 = 'model.3State.gamma.log.AR1',
-    model.3State.gamma.log.AR3 = 'model.3State.gamma.log.AR2',
-
-    model.3State.BC = 'model.3State.log',
-    model.3State.BC = 'model.2State.BC',
-    model.3State.BC.AR1 = 'model.3State.BC',
-    model.3State.BC.AR2 = 'model.3State.BC.AR1',
-    model.3State.BC.AR3 = 'model.3State.BC.AR2',
-
-    model.3State.gamma.BC = 'model.3State.BC',
-    model.3State.gamma.BC.AR1 = 'model.3State.gamma.BC',
-    model.3State.gamma.BC.AR2 = 'model.3State.gamma.BC.AR1',
-    model.3State.gamma.BC.AR3 = 'model.3State.gamma.BC.AR2',
-
-    model.3StateUS.log = 'model.3State.log',
-    model.3StateUS.log.AR1 = 'model.3StateUS.log',
-    model.3StateUS.log.AR2 = 'model.3StateUS.log.AR1',
-    model.2StateUS.log.AR3 = 'model.3StateUS.log.AR2',
-
-    model.3StateUS.gamma.log = 'model.3StateUS.log',
-    model.3StateUS.gamma.log.AR1 = 'model.3StateUS.gamma.log',
-    model.3StateUS.gamma.log.AR2 = 'model.3StateUS.gamma.log.AR1',
-    model.3StateUS.gamma.log.AR3 = 'model.3StateUS.gamma.log.AR2',
-
-    model.3StateUS.BC = 'model.3State.BC',
-    model.3StateUS.BC.AR1 = 'model.3StateUS.BC',
-    model.3StateUS.BC.AR2 = 'model.3StateUS.BC.AR1',
-    model.3StateUS.BC.AR3 = 'model.3StateUS.BC.AR2',
-
-    model.3StateUS.gamma.BC = 'model.3StateUS.BC',
-    model.3StateUS.gamma.BC.AR1 = 'model.3StateUS.gamma.BC',
-    model.3StateUS.gamma.BC.AR2 = 'model.3StateUS.gamma.BC.AR1',
-    model.3StateUS.gamma.BC.AR3 = 'model.3StateUS.gamma.BC.AR2'
-  )
-
-  model.names = names(.Object@models)
-  .Object@calib.reference.criteria.met = rep(F,length(model.names))
-  names(.Object@calib.reference.criteria.met) <- model.names
-
+  # assign hydroState all models
+  .Object@models <- models
 
   return(.Object)
 
 }
-
 )
 
+
+# get summary of all models.
+# @exportMethod get.summary.table
+setGeneric(name="get.summary.table",def=function(.Object, models.summary = data.frame()){standardGeneric("get.summary.table")})
+setMethod(f="get.summary.table",signature="hydroState.allModels",definition=function(.Object, models.summary)
+{
+
+  if(length(models.summary)>0){
+
+    .Object@models.summary = models.summary
+
+  }else{
+    # Calc details for summary
+    nparams = as.numeric(sapply(.Object@models, function(x) length(getParameters.asVector(x))))
+
+    nstates = as.numeric(sapply(.Object@models, function(x) ncol(x@markov.model.object@transition.graph)))
+
+    state.structure = sapply(.Object@models, function(x) ifelse(all(x@markov.model.object@transition.graph == TRUE),"","S"))
+
+
+    data.transform = sapply(.Object@models, function(x) ifelse(length(x@Qhat.object@parameters@values)>0, 'boxcox','log'))
+
+    #adjust number of model parameters depending on data transform
+    nparams = as.numeric(sapply(1:length(nparams), function(x) ifelse(data.transform[x] == 'boxcox', nparams[x] +1, nparams[x])))
+
+
+    error.distribution = sapply(.Object@models, function(x) ifelse(x@QhatModel.object@use.truncated.dist == TRUE,'truc.normal',
+                                                                   ifelse(grepl('normal',class(x@QhatModel.object)),'normal',
+                                                                          ifelse(grepl('gamma',class(x@QhatModel.object)),'gamma',''))))
+
+    auto.correlation = as.numeric(sapply(.Object@models, function(x) ifelse('mean.AR3' %in% names(x@QhatModel.object@parameters@values), '3',
+                                                                            ifelse('mean.AR2' %in% names(x@QhatModel.object@parameters@values), '2',
+                                                                                   ifelse('mean.AR1' %in% names(x@QhatModel.object@parameters@values), '1',
+                                                                                          "0")))))
+
+    state.shift = sapply(.Object@models, function(x) names(x@QhatModel.object@parameters@values[which(c(length(x@QhatModel.object@parameters@values$mean.a0),
+                                                                                                        length(x@QhatModel.object@parameters@values$mean.a1),
+                                                                                                        length(x@QhatModel.object@parameters@values$mean.a0.amp),
+                                                                                                        length(x@QhatModel.object@parameters@values$mean.a0.phase),
+                                                                                                        length(x@QhatModel.object@parameters@values$mean.a0.disp),
+                                                                                                        length(x@QhatModel.object@parameters@values$mean.a1.amp),
+                                                                                                        length(x@QhatModel.object@parameters@values$mean.a1.phase),
+                                                                                                        length(x@QhatModel.object@parameters@values$mean.a1.disp)
+                                                                                                        ) > 1)]))
+    # simplify to mean.a0 or mean.a1 if seasonal..
+    state.shift = unlist(lapply(1:length(state.shift), function(x) ifelse(length(unlist(state.shift[[x]])) < 1, "none",substr(unlist(state.shift[[x]]),1,7))))
+
+
+    # build matrix of all
+    all.models.matrix = data.frame(model.index = 1:length(.Object@models), model.names = names(.Object@models),nparams = nparams,nstates = nstates, state.structure = state.structure, data.trans = data.transform, error.dist = error.distribution, auto.corr = auto.correlation, state.shift = state.shift, ref.model = NA, row.names = 1)
+
+    all.models.set = 0
+    # seperate, order, then rebine if multiple state shifts being investigated
+    if('mean.a0' %in% unique(all.models.matrix$state.shift)){
+
+      all.models.matrix.a0 = all.models.matrix[which(all.models.matrix$state.shift == 'mean.a0'),]
+
+      all.models.matrix.a0 = all.models.matrix.a0[order(all.models.matrix.a0$nparams,
+                                                        all.models.matrix.a0$nstates),]
+      all.models.set = all.models.set +1
+    }
+
+    if('mean.a1' %in% unique(all.models.matrix$state.shift)){
+
+      all.models.matrix.a1 = all.models.matrix[which(all.models.matrix$state.shift == 'mean.a1'),]
+
+      all.models.matrix.a1 = all.models.matrix.a1[order(all.models.matrix.a1$nparams,
+                                                        all.models.matrix.a1$nstates),]
+      all.models.set = all.models.set +1
+    }
+    if('none' %in% unique(all.models.matrix$state.shift)){
+
+      all.models.matrix.none = all.models.matrix[which(all.models.matrix$state.shift == 'none'),]
+
+      all.models.matrix.none = all.models.matrix.none[order(all.models.matrix.none$nparams,
+                                                            all.models.matrix.none$nstates),]
+      all.models.set = all.models.set +1
+    }
+
+    # remove duplicate one.state models when multiple state.shifts are investigated..
+    if('mean.a0' %in% unique(all.models.matrix$state.shift) &&
+       'mean.a1' %in% unique(all.models.matrix$state.shift)){
+
+      if('none' %in% unique(all.models.matrix$state.shift)){
+
+        if('log' %in% all.models.matrix$data.trans){
+
+          if('normal' %in% all.models.matrix$error.dist){
+            dup.models = all.models.matrix.none[which(all.models.matrix.none$state.shift == 'none' &
+                                                        all.models.matrix.none$data.trans== 'log' &
+                                                        all.models.matrix.none$error.dist== 'normal'),]
+            remove.models =  dup.models[unique(dup.models$auto.corr)*2+1,]
+
+            all.models.matrix.none = all.models.matrix.none[is.na(match(all.models.matrix.none$model.names,remove.models$model.names)),]
+          }
+
+          if('truc.normal' %in% all.models.matrix$error.dist){
+            dup.models = all.models.matrix.none[which(all.models.matrix.none$state.shift == 'none' &
+                                                        all.models.matrix.none$data.trans== 'log' &
+                                                        all.models.matrix.none$error.dist== 'truc.normal'),]
+            remove.models =  dup.models[unique(dup.models$auto.corr)*2+1,]
+
+            all.models.matrix.none = all.models.matrix.none[is.na(match(all.models.matrix.none$model.names,remove.models$model.names)),]
+          }
+
+          if('gamma' %in% all.models.matrix$error.dist){
+            dup.models = all.models.matrix.none[which(all.models.matrix.none$state.shift == 'none' &
+                                                        all.models.matrix.none$data.trans== 'log' &
+                                                        all.models.matrix.none$error.dist== 'gamma'),]
+            remove.models =  dup.models[unique(dup.models$auto.corr)*2+1,]
+
+            all.models.matrix.none = all.models.matrix.none[is.na(match(all.models.matrix.none$model.names,remove.models$model.names)),]
+          }
+        }
+
+        if('boxcox' %in% all.models.matrix$data.trans){
+
+          if('normal' %in% all.models.matrix$error.dist){
+            dup.models = all.models.matrix.none[which(all.models.matrix.none$state.shift == 'none' &
+                                                        all.models.matrix.none$data.trans== 'boxcox' &
+                                                        all.models.matrix.none$error.dist== 'normal'),]
+            remove.models =  dup.models[unique(dup.models$auto.corr)*2+1,]
+
+            all.models.matrix.none = all.models.matrix.none[is.na(match(all.models.matrix.none$model.names,remove.models$model.names)),]
+          }
+
+          if('truc.normal' %in% all.models.matrix$error.dist){
+            dup.models = all.models.matrix.none[which(all.models.matrix.none$state.shift == 'none' &
+                                                        all.models.matrix.none$data.trans== 'boxcox' &
+                                                        all.models.matrix.none$error.dist== 'truc.normal'),]
+            remove.models =  dup.models[unique(dup.models$auto.corr)*2+1,]
+
+            all.models.matrix.none = all.models.matrix.none[is.na(match(all.models.matrix.none$model.names,remove.models$model.names)),]
+          }
+
+          if('gamma' %in% all.models.matrix$error.dist){
+            dup.models = all.models.matrix.none[which(all.models.matrix.none$state.shift == 'none' &
+                                                        all.models.matrix.none$data.trans== 'boxcox' &
+                                                        all.models.matrix.none$error.dist== 'gamma'),]
+            remove.models =  dup.models[unique(dup.models$auto.corr)*2+1,]
+
+            all.models.matrix.none = all.models.matrix.none[is.na(match(all.models.matrix.none$model.names,remove.models$model.names)),]
+          }
+        }
+      }
+    }
+
+    # make list to iterate through model sets
+    if(all(c('none','mean.a0','mean.a1') %in% unique(all.models.matrix$state.shift))){
+      all.models.matrix = rbind(all.models.matrix.none,all.models.matrix.a0,all.models.matrix.a1)
+    }else if(all(c('none','mean.a0') %in% unique(all.models.matrix$state.shift))){
+      all.models.matrix = rbind(all.models.matrix.none,all.models.matrix.a0)
+    }else if(all(c('none','mean.a1') %in% unique(all.models.matrix$state.shift))){
+      all.models.matrix = rbind(all.models.matrix.none,all.models.matrix.a1)
+    }else if(all(c('mean.a0','mean.a1') %in% unique(all.models.matrix$state.shift))){
+      all.models.matrix = rbind(all.models.matrix.a0,all.models.matrix.a1)
+    }else if('none' %in% unique(all.models.matrix$state.shift)){
+      all.models.matrix = all.models.matrix.none
+    }else if('mean.a0' %in% unique(all.models.matrix$state.shift)){
+      all.models.matrix = all.models.matrix.a0
+    }else if('mean.a1' %in% unique(all.models.matrix$state.shift)){
+      all.models.matrix = all.models.matrix.a1
+    }
+
+    # isolate each model set to set reference models
+    for(i in 1:length(unique(all.models.matrix$state.shift))){
+      all.models.matrix.set= all.models.matrix[which(all.models.matrix$state.shift == unique(all.models.matrix$state.shift)[i]),]
+
+      if('log' %in% all.models.matrix.set$data.trans){
+        log.models = all.models.matrix.set[which(all.models.matrix.set$data.trans == 'log'),]
+
+        if('normal' %in% log.models$error.dist){
+          temp.models = log.models[which(log.models$error.dist == 'normal'),]
+
+          if('none' %in% temp.models$state.shift){
+            temp.models$ref.model[1] = ""
+
+            if(NROW(temp.models)>1){
+              temp.models$ref.model[2:NROW(temp.models)] = temp.models$model.names[1:(NROW(temp.models)-1)]
+            }
+          }else if('mean.a0' %in% temp.models$state.shift){
+            temp.models$ref.model[1] =  ifelse(i == 1, "",max.temp.normal.log.model)
+
+            if(NROW(temp.models)>1){
+              temp.models$ref.model[2:NROW(temp.models)] = temp.models$model.names[1:(NROW(temp.models)-1)]
+            }
+          }else if('mean.a1' %in% temp.models$state.shift){
+            temp.models$ref.model[1] =  ifelse(i == 1, "",max.temp.normal.log.model)
+
+            if(NROW(temp.models)>1){
+              temp.models$ref.model[2:NROW(temp.models)] = temp.models$model.names[1:(NROW(temp.models)-1)]
+            }
+          }
+
+          # reestablish in all. models.
+          all.models.matrix$ref.model[!is.na(match(all.models.matrix$model.names,temp.models$model.names))] <- temp.models$ref.model
+
+          # set max model for state of log models
+          max.temp.normal.log.model = temp.models$model.names[NROW(temp.models)]
+        }
+
+        if('truc.normal' %in% log.models$error.dist){
+          temp.models = log.models[which(log.models$error.dist == 'truc.normal'),]
+
+          if('none' %in% temp.models$state.shift){
+            temp.models$ref.model[1] = ""
+
+            if(NROW(temp.models)>1){
+              temp.models$ref.model[2:NROW(temp.models)] = temp.models$model.names[1:(NROW(temp.models)-1)]
+            }
+          }else if('mean.a0' %in% temp.models$state.shift){
+            temp.models$ref.model[1] =  ifelse(i == 1, "",max.temp.truc.normal.log.model)
+
+            if(NROW(temp.models)>1){
+              temp.models$ref.model[2:NROW(temp.models)] = temp.models$model.names[1:(NROW(temp.models)-1)]
+            }
+          }else if('mean.a1' %in% temp.models$state.shift){
+            temp.models$ref.model[1] =  ifelse(i == 1, "",max.temp.truc.normal.log.model)
+
+            if(NROW(temp.models)>1){
+              temp.models$ref.model[2:NROW(temp.models)] = temp.models$model.names[1:(NROW(temp.models)-1)]
+            }
+          }
+
+          # reestablish in all. models.
+          all.models.matrix$ref.model[!is.na(match(all.models.matrix$model.names,temp.models$model.names))] <- temp.models$ref.model
+
+          # set max model for state of log models
+          max.temp.truc.normal.log.model = temp.models$model.names[NROW(temp.models)]
+        }
+
+
+        if('gamma' %in% log.models$error.dist){
+          temp.models <- log.models[which(log.models$error.dist == 'gamma'),]
+
+          if('none' %in% temp.models$state.shift){
+            temp.models$ref.model[1] = ""
+
+            if(NROW(temp.models)>1){
+              temp.models$ref.model[2:NROW(temp.models)] = temp.models$model.names[1:(NROW(temp.models)-1)]
+            }
+          }else if('mean.a0' %in% temp.models$state.shift){
+            temp.models$ref.model[1] =  ifelse(i == 1, "",max.temp.gamma.log.model)
+
+            if(NROW(temp.models)>1){
+              temp.models$ref.model[2:NROW(temp.models)] = temp.models$model.names[1:(NROW(temp.models)-1)]
+            }
+          }else if('mean.a1' %in% temp.models$state.shift){
+            temp.models$ref.model[1] =  ifelse(i == 1, "",max.temp.gamma.log.model)
+
+            if(NROW(temp.models)>1){
+              temp.models$ref.model[2:NROW(temp.models)] = temp.models$model.names[1:(NROW(temp.models)-1)]
+            }
+          }
+
+          # reestablish in all. models.
+          all.models.matrix$ref.model[!is.na(match(all.models.matrix$model.names,temp.models$model.names))] <- temp.models$ref.model
+
+          # set max model for state of log models
+          max.temp.gamma.log.model = temp.models$model.names[NROW(temp.models)]
+
+        }
+      }
+
+      if('boxcox' %in% all.models.matrix.set$data.trans){
+        boxcox.models = all.models.matrix.set[which(all.models.matrix.set$data.trans == 'boxcox'),]
+
+        if('normal' %in% boxcox.models$error.dist){
+          temp.models = boxcox.models[which(boxcox.models$error.dist == 'normal'),]
+
+          if('none' %in% temp.models$state.shift){
+            temp.models$ref.model[1] = ifelse('log' %in% all.models.matrix.set$data.trans,log.models$model.names[which(log.models$error.dist == 'normal')][1],"")
+
+            if(NROW(temp.models)>1){
+              temp.models$ref.model[2:NROW(temp.models)] = temp.models$model.names[1:(NROW(temp.models)-1)]
+            }
+          }else if('mean.a0' %in% temp.models$state.shift){
+            temp.models$ref.model[1] =  ifelse(i == 1, "", max.temp.normal.boxcox.model)
+
+            if(NROW(temp.models)>1){
+              temp.models$ref.model[2:NROW(temp.models)] = temp.models$model.names[1:(NROW(temp.models)-1)]
+            }
+          }else if('mean.a1' %in% temp.models$state.shift){
+            temp.models$ref.model[1] =  ifelse(i == 1, "", max.temp.normal.boxcox.model)
+
+            if(NROW(temp.models)>1){
+              temp.models$ref.model[2:NROW(temp.models)] = temp.models$model.names[1:(NROW(temp.models)-1)]
+            }
+          }
+
+          # reestablish in all. models.
+          all.models.matrix$ref.model[!is.na(match(all.models.matrix$model.names,temp.models$model.names))] <- temp.models$ref.model
+
+          # set max model for state of boxcox models
+          max.temp.normal.boxcox.model = temp.models$model.names[NROW(temp.models)]
+        }
+
+        if('truc.normal' %in% boxcox.models$error.dist){
+          temp.models = boxcox.models[which(boxcox.models$error.dist == 'truc.normal'),]
+
+          if('none' %in% temp.models$state.shift){
+            temp.models$ref.model[1] = ifelse('log' %in% all.models.matrix.set$data.trans,log.models$model.names[which(log.models$error.dist == 'truc.normal')][1],"")
+
+            if(NROW(temp.models)>1){
+              temp.models$ref.model[2:NROW(temp.models)] = temp.models$model.names[1:(NROW(temp.models)-1)]
+            }
+          }else if('mean.a0' %in% temp.models$state.shift){
+            temp.models$ref.model[1] =  ifelse(i == 1, "", max.temp.truc.normal.boxcox.model)
+
+            if(NROW(temp.models)>1){
+              temp.models$ref.model[2:NROW(temp.models)] = temp.models$model.names[1:(NROW(temp.models)-1)]
+            }
+          }else if('mean.a1' %in% temp.models$state.shift){
+            temp.models$ref.model[1] =  ifelse(i == 1, "", max.temp.truc.normal.boxcox.model)
+
+            if(NROW(temp.models)>1){
+              temp.models$ref.model[2:NROW(temp.models)] = temp.models$model.names[1:(NROW(temp.models)-1)]
+            }
+          }
+
+          # reestablish in all. models.
+          all.models.matrix$ref.model[!is.na(match(all.models.matrix$model.names,temp.models$model.names))] <- temp.models$ref.model
+
+          # set max model for state of boxcox models
+          max.temp.truc.normal.boxcox.model = temp.models$model.names[NROW(temp.models)]
+        }
+
+
+        if('gamma' %in% boxcox.models$error.dist){
+          temp.models = boxcox.models[which(boxcox.models$error.dist == 'gamma'),]
+
+          if('none' %in% temp.models$state.shift){
+            temp.models$ref.model[1] = ifelse('log' %in% all.models.matrix.set$data.trans,log.models$model.names[which(log.models$error.dist == 'gamma')][1],"")
+
+            if(NROW(temp.models)>1){
+              temp.models$ref.model[2:NROW(temp.models)] = temp.models$model.names[1:(NROW(temp.models)-1)]
+            }
+          }else if('mean.a0' %in% temp.models$state.shift){
+            temp.models$ref.model[1] =  ifelse(i == 1, "",max.temp.gamma.boxcox.model)
+
+            if(NROW(temp.models)>1){
+              temp.models$ref.model[2:NROW(temp.models)] = temp.models$model.names[1:(NROW(temp.models)-1)]
+            }
+          }else if('mean.a1' %in% temp.models$state.shift){
+            temp.models$ref.model[1] =  ifelse(i == 1, "",max.temp.gamma.boxcox.model)
+
+            if(NROW(temp.models)>1){
+              temp.models$ref.model[2:NROW(temp.models)] = temp.models$model.names[1:(NROW(temp.models)-1)]
+            }
+          }
+
+          # reestablish in all. models.
+          all.models.matrix$ref.model[!is.na(match(all.models.matrix$model.names,temp.models$model.names))] <- temp.models$ref.model
+
+          # set max model for state of boxcox models
+          max.temp.gamma.boxcox.model = temp.models$model.names[NROW(temp.models)]
+
+        }
+      }
+
+    }
+
+
+    #export summary
+    .Object@models.summary <- all.models.matrix
+  }
+
+  # reorder to ensure empty calib ref are first...
+  empty.ref = which(.Object@models.summary$ref.model =="")
+  full.ref = which(.Object@models.summary$ref.model !="")
+  .Object@models.summary = rbind(.Object@models.summary[empty.ref,],.Object@models.summary[full.ref,])
+
+  # clean all.models (remove the duplicate one-state if so) this happens if investigating slope and intercept seperately
+  .Object@models <- .Object@models[match(.Object@models.summary$model.names,names(.Object@models))]
+
+
+  ### Then adjust calib.reference details based on models.summary from user or machine
+
+  # Define Refernce models. That is, the calibration obecjive function that this models needs to meet or exceed.
+  .Object@calib.reference.model.name <- as.list(.Object@models.summary$ref.model)
+  names(.Object@calib.reference.model.name) <- .Object@models.summary$model.names
+
+
+  model.names = names(.Object@models.summary$model.names)
+  .Object@calib.reference.criteria.met = rep(F,length(model.names))
+  names(.Object@calib.reference.criteria.met) <- model.names
+
+  return(.Object)
+
+}
+)
+
+# @exportMethod fit
+# @rdname fit
 setMethod(f = "fit",signature="hydroState.allModels",definition=function(.Object,
                                                                          pop.size.perParameter=25,
                                                                          max.generations=10000,
@@ -295,6 +451,7 @@ setMethod(f = "fit",signature="hydroState.allModels",definition=function(.Object
                                                                          reltol=1e-8,
                                                                          steptol=50,
                                                                          print.iterations = 25,
+                                                                         use.initial.parameters=F,
                                                                          doParallel=F,
                                                                          ...)
 {
@@ -340,13 +497,22 @@ setMethod(f = "fit",signature="hydroState.allModels",definition=function(.Object
       # Get number of params
       nParams = length(getParameters.asVector(.Object@models[[i]]))
 
-      if (nParams>=doParallel || doParallel==T) {
+      # hydroState b.c. ran parallel based on number of params... now just do parallel if user assigns it...
+      # if (nParams>=doParallel || doParallel==T) {
+      # print(doParallel)
+
+      if (doParallel==T) {
         model <- .Object@models[[i]]
-        assign("model", model, envir=globalenv())
-        model <- fit(model, DEstrategy=DEstrategy, pop.size.perParameter=pop.size.perParameter, max.generations=max.generations, reltol=reltol, steptol=steptol, print.iterations=print.iterations,
-                     parallelType=1, packages = c('hydroState','truncnorm'),parVar=c('model'))
+
+        assign("model", model, envir=new.env())
+                 #myEnv  (parent = baseenv()))
+
+        # error occurs after calling this...
+        model <- fit(model, DEstrategy=DEstrategy, pop.size.perParameter=pop.size.perParameter, max.generations=max.generations, Domains=Domains, reltol=reltol, steptol=steptol, print.iterations=print.iterations,
+                     use.initial.parameters = use.initial.parameters, parallelType= "auto", packages = list('hydroState','truncnorm'),parVar=list('model'))
       } else {
-        model <- fit(.Object@models[[i]], DEstrategy=DEstrategy, pop.size.perParameter=pop.size.perParameter, max.generations=max.generations, reltol=reltol, steptol=steptol, print.iterations=print.iterations)
+        model <- fit(.Object@models[[i]], DEstrategy=DEstrategy, pop.size.perParameter=pop.size.perParameter, max.generations=max.generations, reltol=reltol, steptol=steptol, print.iterations=print.iterations,
+                     use.initial.parameters = use.initial.parameters,  doParallel = F, ...)
       }
 
       # Store the best model to date int the object in case the reference maximum obj cannot be met.
@@ -458,7 +624,7 @@ setMethod(f="getAIC",signature="hydroState.allModels",definition=function(.Objec
 
 
 # Get best model (by mimimum AIC)
-#' @exportMethod getAIC.bestModel
+# @exportMethod getAIC.bestModel
 setGeneric(name="getAIC.bestModel",def=function(.Object, use.calib.reference.criteria=NA, use.sampleSize.penality=NA,min.obs.per.state=NA) {standardGeneric("getAIC.bestModel")})
 setMethod(f="getAIC.bestModel",signature="hydroState.allModels",definition=function(.Object, use.calib.reference.criteria=T, use.sampleSize.penality=T, min.obs.per.state=3)
 {
@@ -473,8 +639,11 @@ setMethod(f="getAIC.bestModel",signature="hydroState.allModels",definition=funct
     for (i in 1:nModels) {
       current.model.name <- model.names[i]
       filt[i] <- F
-      if (.Object@calib.reference.criteria.met[[current.model.name]])
+      if (!(current.model.name %in% .Object@calib.reference.criteria.met)){
         filt[i] <- T
+      }else if(.Object@calib.reference.criteria.met[[current.model.name]]){
+        filt[i] <- T
+      }
     }
   }
   AIC <- AIC[filt,]
@@ -548,3 +717,4 @@ setMethod(f="getAIC.bestModel",signature="hydroState.allModels",definition=funct
   return(list(model=bestModel, model.best1State = bestModel.1State, AIC=AIC, evidenceRatio.oneState=EF.oneState))
 }
 )
+

@@ -1,5 +1,5 @@
 ##' @include abstracts.R parameters.R markov.annualHomogeneous.R
-##' @export
+## @export
 markov.annualHomogeneous.flickering <- setClass(
   # Set the name for the class
   "markov.annualHomogeneous.flickering",
@@ -55,7 +55,7 @@ setMethod(f="initialize",
 )
 
 # Get the flickering for each state.
-#' @exportMethod getStateFlicker
+# @exportMethod getStateFlicker
 setGeneric(name="getStateFlicker",def=function(.Object) {standardGeneric("getStateFlicker")})
 setMethod(f="getStateFlicker",signature=c("markov.annualHomogeneous.flickering"),definition=function(.Object)
 {
@@ -99,6 +99,7 @@ setMethod(f="getLogLikelihood", signature=c("markov.annualHomogeneous.flickering
           # Check all the emmision probs. are finite.
             if (any(is.infinite(emission.probs)))
               return(Inf)
+
 
             # Get number of states
             nStates = getNumStates(.Object)

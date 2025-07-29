@@ -1,5 +1,5 @@
 ##' @include abstracts.R parameters.R
-##' @export
+## @export
 Qhat.none <- setClass(
   # Set the name for the class
   "Qhat.none",
@@ -37,8 +37,8 @@ setMethod("initialize","Qhat.none", function(.Object, input.data) {
 setMethod(f="getQhat",signature=c("Qhat.none",'data.frame'),definition=function(.Object, data)
 {
 
-  if (is.data.frame(data))
-    data = data$flow
+  if (!is.data.frame(data))
+    stop('"data" must be a data.frame.')
 
   data$Qhat.flow <- data$flow
   data$Qhat.precipitation <- data$precipitation

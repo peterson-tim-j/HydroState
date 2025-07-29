@@ -1,5 +1,5 @@
 ##' @include abstracts.R parameters.R
-##' @export
+## @export
 markov.annualHomogeneous <- setClass(
   # Set the name for the class
   "markov.annualHomogeneous",
@@ -236,13 +236,14 @@ setMethod(f="getTransitionProbabilities",
 )
 
 # Get the log likelihood for the input data.
+# @exportMethod getLogLikelihood
 setMethod(f="getLogLikelihood", signature=c("markov.annualHomogeneous","data.frame","matrix"),
           definition=function(.Object, data, emission.probs)
           {
           # Check all the emmision probs. are finite.
             if (any(is.infinite(emission.probs)))
               return(Inf)
-
+            # message("getLogLikelihood")
             # Get number of states
             nStates = getNumStates(.Object)
 
@@ -251,7 +252,7 @@ setMethod(f="getLogLikelihood", signature=c("markov.annualHomogeneous","data.fra
               stop('"data" must be a data.frame with the field "Qhat.flow".')
 
             # Built filter for non NAs.
-            filt <- is.finite(data$Qhat.flow)
+            filt <- is.finite(data$Qhat.flow)&is.finite(data$Qhat.precipitation)
 
             # Handle 1 state model.
             if (nStates==1) {
@@ -268,6 +269,7 @@ setMethod(f="getLogLikelihood", signature=c("markov.annualHomogeneous","data.fra
             # Get the transition matrix.
             Tprob = getTransitionProbabilities(.Object)
 
+            ### uncomment for originial hydroState ###
             # Only accept the transition probs. if the model persists in each state. This is estimated from an extenstion of the
             # reference below to >2 states. Specifically, if the sum of the probs of switching from state A to any oter state  and from
             # any other state to A is >=1, the then model DOES NOT persist in state A.
@@ -308,6 +310,10 @@ setMethod(f="getLogLikelihood", signature=c("markov.annualHomogeneous","data.fra
             lscale   <- log(sumalpha)
             alpha      <- alpha/sumalpha
 
+            # if only one observation
+            # if(NROW(emission.probs) == 1)
+            #   return(0)
+
             # Loop through 2+ time steps
             for (i in 2:nrow(data)) {
               alpha    <- alpha %*% Tprob * as.vector(emission.probs[i,])
@@ -325,7 +331,7 @@ setMethod(f="getLogLikelihood", signature=c("markov.annualHomogeneous","data.fra
 )
 
 # Get the log forward probabilities for the input data.
-#' @exportMethod getLogForwardProbabilities
+# @exportMethod getLogForwardProbabilities
 setGeneric(name="getLogForwardProbabilities",def=function(.Object, data, emission.probs) {standardGeneric("getLogForwardProbabilities")})
 setMethod(f="getLogForwardProbabilities", signature=c("markov.annualHomogeneous","data.frame","matrix"),
           definition=function(.Object, data, emission.probs)
@@ -447,6 +453,7 @@ setMethod(f="getConditionalStateProbabilities", signature="markov.annualHomogene
 )
 
 # Get the conditional probability of a givn Qhat observation at time t given all other observations.
+# @exportMethod getConditionalProbabilities
 setMethod(f="getConditionalProbabilities", signature="markov.annualHomogeneous",
           definition=function(.Object, data, emission.probs, cumprob.atQhatIncrements)
           {
@@ -464,7 +471,7 @@ setMethod(f="getConditionalProbabilities", signature="markov.annualHomogeneous",
 
             n          <- nrow(data)
             m          <- nStates
-            nxc       <- dim(cumprob.atQhatIncrements)[3]
+            nxc       <- dim(cumprob.atQhatIncrements)[length(dim(cumprob.atQhatIncrements))] # to get last dim
             dxc       <- matrix(NA,nrow=nxc,ncol=n)
 
 
@@ -484,7 +491,12 @@ setMethod(f="getConditionalProbabilities", signature="markov.annualHomogeneous",
               # time. However, here the time-varying means and auto-regressive terms make the emmision probs
               # time-dependent and so here a 3D array is passed to this function with the depth dimension
               # containing the cumulative probs. at pre-defined incrementts of Qhat for a given state and time point.
-              Px <- cumprob.atQhatIncrements[i,,]
+
+              if(nStates ==1){ # had to include this because cumprob.atQhatIncrements ignored one state dim
+                Px <- cumprob.atQhatIncrements[i,]
+              }else{
+                Px <- cumprob.atQhatIncrements[i,,]
+              }
 
               dxc[,i]  <- as.vector(foo%*%Px)
 
@@ -501,7 +513,7 @@ setMethod(f="getNumStates",
           signature="markov.annualHomogeneous",
           definition=function(.Object)
           {
-            return(ncol(.Object@transition.graph))
+            return(NCOL(.Object@transition.graph))
           }
 )
 

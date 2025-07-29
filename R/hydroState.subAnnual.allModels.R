@@ -1,5 +1,5 @@
 ##' @include hydroState.allModels.R
-##' @export
+## @export
 hydroState.subAnnual.allModels <- setClass(
   # Set the name for the class
   "hydroState.subAnnual.allModels",

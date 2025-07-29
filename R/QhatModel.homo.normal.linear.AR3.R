@@ -1,5 +1,5 @@
 ##' @include abstracts.R QhatModel.homo.normal.linear.R parameters.R
-##' @export
+## @export
 QhatModel.homo.normal.linear.AR3 <- setClass(
   # Set the name for the class
   "QhatModel.homo.normal.linear.AR3",
@@ -28,6 +28,7 @@ setMethod("initialize","QhatModel.homo.normal.linear.AR3", function(.Object, inp
                                                                     state.dependent.mean.AR1=F, state.dependent.mean.AR2=F,state.dependent.mean.AR3=F,
                                                                     state.dependent.std.a0=T) {
   .Object@input.data <- input.data
+  .Object@precip.delta =getStartEndIndex(input.data)
   .Object@use.truncated.dist = use.truncated.dist
   .Object@nStates = ncol(transition.graph)
 
@@ -85,7 +86,15 @@ setMethod(f="is.stationary",signature=c("QhatModel.homo.normal.linear.AR3"),defi
 
 # Calculate the transformed flow at the mean annual precip
 setMethod(f="getMean",signature=c("QhatModel.homo.normal.linear.AR3","data.frame"),definition=function(.Object, data) {
-  return(getMean.AR3(.Object, data))
+
+
+
+      Qhat.model.NAs = matrix(NA,NROW(data),.Object@nStates)
+
+      for(i in 1:NROW(.Object@precip.delta)){
+        Qhat.model.NAs[.Object@precip.delta[i,1]:.Object@precip.delta[i,2],] = getMean.AR3(.Object, data[.Object@precip.delta[i,1]:.Object@precip.delta[i,2],])
+      }
+      return(Qhat.model.NAs)
 }
 )
 
@@ -135,17 +144,17 @@ setMethod(f="getMean.AR3",signature=c("QhatModel.homo.normal.linear.AR3","data.f
             }
             if (ncols.AR1==1 || ncols.AR1 ==.Object@nStates) {
               AR1.est = matrix(rep(parameters$mean.AR1,each=nrows),nrows,.Object@nStates);
-            } else if (mean.AR1<.Object@nStates) {
+            } else if (ncols.AR1<.Object@nStates) {
               stop(paste('The number of parameters for the AR1 term of the mean model must must equal 1 or the number of states of ',.Object@nStates))
             }
             if (ncols.AR2==1 || ncols.AR2 ==.Object@nStates) {
               AR2.est = matrix(rep(parameters$mean.AR2,each=nrows),nrows,.Object@nStates);
-            } else if (mean.AR2<.Object@nStates) {
+            } else if (ncols.AR2<.Object@nStates) {
               stop(paste('The number of parameters for the AR2 term of the mean model must must equal 1 or the number of states of ',.Object@nStates))
             }
             if (ncols.AR3==1 || ncols.AR3 ==.Object@nStates) {
               AR3.est = matrix(rep(parameters$mean.AR3,each=nrows),nrows,.Object@nStates);
-            } else if (mean.AR3<.Object@nStates) {
+            } else if (ncols.AR3<.Object@nStates) {
               stop(paste('The number of parameters for the AR3 term of the mean model must must equal 1 or the number of states of ',.Object@nStates))
             }
             if (ncols.trend==1 || ncols.trend==.Object@nStates) {
@@ -170,7 +179,7 @@ setMethod(f="getMean.AR3",signature=c("QhatModel.homo.normal.linear.AR3","data.f
             # code transparency , the for loop was adopted. The idea comes from https://stackoverflow.com/questions/51312427/vectorizing-an-r-loop-with-backward-dependency
             # ind = 1:3
             # for (i in 1:.Object@nStates)
-            #   Qhat.model[,i] <- .Call(stats:::C_rfilter, as.double(Qhat.model[,i]), as.double(c(AR1.est[1,i],AR2.est[1,i],AR3.est[1,i])),
+            #   Qhat.model[,i] <- .Call(stats::C_rfilter, as.double(Qhat.model[,i]), as.double(c(AR1.est[1,i],AR2.est[1,i],AR3.est[1,i])),
             #                           c(rep(0,3), double(nrows)))[-ind]
 
             Qhat.model.NAs = matrix(NA,length(filt),.Object@nStates)
