@@ -18,7 +18,6 @@ The pseudo residuals were derived from the conditional probabilities of the obse
 \details{
 \code{get.residuals}
 
-
 \code{get.residuals} retrieves residuals from the fitted model and exports them as a data frame.
 }
 \examples{

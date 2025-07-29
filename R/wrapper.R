@@ -490,13 +490,13 @@ select.Markov <- function(flickering = FALSE,
 #' \code{build}
 #'
 #' @description
-#' \code{build} builds a hydrostate model object with either a default model or the model can be specified with options from below. Every model depends on a linear base model where streamflow, \eqn{Q}, is a function of precipitation, \eqn{P}: \eqn{Q = Pa_1 + a_0}. The default model is a variant of this base linear model with state shifts expected in the intercept, \eqn{a_0}, and standard deviation, \eqn{std}, of the rainfall-runoff relationship. There are additional options to adjust this model with auto-correlation terms and seasonal parameters that can be both independent of state of change with state. The number of states and assumed error distribution can also be selected. After the model is built, the hydroState model is ready to be fitted with \code{fit}
+#' \code{build} builds a hydrostate model object with either a default model or the model can be specified with options from below. Every model depends on a linear base model where streamflow, \eqn{Q}, is a function of precipitation, \eqn{P}: \eqn{Q = Pa_1 + a_0}. The default model is a variant of this base linear model with state shifts expected in the intercept, \eqn{a_0}, and standard deviation, \eqn{std}, of the rainfall-runoff relationship. There are additional options to adjust this model with auto-correlation terms and seasonal parameters that can be both independent of state of change with state. The number of states and assumed error distribution can also be selected. After the model is built, the hydroState model is ready to be fitted with \code{fit.hydroState()}
 #'
 #' @details
 #' There are a selection of items to consider when defining the rainfall-runoff relationship and investigating state shifts in this relationship. hydroState provides various options for modelling the rainfall-runoff relationship.
 #' \itemize{
 #' \item{Data gaps  with \code{input.data}}: When there is missing \code{input.data} in either the dependent variable, streamflow, or independent variable, precipitation, the emissions probability of the missing time-step is set equal to one. This essentially ignores the missing periods. The time step after the missing period has a state probability dependent on the length of the gap. The larger the gap, the closer the state probability gets to approaching a finite probability near zero (as the transition probabilities are recursively multiplied). When the model has auto-correlation terms and there are gaps in the dependent variable, the auto-correlation function restarts at the beginning of each continuous period after the gap. This ignores auto-correlation at the first time steps after the gap. For instance, an 'AR1' model would ignore the contribution of the prior time step for the first (1) observation after the gap.
-#' \item{Transform Observations with \code{data.transform}}: Transforms streamflow observations to remove heteroscedasticity. Often there is skew within hydrologic data. When defining relationships between rainfall-runoff, this skew results in an unequal variance in the residuals, heteroscedasticity. Transforming streamflow observations is often required. There are several options to transform observations. Since the degree of transformation is not typically known, 'boxcox' is the default. Other options include: `log', `burbidge', and of course, `none' when no transformation is performed.
+#' \item{Transform Observations with \code{data.transform}}: Transforms streamflow observations to remove heteroscedasticity. Often there is skew within hydrologic data. When defining relationships between rainfall-runoff, this skew results in an unequal variance in the residuals, heteroscedasticity. Transforming streamflow observations is often required. There are several options to transform observations. Since the degree of transformation is not typically known, \code{boxcox} is the default. Other options include: \code{log}, \code{burbidge}, and of course, \code{none} when no transformation is performed.
 #' \item{Model Structure with \code{parameters} and \code{seasonal.parameters}}: The structure of the model depends on the \code{parameters}. hydroState simulates runoff, \eqn{Q}, as being in one of a finite states, \eqn{i}, at every time-step, \eqn{t}, depending on the distribution of states at prior time steps. This results in a runoff distribution for each state that can vary over time (\eqn{\widehat{_tQ_i}}). The model defines the relationship that is susceptible to state shifts with precipitation, \eqn{P_t}, as a predictor. This takes the form as a simple linear model \eqn{\widehat{_tQ_i} = f(P_t)}:
 #'
 #'
@@ -515,9 +515,9 @@ select.Markov <- function(flickering = FALSE,
 #' where \eqn{M_t} is an integer month at \eqn{t}. Monthly streamflow and precipitation are required as \code{input.data} for the sub-annual analysis.
 #'
 #' \item{State Dependent Parameters with \code{state.shift.parameters}}: These are state dependent parameters where they are subject to shift in order to better explain the state of streamflow over time. Any or all of the previously chosen parameters can be selected (\eqn{a_0, a_1, std, AR1, AR2, AR3}). The default model evaluates shifts in the rainfall-runoff relationship with \eqn{a_0} \eqn{std} as state dependent parameters.
-#' \item{Distribution of the Residuals with \code{error.distribution}}: The distribution of the residuals (error) within a state of the model can be chosen to reduce skew and assist with making models statistically adequate (see \code{plot.residuals}). Either normal: `normal', truncated normal: `truc.normal', or gamma: `gamma' distributions are acceptable. These error distribution ensures streamflow is greater than zero \(Q $>$ 0\), and specifically for `truc.normal' greater than or equal to zero \(Q $>=$ 0\). The default is `truc.normal'. Sub-annual models are restricted to only a `gamma' distribution.
-#' \item{Markov flickering with \code{flickering}}: When flickering is FALSE, the markov avoids state shifts for very short duration, and hence for a state shift to occur it should last for an extended period. The default is FALSE. If TRUE, flickering between more states is more sensitive. For further explanation on this method, see: \href{https://hess.copernicus.org/articles/7/652/2003/}{Lambert et al., 2003}. The current form of the Markov model is homogeneous where the transition probabilities are time-invariant.
-#' \item{Number of States with \code{transition.graph}}: The number of possible states in the rainfall-runoff relationship and transition between the states is selected with the transition.graph. The default is a 2-state model in a 2 by 2 unstructured matrix with a TRUE transition to and from each state (i.e. matrix(TRUE,2,2)). hydroState accepts 1-state up to 3-states (i.e. for 3-state unstructured transition graph: matrix(TRUE,3,3)). The unstructured transition graph allows either state to remain in the current state or transition between any state. For the 3-state transition graph, one may want to assume the transitions can only occur in a particular order, as in (Very low -> Low -> Normal->) rather than (Very low <-> Low <-> Normal <-> Very low). Thus, a structured graph is also acceptable (3-state structured: matrix(c(TRUE,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,FALSE,TRUE),3,3)). More details in Supplementary Materials of \href{https://www.science.org/doi/10.1126/science.abd5085}{Peterson et al., 2021}.
+#' \item{Distribution of the Residuals with \code{error.distribution}}: The distribution of the residuals (error) within a state of the model can be chosen to reduce skew and assist with making models statistically adequate (see \code{plot(pse.residuals = TRUE)}). Either normal: \code{normal}, truncated normal: \code{truc.normal}, or gamma: \code{gamma} distributions are acceptable. These error distribution ensures streamflow is greater than zero \(Q $>$ 0\), and specifically for \code{truc.normal} greater than or equal to zero \(Q $>=$ 0\). The default is \code{truc.normal}. Sub-annual models are restricted to only a \code{gamma} distribution.
+#' \item{Markov flickering with \code{flickering}}: When flickering is \code{FALSE}, the markov avoids state shifts for very short duration, and hence for a state shift to occur it should last for an extended period. The default is FALSE. If TRUE, flickering between more states is more sensitive. For further explanation on this method, see: \href{https://hess.copernicus.org/articles/7/652/2003/}{Lambert et al., 2003}. The current form of the Markov model is homogeneous where the transition probabilities are time-invariant.
+#' \item{Number of States with \code{transition.graph}}: The number of possible states in the rainfall-runoff relationship and transition between the states is selected with the transition.graph. The default is a 2-state model in a 2 by 2 unstructured matrix with a TRUE transition to and from each state (i.e. \code{matrix(TRUE,2,2)}). hydroState accepts 1-state up to 3-states (i.e. for 3-state unstructured transition graph: \code{matrix(TRUE,3,3)}). The unstructured transition graph allows either state to remain in the current state or transition between any state. For the 3-state transition graph, one may want to assume the transitions can only occur in a particular order, as in (Very low -> Low -> Normal->) rather than (Very low <-> Low <-> Normal <-> Very low). Thus, a structured graph is also acceptable (3-state structured: \code{matrix(c(TRUE,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,FALSE,TRUE),3,3)}). More details in Supplementary Materials of \href{https://www.science.org/doi/10.1126/science.abd5085}{Peterson et al., 2021}.
 #'}
 #'
 #' @param input.data dataframe of annual, seasonal, or monthly runoff and precipitation observations. Gaps with missing data in either streamflow or precipitation are permitted. Monthly data is required when using \code{seasonal.parameters}.
@@ -526,11 +526,11 @@ select.Markov <- function(flickering = FALSE,
 #' @param seasonal.parameters character vector of one or all parameters (\code{a0}, \code{a1}, \code{std}) defined as a sinusoidal function to represent seasonal variation. Requires monthly or seasonal data. Default is empty, no seasonal parameters.
 #' @param state.shift.parameters character vector of one or all parameters (\code{a0}, \code{a1}, \code{std}, \code{AR1}, \code{AR2}, \code{AR3}) able to shift as dependent on state. Default is \code{a0} and \code{std}.
 #' @param error.distribution character string of the distribution in the HMM error. Default is 'truc.normal'. Others include: 'normal' or 'gamma'
-#' @param flickering logical TRUE/FALSE. TRUE = allows more sensitive markov flickering between states over time. When FALSE (default), state needs to persist for at least three time steps before state shift can occur.
-#' @param transition.graph matrix given the number of states. Default is a 2-state matrix (2 by 2): matrix(TRUE,2,2).
+#' @param flickering logical \code{TRUE}/\code{FALSE}. \code{TRUE} = allows more sensitive markov flickering between states over time. When \code{FALSE} (default), state needs to persist for at least three time steps before state shift can occur.
+#' @param transition.graph matrix given the number of states. Default is a 2-state matrix (2 by 2): \code{matrix(TRUE,2,2)}.
 #'
 #' @return
-#' A built hydroState model object ready to be fitted with \code{fit}
+#' A built hydroState model object ready to be fitted with \code{fit.hydroState()}
 #'
 #' @keywords hydroState build
 #'
@@ -753,21 +753,21 @@ build <- function(input.data = data.frame(year=c(), flow=c(), precip=c()),
 #' \code{build.all}
 #'
 #' @description
-#' \code{build.all} builds all possible combinations of hydroState models. The same fields are available as in \code{build} in order to specify the type of models to be built. After all models are built, they are fitted using the same \code{fit} function.
+#' \code{build.all} builds all possible combinations of hydroState models. The same fields are available as in \code{build()} in order to specify the type of models to be built. After all models are built, they are fitted using the same \code{fit.hydroState()} function.
 #'
 #' @details
-#' All possible combinations of hydroState models are built for each auto-correlation lag and residual distribution from 1 to 3 states for a specified data transformation. This allows for investigation of state changes in the \code{state.shift.parameters}: the intercept ('a0', 'std') or slope ('a1', 'std'). To reduce the number of models in the search, specify which field(s) to remain constant. For example, to investigate the best model with the number of auto-correlation terms and number of states with a 'boxcox' data transform and 'gamma' distribution of the residuals, set \code{data.transform} to 'boxcox' and \code{error.distribution} to 'gamma'. If no fields are specified, all possible model combinations are built. If investigating state shifts in the intercept 'a0' and slope 'a1', it is recommended to build and fit the model combinations separately.
+#' All possible combinations of hydroState models are built for each auto-correlation lag and residual distribution from 1 to 3 states for a specified data transformation. This allows for investigation of state changes in the \code{state.shift.parameters}: the intercept \code{c('a0', 'std')} or slope \code{c('a1', 'std')}. To reduce the number of models in the search, specify which field(s) to remain constant. For example, to investigate the best model with the number of auto-correlation terms and number of states with a \code{boxcox} data transform and \code{gamma} distribution of the residuals, set \code{data.transform} to \code{boxcox} and \code{error.distribution} to \code{gamma}. If no fields are specified, all possible model combinations are built. If investigating state shifts in the intercept \code{a0} and slope \code{a1}, it is recommended to build and fit the model combinations separately.
 #'
 #' @param input.data dataframe of annual, seasonal, or monthly runoff and precipitation observations. Gaps with missing data in either streamflow or precipitation are permitted, and the handling of them is further discussed in \code{build}. Monthly data is required when using \code{seasonal.parameters} that assumes selected model parameters are better defined with a sinusoidal function.
-#' @param data.transform character string of method of transformation. If empty, the default builds all possible combinations of models with 'boxcox' data transformation.
+#' @param data.transform character string of method of transformation. If empty, the default builds all possible combinations of models with \code{boxcox} data transformation.
 #' @param parameters character vector of parameters to determine model form. If empty, the default builds all possible combinations of model forms.
 #' @param seasonal.parameters character vector of parameters with sinusoidal function to represent seasonal variation. Requires monthly or seasonal data. If empty and monthly or seasonal data is given, the default builds all possible combinations of models with a seasonal parameter for each and all parameters.
 #' @param state.shift.parameters character vector of one or all parameters to identify state dependent parameters. Only one set of parameters permitted. If empty, the default builds all possible model combinations with \code{c('a0','std')} as state shift parameters.
-#' @param error.distribution character string of the distribution in the HMM error. If empty, the default builds models with all possible combinations of error distribution: c('truc.normal', 'normal','gamma')
-#' @param flickering logical TRUE/FALSE. TRUE = allows more sensitive markov flickering between states over time. When FALSE (default), state needs to persist for at least three time steps before state shift can occur.
-#' @param transition.graph matrix given the number of states. If empty, the default builds models with all possible combinations of states: 1-state matrix (1 by 1): matrix(TRUE,1,1),  2-state matrix (2 by 2): matrix(TRUE,2,2), 3-state matrix (3 by 3): matrix(TRUE,3,3).
+#' @param error.distribution character string of the distribution in the HMM error. If empty, the default builds models with all possible combinations of error distribution: \code{c('truc.normal', 'normal','gamma')}
+#' @param flickering logical \code{TRUE}/\code{FALSE}. \code{TRUE} = allows more sensitive markov flickering between states over time. When \code{FALSE} (default), state needs to persist for at least three time steps before state shift can occur.
+#' @param transition.graph matrix given the number of states. If empty, the default builds models with all possible combinations of states: 1-state matrix (1 by 1): code{matrix(TRUE,1,1)},  2-state matrix (2 by 2): \code{matrix(TRUE,2,2)}, 3-state matrix (3 by 3): \code{matrix(TRUE,3,3)}.
 #' @param siteID character string of site identifier.
-#' @param summary.table data frame with a table summarizing all built models and corresponding reference model. From function \code{summary}. If empty, summary table will be built automatically.
+#' @param summary.table data frame with a table summarizing all built models and corresponding reference model. From function \code{summary()}. If empty, summary table will be built automatically.
 #'
 #'
 #' @return
@@ -1229,7 +1229,7 @@ fit.hydroState <- function(model,
 #' get.AIC(model.annual.fitted.221201)
 #'
 #' ## Lowest AIC of a model set
-#' # get.AIC()
+#' get.AIC(all.models.annual.fitted.407211)
 #'
 
 
@@ -1340,7 +1340,7 @@ setInitialYear <- function(model, initial.year){ #make go to first year of dataf
 }
 
 
-#' Plot states over time or pseudo residuals
+#' Plot states or pseudo residuals over time
 #'
 #' \code{plot}
 #'

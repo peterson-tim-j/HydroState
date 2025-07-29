@@ -23,8 +23,8 @@ These dataframe of results include:
 \item{time-step:} year and possibly either season or month for subannual analysis
 \item{Viterbi State Number:} state number (i.e. 1, 2, or 3) to differentiate states
 \item{Obs. flow:} streamflow observations
-\item{Viterbi Flow:} flow values of the Viterbi state including the 5\% and 95\% confidence intervals. These are the most likely flow state values at each time-step of the given states.
-\item{Normal State Flow:} flow values of the normal state including the 5\% and 95\% confidence intervals. These Normal state flow values are the values from the normal state at each time-step. When the most likely state is the Normal state for a time-step, the Viterbi flow state value equals the Normal flow state value. This Normal state can be visualized relative to the most likely Viterbi state in the "dep.variable" plot from \code{plot.states}.
+\item{Viterbi Flow:} flow values of the Viterbi state including the 5\\% and 95\\% confidence intervals. These are the most likely flow state values at each time-step of the given states.
+\item{Normal State Flow:} flow values of the normal state including the 5\\% and 95\\% confidence intervals. These Normal state flow values are the values from the normal state at each time-step. When the most likely state is the Normal state for a time-step, the Viterbi flow state value equals the Normal flow state value. This Normal state can be visualized relative to the most likely Viterbi state in the "dep.variable" plot from \code{plot.states}.
 \item{Conditional Prob:} conditional probabilities for each state show the probability of remaining in the given state. When the conditional probability is closer to 1, there is a higher probability that hydroState model remains in that state for the next time-step.
 \item{Emission Density:} emission density for each state is the result of multiplying the conditional probabilities by the transition probabilities at each timestep.
 }

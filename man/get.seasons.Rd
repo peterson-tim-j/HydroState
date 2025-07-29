@@ -20,7 +20,6 @@ Aggregates monthly data to 4 seasons in a year.
 \details{
 \code{get.seasons}
 
-
 This function takes sums monthly runoff and precipitation observations into 4 seasons of a year.
 }
 \examples{

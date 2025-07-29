@@ -18,7 +18,6 @@ AIC value of a single model or a list variable of AIC values for al models
 \details{
 \code{get.AIC}
 
-
 The AIC is the negative log-likelihood of the model plus a penalty for model parameters. This function can be performed on a single model or a selection of models to find the lowest AIC of the set.
 }
 \examples{
@@ -29,7 +28,7 @@ data(model.annual.fitted.221201)
 get.AIC(model.annual.fitted.221201)
 
 ## Lowest AIC of a model set
-# get.AIC()
+get.AIC(all.models.annual.fitted.407211)
 
 }
 \keyword{AIC}

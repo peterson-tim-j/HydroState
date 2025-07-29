@@ -29,7 +29,6 @@ A fitted hydroState model
 \details{
 \code{fit.hydroState}
 
-
 After a hydroState model object is built, the model is ready to fit to the observed streamflow through minimizing the negative log-likelihood function too calibrate model parameters. The only required input is the given built hydroState model object or hydroState.allModels object (all models from \code{build.all = TRUE}). When fitting all models, the models are fitted from least to most complex (least to max amount of parameters). Each model has a minimum of 5 and maximum of 20 calibration attempts to outperform the prior reference model else the model is rejected. For instance 'model.1State.normal.log.AR0' contains 3-parameters and is the reference model for 'model.1State.normal.log.AR1' which contains 4-parameters. The objective function of 'model.1State.normal.log.AR1' must calibrate the model with a lower negative log-likelihood than 'model.1State.normal.log.AR0'. These reference models are pre-defined, but this function allows the user to edit the reference models in the data.frame if needed using \code{summary}. Details on the likelihood function is as follows:
 
 The likelihood function is estimated as:
@@ -38,16 +37,16 @@ The likelihood function is estimated as:
 
 where:
 \itemize{
- \item{\eqn{\delta}}{ is the initial state distribution, the initial probability of being in each state: \eqn{\delta = \begin{pmatrix} \delta_{1} \\ 1- \delta_{1} \end{pmatrix}}}
- \item{\eqn{P(x)}}{ is the \eqn{m} x \eqn{m} diagonal emissions matrix of the probability density for each state using a lower tail truncated Gaussian distribution or a two-parameter Gamma distribution}
-   \itemize{
-   \item{}{ \eqn{f_{Gau}(x=\widehat{_{obs}q_{t}}; \mu = \widehat{_{t}q_{i}}, \sigma = \sigma_{i}, a = 0) = \frac{\phi(\frac{x-\mu}{\sigma})}{\sigma(1-\Phi(\frac{a-\mu}{\sigma}))}}}
-   \item{}{ \eqn{f_{Gam}(x = \widehat{_{obs}q_{t}};k = \frac{\widehat{_{t}q_{i}}^2}{\sigma_{i}^2}, \theta = \frac{\sigma_{i}^2}{\widehat{_{t}q_{i}}}) = \frac{x^{k-1}e^{\frac{x}{\theta}}}{\theta^{k}\Gamma(k)}}}
-   \item{}{ where \eqn{\phi} is the probability density function for the standard normal distribution, \eqn{\Phi} is the cumulative distribution function for the standard normal distribution, \eqn{k} is the shape parameter, \eqn{\theta} is the scale parameter, and \eqn{\Gamma(k)} is the gamma function.
-   For more details, refer to pg. 8-17 in the \href{https://www.science.org/doi/10.1126/science.abd5085#supplementary-materials}{Supplementary Materials} of "Watersheds may not recover from drought".}}
- \item{\eqn{\Gamma} is the transition matrix}
- \item{\eqn{T} is the number of time-steps.}
- }
+\item{\eqn{\delta}}{ is the initial state distribution, the initial probability of being in each state: \eqn{\delta = \begin{pmatrix} \delta_{1} \\ 1- \delta_{1} \end{pmatrix}}}
+\item{\eqn{P(x)}}{ is the \eqn{m} x \eqn{m} diagonal emissions matrix of the probability density for each state using a lower tail truncated Gaussian distribution or a two-parameter Gamma distribution}
+\itemize{
+\item{}{ \eqn{f_{Gau}(x=\widehat{_{obs}q_{t}}; \mu = \widehat{_{t}q_{i}}, \sigma = \sigma_{i}, a = 0) = \frac{\phi(\frac{x-\mu}{\sigma})}{\sigma(1-\Phi(\frac{a-\mu}{\sigma}))}}}
+\item{}{ \eqn{f_{Gam}(x = \widehat{_{obs}q_{t}};k = \frac{\widehat{_{t}q_{i}}^2}{\sigma_{i}^2}, \theta = \frac{\sigma_{i}^2}{\widehat{_{t}q_{i}}}) = \frac{x^{k-1}e^{\frac{x}{\theta}}}{\theta^{k}\Gamma(k)}}}
+\item{}{ where \eqn{\phi} is the probability density function for the standard normal distribution, \eqn{\Phi} is the cumulative distribution function for the standard normal distribution, \eqn{k} is the shape parameter, \eqn{\theta} is the scale parameter, and \eqn{\Gamma(k)} is the gamma function.
+For more details, refer to pg. 8-17 in the \href{https://www.science.org/doi/10.1126/science.abd5085#supplementary-materials}{Supplementary Materials} of "Watersheds may not recover from drought".}}
+\item{\eqn{\Gamma} is the transition matrix}
+\item{\eqn{T} is the number of time-steps.}
+}
 }
 \examples{
 

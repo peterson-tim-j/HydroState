@@ -1,5 +1,5 @@
 ^.*\.Rproj$
-^\.Rproj\.user$
+^\.Rproj.user$
 .Rd2pdf15704
 .Rd2pdf17628
 .Rd2pdf26092
@@ -11,3 +11,7 @@ vignette
 ^_pkgdown\.yml$
 ^docs$
 ^pkgdown$
+^\.RData$
+^\.vscode$
+^\.DS_Store$
+^\.Rproj\.user$
