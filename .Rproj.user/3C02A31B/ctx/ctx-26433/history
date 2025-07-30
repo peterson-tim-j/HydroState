@@ -1,0 +1,512 @@
+library(hydroState)
+library(hydroState)
+all.models = buildModelAll(input.data = streamflow_annual_221201)
+library(hydroState)
+library(hydroState)
+all.models = buildModelAll(input.data = streamflow_annual_221201)
+library(hydroState)
+library(hydroState)
+all.models = buildModelAll(input.data = streamflow_annual_221201)
+buildModel(input.data,
+data.transform = temp.data.transform,
+parameters = temp.parameters,
+seasonal.parameters = list(),
+state.shift.parameters = temp.state.shift.parameters,
+error.distribution = temp.error.distribution,
+flickering = flickering,
+transition.graph = temp.transition.graph)
+build.all.model[[build.all.model.count]] = buildModel(input.data,
+data.transform = temp.data.transform,
+parameters = temp.parameters,
+seasonal.parameters = list(),
+state.shift.parameters = temp.state.shift.parameters,
+error.distribution = temp.error.distribution,
+flickering = flickering,
+transition.graph = temp.transition.graph)
+library(hydroState)
+library(hydroState)
+all.models = buildModelAll(input.data = streamflow_annual_221201)
+streamflow_annual_221201
+all.models = buildModelAll(input.data = streamflow_annual_221201)
+names(build.all.model)
+length(build.all.model)
+i=1
+build.all.model[[i]]
+names(build.all.model[[i]])
+parameters[[i]]
+names(parameters[[i]])
+unlist(parameters[[i]])
+names(parameters) = c("AR0","AR1","AR2","AR3")
+names(parameters[[i]])
+names(parameters) = c("AR0","AR1","AR2","AR3")
+names(parameters)
+names(parameters) = ifelse("AR1" %in% parameters,"AR1",ifelse("AR2" %in% parameters,"AR2", ifelse("AR3" %in% parameters, "AR3","AR0")))
+names(parameters)
+names(parameters) = c("AR0","AR1","AR2","AR3")
+name(temp.transition.graph)
+names(temp.transition.graph)
+temp.parameters.name = names(parameters[[i]])
+data.transform = list('boxcox', 'log')
+names(data.transform) = c("boxcox","log")
+parameters = list(list('a0','a1','std'), list('a0','a1','std','AR1'), list('a0','a1','std','AR2'), list('a0','a1','std','AR3'))
+names(parameters) = c("AR0","AR1","AR2","AR3")
+state.shift.parameters = list(list('a0','std'), list('a1','std'))
+names(state.shift.parameters) = c("a0","a1")
+error.distribution = list('truc.normal', 'normal', 'gamma')
+transition.graph = list(matrix(TRUE,1,1),matrix(TRUE,2,2),matrix(TRUE,3,3),matrix(c(TRUE,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,FALSE,TRUE),3,3))
+names(transition.graph) = c("1State","2State","3StateUS","3State")
+parameters[[i]]
+names(parameters[[i]])
+temp.parameters
+temp.parameters = parameters[[i]]
+temp.parameters
+names(parameters[i])
+data.transform[[j]]
+temp.transition.graph.name = names(transition.graph[y])
+temp.parameters.name = names(parameters[i])
+temp.state.shift.parameters = state.shift.parameters[[k]]
+temp.state.shift.parameters.name = names(state.shift.parameters[k])
+temp.error.distribution
+names(build.all.model[[build.all.model.count]]) = paste("model.",temp.transition.graph.name,".",temp.error.distribution,".",temp.data.transform,".",temp.parameters.name,".",temp.state.shift.parameters.name,sep="")
+names(build.all.model[build.all.model.count]) = paste("model.",temp.transition.graph.name,".",temp.error.distribution,".",temp.data.transform,".",temp.parameters.name,".",temp.state.shift.parameters.name,sep="")
+build.all.model.count
+build.all.model.count = 1
+paste("model.",temp.transition.graph.name,".",temp.error.distribution,".",temp.data.transform,".",temp.parameters.name,".",temp.state.shift.parameters.name,sep="")
+names(build.all.model[build.all.model.count]) = paste("model.",temp.transition.graph.name,".",temp.error.distribution,".",temp.data.transform,".",temp.parameters.name,".",temp.state.shift.parameters.name,sep="")
+build.all.model[[1]]
+build.all.model[1]
+names(build.all.model)
+names(build.all.model) = paste("model.",temp.transition.graph.name,".",temp.error.distribution,".",temp.data.transform,".",temp.parameters.name,".",temp.state.shift.parameters.name,sep="")
+library(hydroState)
+library(hydroState)
+all.models = buildModelAll(input.data = streamflow_annual_221201)
+all.models = buildModelAll(input.data = streamflow_annual_221201)
+paste("model.",temp.transition.graph.name,".",temp.error.distribution,".",temp.data.transform,".",temp.parameters.name,".",temp.state.shift.parameters.name,sep="")
+names(build.all.model[[build.all.model.count]]) = paste("model.",temp.transition.graph.name,".",temp.error.distribution,".",temp.data.transform,".",temp.parameters.name,".",temp.state.shift.parameters.name,sep="")
+names(build.all.model[[build.all.model.count]]) <- paste("model.",temp.transition.graph.name,".",temp.error.distribution,".",temp.data.transform,".",temp.parameters.name,".",temp.state.shift.parameters.name,sep="")
+names(build.all.model[build.all.model.count]) <- paste("model.",temp.transition.graph.name,".",temp.error.distribution,".",temp.data.transform,".",temp.parameters.name,".",temp.state.shift.parameters.name,sep="")
+build.all.model[[1]]
+names(build.all.model[[1]])
+names(build.all.model[[1]]) = "test"
+names(build.all.model[1]= "test"
+names(build.all.model[1]) = "test"
+names(build.all.model[[1]]) = "test"
+build.all.model[build.all.model.count]
+build.all.model.count = 1
+build.all.model[build.all.model.count]
+names(build.all.model[build.all.model.count])
+names(build.all.model[build.all.model.count]) = "test"
+View(build.all.model)
+names(build.all.model[build.all.model.count]) = paste("model.",temp.transition.graph.name,".",temp.error.distribution,".",temp.data.transform,".",temp.parameters.name,".",temp.state.shift.parameters.name,sep="")
+names(build.all.model[build.all.model.count]) <- "test"
+setNames(build.all.model[build.all.model.count], "rest")
+build.all.model[build.all.model.count] = setNames(build.all.model[build.all.model.count], "rest")
+setNames(build.all.model[build.all.model.count], "rest")
+build.all.model[build.all.model.count] = setNames(build.all.model[build.all.model.count], "rest")
+View(build.all.model)
+Browse[2]> build.all.model[build.all.model.count] <- setNames(build.all.model[build.all.model.count], "rest")
+build.all.model[build.all.model.count] <- setNames(build.all.model[build.all.model.count], "rest")
+build.all.model <- setNames(build.all.model[build.all.model.count], "rest")
+build.all.model[build.all.model.count] = "hrlpppp"
+library(hydroState)
+library(hydroState)
+all.models = buildModelAll(input.data = streamflow_annual_221201)
+setNames(build.all.model[build.all.model.count], paste("model.",temp.transition.graph.name,".",temp.error.distribution,".",temp.data.transform,".",temp.parameters.name,".",temp.state.shift.parameters.name,sep=""))
+View(build.all.model)
+build.all.model[build.all.model.count]
+build.all.model.names = vector(mode = "list", length = length(transition.graph) * length(error.distribution) * length(state.shift.parameters) * length(data.transform))
+build.all.model.count = 1
+for(i in 1:length(parameters)){
+temp.parameters = parameters[[i]]
+temp.parameters.name = names(parameters[i])
+for(j in 1:length(data.transform)){
+temp.data.transform = data.transform[[j]]
+for(k in 1:length(state.shift.parameters)){
+temp.state.shift.parameters = state.shift.parameters[[k]]
+temp.state.shift.parameters.name = names(state.shift.parameters[k])
+for(z in 1:length(error.distribution)){
+temp.error.distribution = error.distribution[[z]]
+for(y in 1:length(transition.graph)){
+temp.transition.graph = transition.graph[[y]]
+temp.transition.graph.name = names(transition.graph[y])
+build.all.model[[build.all.model.count]] = buildModel(input.data,
+data.transform = temp.data.transform,
+parameters = temp.parameters,
+seasonal.parameters = list(),
+state.shift.parameters = temp.state.shift.parameters,
+error.distribution = temp.error.distribution,
+flickering = flickering,
+transition.graph = temp.transition.graph)
+# build.all.model[build.all.model.count] <- setNames(build.all.model[build.all.model.count], paste("model.",temp.transition.graph.name,".",temp.error.distribution,".",temp.data.transform,".",temp.parameters.name,".",temp.state.shift.parameters.name,sep=""))
+build.all.model.names[[build.all.model.count]] <- paste("model.",temp.transition.graph.name,".",temp.error.distribution,".",temp.data.transform,".",temp.parameters.name,".",temp.state.shift.parameters.name,sep=""))
+# build all models
+build.all.model = vector(mode = "list", length = length(transition.graph) * length(error.distribution) * length(state.shift.parameters) * length(data.transform))
+build.all.model.names = vector(mode = "list", length = length(transition.graph) * length(error.distribution) * length(state.shift.parameters) * length(data.transform))
+build.all.model.count = 1
+for(i in 1:length(parameters)){
+temp.parameters = parameters[[i]]
+temp.parameters.name = names(parameters[i])
+for(j in 1:length(data.transform)){
+temp.data.transform = data.transform[[j]]
+for(k in 1:length(state.shift.parameters)){
+temp.state.shift.parameters = state.shift.parameters[[k]]
+temp.state.shift.parameters.name = names(state.shift.parameters[k])
+for(z in 1:length(error.distribution)){
+temp.error.distribution = error.distribution[[z]]
+for(y in 1:length(transition.graph)){
+temp.transition.graph = transition.graph[[y]]
+temp.transition.graph.name = names(transition.graph[y])
+build.all.model[[build.all.model.count]] = buildModel(input.data,
+data.transform = temp.data.transform,
+parameters = temp.parameters,
+seasonal.parameters = list(),
+state.shift.parameters = temp.state.shift.parameters,
+error.distribution = temp.error.distribution,
+flickering = flickering,
+transition.graph = temp.transition.graph)
+# build.all.model[build.all.model.count] <- setNames(build.all.model[build.all.model.count], paste("model.",temp.transition.graph.name,".",temp.error.distribution,".",temp.data.transform,".",temp.parameters.name,".",temp.state.shift.parameters.name,sep=""))
+build.all.model.names[[build.all.model.count]] <- paste("model.",temp.transition.graph.name,".",temp.error.distribution,".",temp.data.transform,".",temp.parameters.name,".",temp.state.shift.parameters.name,sep="")
+build.all.model.count = build.all.model.count + 1
+}
+}
+}
+}
+}
+build.all.model <- setNames(unlist(build.all.model.names))
+build.all.model <- setNames(build.all.model, unlist(build.all.model.names))
+library(hydroState)
+library(hydroState)
+all.models = buildModelAll(input.data = streamflow_annual_221201)
+library(hydroState)
+library(hydroState)
+all.models = buildModelAll(input.data = streamflow_annual_221201)
+new('hydroState.allModels', build.all.model, siteID)
+new('hydroState.allModels', build.all.model, siteID='221201')
+debugonce(c("hydroState.allModels","hydroState","character"))
+debugonce(c("initialize","hydroState.allModels","character"))
+all.models = buildModelAll(input.data = streamflow_annual_221201, siteID = "221201")
+library(hydroState)
+library(hydroState)
+all.models = buildModelAll(input.data = streamflow_annual_221201, siteID = "221201")
+new('hydroState.allModels', build.all.model, siteID)
+all.models = buildModelAll(input.data = streamflow_annual_221201, siteID = 221201)
+new('hydroState.allModels', build.all.model, siteID)
+library(hydroState)
+library(hydroState)
+library(hydroState)
+debugonce(c("initialize","hydroState.allModels","list","character))
+)
+)
+debugonce(c("initialize","hydroState.allModels","list","character"))
+all.models = buildModelAll(input.data = streamflow_annual_221201, siteID = 221201)
+new('hydroState.allModels', build.all.model, siteID)
+library(hydroState)
+library(hydroState)
+debugonce(c("initialize","hydroState.allModels","list","character"))
+all.models = buildModelAll(input.data = streamflow_annual_221201, siteID = "221201")
+all.models = buildModelAll(input.data = streamflow_annual_221201, siteID = "221201")
+new('hydroState.allModels', build.all.model, siteID)
+debugonce(c("initialize","hydroState.allModels","list","character"))
+new('hydroState.allModels', build.all.model, siteID)
+.Object@siteID <- siteID
+library(hydroState)
+library(hydroState)
+all.models = buildModelAll(input.data = streamflow_annual_221201, siteID = "221201")
+library(hydroState)
+library(hydroState)
+all.models = buildModelAll(input.data = streamflow_annual_221201, siteID = "221201")
+new('hydroState.allModels', build.all.model, siteID)
+debugonce(c("initialize","hydroState.allModels","list","character"))
+new('hydroState.allModels', build.all.model, siteID)
+.Object@siteID <- siteID
+new('hydroState.allModels', build.all.model, siteID)
+debugonce(c("initialize","hydroState.allModels","list","character"))
+new('hydroState.allModels', build.all.model, siteID)
+.Object@models <- unlist(models)
+names(build.all.model)
+library(hydroState)
+library(hydroState)
+library(hydroState)
+all.models = buildModelAll(input.data = streamflow_annual_221201, siteID = "221201")
+# Build all models
+debugonce(c("initialize","hydroState.allModels","list","character"))
+all.models = buildModelAll(input.data = streamflow_annual_221201, siteID = "221201")
+library(hydroState)
+library(hydroState)
+all.models = buildModelAll(input.data = streamflow_annual_221201, siteID = "221201")
+str_extract(all.models)
+list.class(all.models)
+rlist::list.class(all.models)
+install.packages("rlist")
+rlist::list.class(all.models)
+rlist::list.class(all.models,Qhat.object)
+rlist::list.class(all.models,@Qhat.object)
+str(list.group(all.models, lambda))
+str(rlist::list.group(all.models, lambda))
+library(purrr)
+install.packages("purrr")
+rlist::list.order(all.models)
+rlist::list.sort(all.models)
+map_dbl(all.models,"model.1State.truc.normal.boxcox.AR0.a0")
+purrr::map_dbl(all.models,"model.1State.truc.normal.boxcox.AR0.a0")
+purrr::map_dbl(all.models,"all.models")
+purrr::map_dbl(all.models, 'hydrostate')
+purrr::map_dbl(all.models, 'AR)')
+purrr::map_dbl(all.models, 'AR0')
+purrr::map_dbl(all.models, Qhat.model)
+purrr::map_dbl(all.models, Qhat.object)
+purrr::map_dbl(all.models, "Qhat.object")
+purrr::map_dbl(all.models, "Qhat.boxcox")
+library(purrr)
+map2(all.models. names(all.models))
+map2(all.models, names(all.models))
+map2(all.models, names(all.models), order())
+map(all.models, names(all.models))
+map(all.models, names(all.models), order())
+name.test = map(all.models, names(all.models), order())
+name.test = map_dbl(all.models, names(all.models), order())
+name.test = map_dbl(all.models, names(all.models))
+reduce(all.models, intersect)
+detect(all.models, isClass('hydroState'))
+isClass(all.models[[1]])
+isClass(all.models[[1]])
+isClass(all.models[[1]], 'hydroState')
+isClass(all.models[[1]], 'hydroState.allModels')
+class(all.models[[1]])
+class(all.models[[1]][1])
+class(all.models[1])
+class(all.models[1][1])
+class(all.models[1][[1]])
+class(all.models[1][[2]])
+pmap(all.models)
+pmap(.l = all.models, index = map(all.models,~which(toupper(.) == "boxcox")))
+map(all.models,~which(toupper(.) == "boxcox"))
+purrr::map(all.models,~which(toupper(.) == "boxcox"))
+attributes(all.models[[1]])
+pmap(all.modles, attributes(all.models))
+pmap(all.models, attributes(all.models))
+map(all.models, attributes(all.models))
+imap(all.models, attributes(all.models))
+which(attributes(all.models)@Qhat.object == 'Qhat.boxcox')
+which(attributes(all.models)[[Qhat.object]] == 'Qhat.boxcox')
+which(attributes(all.models)[['Qhat.object']] == 'Qhat.boxcox')
+attributes(all.models)
+attributes(all.models)
+attributes(all.models$names)
+attributes(all.models)$names
+which(attributes(all.models)$names == "model.3State.gamma.log.AR3.a1")
+grepl(attributes(all.models)$names,"a0")
+pmap(attributes(all.models)$names, grepl('a0'))
+pmap(attributes(all.models)$names@Qhat.object, grepl('a0'))
+attributes(all.models)$names@Qhat.object
+pmap(names(all.models), grepl('a0'))
+pmap(all.models, grepl('a0'))
+pmap_dbl(all.models, grepl('a0'))
+pmap_dbl(all.models)
+grepl(attributes(all.models)$names,"a0")
+imap(names(all.models), grepl('a0'))
+imap(names(all.models))
+imap(names(all.models), grepl(.l,'a0'))
+imap(names(all.models), grepl(.x,'a0'))
+imap_chr(.x = names(all.models), grepl(.x,'a0'))
+imap_chr(x = names(all.models), grepl(x,'a0'))
+imap_chr(x = names(all.models), grepl(x,'a0'))
+imap_chr(x = names(all.models), grepl('a0',x))
+imap_chr(.x = names(all.models), grepl('a0',.x))
+imap_chr(.x = names(all.models), grepl('a0',.x))
+names(all.models)
+lapply(1:length(all.models), function(x) grepl('a0',names(all.models)))
+grepl('a0',names(all.models))
+grepl('a0' & 'AR0',names(all.models))
+grepl('a0',names(all.models))
+all.models.intercept = grepl('a0',names(all.models))
+all.models.intercept = all.models[grepl('a0',names(all.models))]
+lapply(1:length(all.models.intercept), funciton(x) any(isClass(all.models.intercept[[x]]) == 'Qhat.boxcox')
+lapply(1:length(all.models.intercept), funciton(x) isClass(all.models.intercept[[x]]) == 'Qhat.boxcox')
+isClass(all.models.intercept[[1]]
+)
+class(all.models.intercept[[1]])
+class(all.models.intercept[names(all.models.intercept)])
+class(all.models.intercept[[names(all.models.intercept)]])
+models.1State = all.models[grepl('1State',names(all.models))]
+transform(names(all.models) n=nchar(names(all.models)))
+transform(names(all.models), n=nchar(names(all.models)))
+names(all.models))
+names(all.models)
+transform(all.models, n=nchar(names(all.models)))
+all.models[with(transform(names(all.models), n=nchar(names(all.models))))]
+all.models[with(transform(names(all.models), n=nchar(names(all.models)))), order(nchar(names(all.models)),names(all.models))]
+all.models[with(transform(names(all.models), n=nchar(names(all.models)))), order(nchar(names(all.models)),names(all.models)),]
+transform(names(all.models), n=nchar(names(all.models)))
+transform(names(all.models), n=nchar(names(all.models)))
+order(transform(names(all.models), n=nchar(names(all.models))), n)
+which(attributes(all.models.intercept)) == 'Qhat.boxcox'
+which(attributes(all.models.intercept) == 'Qhat.boxcox')
+attributes(all.models.intercept)
+all.models.intercept = all.models[grepl('a0',names(all.models))]
+which(attributes(all.models.intercept) == 'Qhat.boxcox')
+attributes(all.models.intercept)
+attributes(all.models.intercept$names)
+which(hydroState@models)
+models.1State = all.models[unique(grep(paste(c("1State","AR0"),collapse="|"),
+names(all.models), value=TRUE))]
+View(models.1State)
+models.1State = all.models[unique(grep(paste(c("1State","AR0"),collapse="&"),
+names(all.models), value=TRUE))]
+models.1State = all.models[unique(grep(paste(c("1State","AR0"),collapse="&&"),
+names(all.models), value=TRUE))]
+models.1State = all.models[unique(grep(paste(c("1State","AR0"),collapse="|"),
+names(all.models), value=TRUE))]
+# Re-order models based on names (probably a better way to do this with class ID and map, but have not found one Dec. 2 20204)
+models.1State = all.models[grepl('1State',names(all.models))]
+models.1State.log = all.models[grepl('log',names(models.1State))]
+# Re-order models based on names (probably a better way to do this with class ID and map, but have not found one Dec. 2 20204)
+models.1State = all.models[grepl('1State',names(all.models))]
+models.1State.log = all.models[grepl('log',names(models.1State))]
+# Re-order models based on names (probably a better way to do this with class ID and map, but have not found one Dec. 2 20204)
+models.1State = all.models[grepl('1State',names(all.models))]
+models.1State.log =  models.1State[grepl('log',names(models.1State))]
+View(models.1State.log)
+# 2nd: 1-state models
+models.1State = all.models[grepl('1State',names(all.models))]
+models.1State.truc.normal =  models.1State[grepl('truc.normal',names(models.1State))]
+View(models.1State.truc.normal)
+models.1State.truc.normal.log =  models.1State[grepl('logs',names(models.1State.truc.normal))]
+models.1State.truc.normal.log =  models.1State[grepl('log',names(models.1State.truc.normal))]
+models.1State.truc.normal =  models.1State[grepl('truc.normal',names(models.1State))]
+models.1State.truc.normal.log =   models.1State.truc.normal[grepl('log',names(models.1State.truc.normal))]
+View(models.1State.truc.normal.log)
+models.1State.truc.normal.log.intercept = models.1State.truc.normal.log[grepl('a0',names(models.1State.truc.normal.log))]
+View(models.1State.truc.normal.log.intercept)
+library(hydroState)
+all.models = buildModelAll(input.data = streamflow_annual_221201, siteID = "221201")
+build.all.model <- setNames(build.all.model, unlist(build.all.model.names))
+build.all.model[order(names(build.all.model))]
+all.models = buildModelAll(input.data = streamflow_annual_221201, siteID = "221201")
+build.all.model = build.all.model[order(names(build.all.model))]
+View(build.all.model)
+build.all.model = build.all.model[order(sapply(build.all.model,'[[',grepl('a0',x)))]
+build.all.model = build.all.model[order(sapply(build.all.model,'[[',grepl('a0')))]
+sapply(build.all.model,'[[',grepl('a0'))
+build.all.model = build.all.model[order(sapply(build.all.model,'[[',grepl('a0',names(build.all.model))))]
+View(build.all.model)
+new('hydroState.allModels', build.all.model, siteID)
+library(hydroState)
+library(hydroState)
+# Build all models
+debugonce("initialize",c("hydroState.allModels","list","character"))
+all.models = buildModelAll(input.data = streamflow_annual_221201, siteID = "221201")
+all.models = buildModelAll(input.data = streamflow_annual_221201, siteID = "221201")
+build.all.model <- setNames(build.all.model, unlist(build.all.model.names))
+# order and make a hydroState.allModels object
+debugonce("initialize",c("hydroState.allModels","list","character"))
+new('hydroState.allModels', build.all.model, siteID)
+.Object@siteID <- siteID
+siteID
+.Object@models
+.Object@models
+all.models = buildModelAll(input.data = streamflow_annual_221201, siteID = "221201")
+# order and make a hydroState.allModels object
+debugonce("initialize",c("hydroState.allModels"))
+new('hydroState.allModels', build.all.model, siteID)
+new('hydroState.allModels', build.all.model, siteID)
+siteID
+build.all.model <- new('hydroState.allModels', models = build.all.mode, siteID = siteID)
+library(hydroState)
+library(hydroState)
+all.models = buildModelAll(input.data = streamflow_annual_221201, siteID = "221201")
+library(hydroState)
+library(hydroState)
+all.models = buildModelAll(input.data = streamflow_annual_221201, siteID = "221201")
+all.models = buildModelAll(input.data = streamflow_annual_221201, siteID = "221201")
+.Object@siteID <- siteID
+models
+all.models = buildModelAll(input.data = streamflow_annual_221201, siteID = "221201")
+class(build.all.model)
+class(siteID)
+# order and make a hydroState.allModels object
+debugonce("initialize",c("hydroState.allModels","list","character"))
+build.all.model <- new('hydroState.allModels', models = build.all.model, siteID = siteID)
+# This R scrpt details the step required to build the CRAN .tar.gz file for submission to CRAN and how to build the manual PDF.
+#------------------------------------------------
+setwd("C:/Users/twes0006/OneDrive - Monash University/Git/hydroState")
+# RE-write NAMESPACE
+roxygen2::roxygenise()
+library(hydroState)
+library(hydroState)
+all.models = buildModelAll(input.data = streamflow_annual_221201, siteID = "221201")
+library(hydroState)
+library(hydroState)
+all.models = buildModelAll(input.data = streamflow_annual_221201, siteID = "221201")
+# RE-write NAMESPACE
+roxygen2::roxygenise()
+library(hydroState)
+library(hydroState)
+all.models = buildModelAll(input.data = streamflow_annual_221201, siteID = "221201")
+# RE-write NAMESPACE
+roxygen2::roxygenise()
+library(hydroState)
+library(hydroState)
+all.models = buildModelAll(input.data = streamflow_annual_221201, siteID = "221201")
+# order and make a hydroState.allModels object
+debugonce("initialize",c("hydroState.allModels"))
+build.all.model <- new('hydroState.allModels')
+siteID
+library(hydroState)
+library(hydroState)
+all.models = buildModelAll(input.data = streamflow_annual_221201, siteID = "221201")
+.Object@siteID <- siteID
+.Object@siteID
+value@siteID
+value@models
+# Build hydrostate models
+unlisted.models <- unlist(value@models)
+getParameters(value@models[1])
+getParameters(value@QhatModel.object@parameters)
+value@QhatModel.object@parameters
+sapply(value@models, function(x) class(x))
+# nparams
+sapply(value@models, function(x) class(x@QhatModel.object))
+# nparams
+sapply(value@models, function(x) getParameters(x@QhatModel.object@parameters))
+# nparams
+sapply(value@models, function(x) getParameters.asVector(x))
+# nparams
+sapply(value@models, function(x) getParameters.asVector(x[[1]]))
+# nparams
+sapply(value@models, function(x) getParameters.asVector(x@hydroState.object))
+# nparams
+sapply(value@models, function(x) getParameters.asVector(x))
+class(value@models)
+class(value@models[1])
+class(value@models[[1])
+class(value@models[[1]])
+# nparams
+sapply(value@models, function(x) getParameters.asVector(x[[1]]))
+# nparams
+sapply(value@models, function(x) getParameters.asVector(x[1]))
+# nparams
+sapply(value@models, function(x) getParameters.asVector(x[1]))
+getParameters(value@models[[1]])
+getParameters.asVector(value@models[[1]])
+value@models[1]
+getParameters.asVector(value@models[1])
+getParameters.asVector(.value@value@models[1])
+getParameters.asVector(.Object@value@models[1])
+hydroState::getParameters.asVector(.Object@value@models[1])
+hydroState::getParameters.asVector(value@models[1])
+hydroState::getParameters.asVector(.Object = value@models[1])
+hydroState::getParameters.asVector(.Object = value@models[[1]])
+value@models[[1]]
+value@models[[1]]
+getParameters.asVector(.Object = value@models[[1]])
+library(hydroState)
+library(hydroState)
+all.models = buildModelAll(input.data = streamflow_annual_221201, siteID = "221201")
+library(hydroState)
+library(hydroState)
+all.models = buildModelAll(input.data = streamflow_annual_221201, siteID = "221201")
+library(hydroState)
+library(hydroState)
+all.models = buildModelAll(input.data = streamflow_annual_221201, siteID = "221201")
+library(hydroState)
