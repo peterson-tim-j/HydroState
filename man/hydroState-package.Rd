@@ -70,6 +70,7 @@ The package development was funded by the Victorian Government The Department of
 Useful links:
 \itemize{
   \item \url{https://github.com/peterson-tim-j/HydroState}
+  \item \url{https://peterson-tim-j.github.io/HydroState/}
   \item Report bugs at \url{https://github.com/peterson-tim-j/HydroState/issues}
 }
 
