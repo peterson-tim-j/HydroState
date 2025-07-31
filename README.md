@@ -1,6 +1,9 @@
 # hydroState
 
-![CRAN/METACRAN Version](https://img.shields.io/cran/v/hydroState?style=flat)
+![](https://img.shields.io/cran/v/hydroState?style=flat)
+![](https://img.shields.io/github/downloads/peterson-tim-j/HydroState/total?style=flat-square)
+![](https://img.shields.io/github/stars/peterson-tim-j/HydroState?style=social&labelColor=yellow&color=yellow)
+
 
 
 ### Overview
