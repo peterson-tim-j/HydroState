@@ -1,5 +1,7 @@
 # hydroState
 
+![CRAN/METACRAN Version](https://img.shields.io/cran/v/hydroState?style=flat)
+
 
 ### Overview
 hydroState is an R-package that identifies regime changes in streamflow time-series that is not explained by variations in precipitation. For details of the mathematics, and its use in understanding catchment drought non-recovery, see:
