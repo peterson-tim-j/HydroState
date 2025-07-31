@@ -1756,9 +1756,10 @@ get.states <- function(model){
 #' @export check
 #'
 #' @examples
-#' ## Check reliability of state predictions
+#' ## Check reliability of state predictions (>5s to run)
+#' \dontrun{
 #' check(model = model.annual.fitted.221201)
-#'
+#'}
 
 
 check <- function(model, n.samples = 100000){

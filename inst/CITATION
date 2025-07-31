@@ -1,6 +1,6 @@
 citHeader("To cite hydroState in publications, please use:")
 
-citEntry(entry = "article",
+bibentry(bibtype = "Article",
   author  = "T. J. Peterson, M. Saft and M. C. Peel and A John",
   title   = "Watersheds may not recover from drought",
   journal = "Science",

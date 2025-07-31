@@ -19,7 +19,8 @@ ByteCompile: true
 Suggests: 
     knitr,
     rmarkdown,
-    testthat (>= 3.0.0)
+    testthat (>= 3.0.0),
+    V8
 Config/testthat/edition: 3
 VignetteBuilder: knitr
 Collate: 
