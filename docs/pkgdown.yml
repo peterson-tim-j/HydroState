@@ -1,9 +1,0 @@
-pandoc: 3.1.1
-pkgdown: 2.0.7
-pkgdown_sha: ~
-articles:
-  adjust.state.model: adjust.state.model.html
-  hydroState: hydroState.html
-  subAnnual.models: subAnnual.models.html
-last_built: 2025-07-29T12:55Z
-
