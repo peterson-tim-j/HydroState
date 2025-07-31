@@ -1,6 +1,6 @@
 Package: hydroState
 Title: Hidden Markov Modelling of Hydrological State Change
-Version: 0.2.0.0
+Version: 0.3.0
 Authors@R: c(
     person("Tim", "Peterson", email = "tim.peterson@monash.edu", role = c("aut", "cre","cph"), comment = c(ORCID = "0000-0002-1885-0826")),
     person("Thomas", "Westfall", email = "thomas.westfall1@monash.edu", role = "aut", comment = c(ORCID = "0009-0000-0529-881X"))) 
