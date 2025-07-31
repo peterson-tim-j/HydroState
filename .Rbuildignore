@@ -15,4 +15,8 @@ vignette
 ^\.vscode$
 ^\.DS_Store$
 ^\.Rproj\.user$
+<<<<<<< HEAD
 ^\.github$
+=======
+^cran-comments\.md$
+>>>>>>> 37add888202d9a0c34ba98cfa7647fb2051b3356

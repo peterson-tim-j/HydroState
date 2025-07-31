@@ -24,7 +24,7 @@ fit.hydroState(
 A fitted hydroState model
 }
 \description{
-\code{fit.hydroState} fits a single hydroState model (\code{build}) or multiple models (\code{build.all}) using global optimization by differential evolution \href{https://cran.r-project.org/web/packages/DEoptim/index.html}{DEoptim} library. If fitting all models be sure to install and load the \href{https://cran.r-project.org/web/packages/parallelly/index.html}{parallelly} library. The fitting of all models may take hours or days, but the calibration can occur in parallel if the \href{https://cran.r-project.org/web/packages/parallelly/index.html}{parallelly} library is installed and loaded.
+\code{fit.hydroState} fits a single hydroState model (\code{build}) or multiple models (\code{build.all}) using global optimization by differential evolution \href{https://cran.r-project.org/package=DEoptim}{DEoptim} library. If fitting all models be sure to install and load the \href{https://cran.r-project.org/package=parallelly}{parallelly} library. The fitting of all models may take hours or days, but the calibration can occur in parallel if the \href{https://cran.r-project.org/package=parallelly}{parallelly} library is installed and loaded.
 }
 \details{
 \code{fit.hydroState}
@@ -43,9 +43,10 @@ where:
 \item{}{ \eqn{f_{Gau}(x=\widehat{_{obs}q_{t}}; \mu = \widehat{_{t}q_{i}}, \sigma = \sigma_{i}, a = 0) = \frac{\phi(\frac{x-\mu}{\sigma})}{\sigma(1-\Phi(\frac{a-\mu}{\sigma}))}}}
 \item{}{ \eqn{f_{Gam}(x = \widehat{_{obs}q_{t}};k = \frac{\widehat{_{t}q_{i}}^2}{\sigma_{i}^2}, \theta = \frac{\sigma_{i}^2}{\widehat{_{t}q_{i}}}) = \frac{x^{k-1}e^{\frac{x}{\theta}}}{\theta^{k}\Gamma(k)}}}
 \item{}{ where \eqn{\phi} is the probability density function for the standard normal distribution, \eqn{\Phi} is the cumulative distribution function for the standard normal distribution, \eqn{k} is the shape parameter, \eqn{\theta} is the scale parameter, and \eqn{\Gamma(k)} is the gamma function.
-For more details, refer to pg. 8-17 in the \href{https://www.science.org/doi/10.1126/science.abd5085#supplementary-materials}{Supplementary Materials} of "Watersheds may not recover from drought".}}
+For more details, refer to pg. 8-17 in Supplementary Materials of (Peterson TJ, Saft M, Peel MC & John A (2021), Watersheds may not recover from drought, Science, DOI: \doi{10.1126/science.abd5085}).}
 \item{\eqn{\Gamma} is the transition matrix}
 \item{\eqn{T} is the number of time-steps.}
+}
 }
 }
 \examples{
@@ -56,20 +57,20 @@ data(streamflow_annual_221201)
 ## Build default annual hydroState model
 model = build(input.data = streamflow_annual_221201)
 
-## Fit built model
+## Fit built model (runtime ~ 14 sec)
 \dontrun{
 model = fit.hydroState(model)
 }
-## Fit all built models (will take hours to run)
-\dontrun{
 
+## Fit all built models (runtime > several hours)
 # Load data
 data(streamflow_annual_221201)
 
 ## Build all annual models
 all.annual.models = build.all(input.data = streamflow_annual_221201, siteID = '221201')
 
-## Fit all
+\dontrun{
+# Fit all (runtime > several hours)
 all.annual.models = fit.hydroState(all.annual.models)
 
 }
