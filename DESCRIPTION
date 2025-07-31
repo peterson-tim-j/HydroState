@@ -9,7 +9,7 @@ Depends: R (>= 3.5.0)
 Description: HydroState identifies regime changes in streamflow runoff not explained by variations in precipitation. The package builds a flexible set of Hidden Markov Models of annual, seasonal or monthly streamflow runoff with precipitation as a predictor. Suites of models can be built for a single site, ranging from one to three states and each with differing combinations of error models and auto-correlation terms. The most parsimonious model is easily identified by AIC. The entire package is written in R S4 object oriented code, but is accesible with specific functions and vignettes for users. See Peterson TJ, Saft M, Peel MC & John A (2021), Watersheds may not recover from drought, Science, DOI: 10.1126/science.abd5085.
 Imports: methods, DEoptim, sn, truncnorm, diagram, padr, zoo, graphics, checkmate
 BugReports: https://github.com/peterson-tim-j/HydroState/issues
-URL: https://github.com/peterson-tim-j/HydroState
+URL: https://github.com/peterson-tim-j/HydroState, https://peterson-tim-j.github.io/HydroState/
 License: GPL-3
 Encoding: UTF-8
 LazyData: true
