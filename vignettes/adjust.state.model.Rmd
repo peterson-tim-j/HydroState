@@ -100,7 +100,7 @@ plot(default.model.annual, pse.residuals = TRUE, siteID = '407211', do.pdf = FAL
 plot(adjusted.model.annual, pse.residuals = TRUE, siteID = '407211', do.pdf = FALSE)
 
 ```
-![Comparison between the residual plots of the default annual model with a truncated normal distribution and adjusted annual model with a gamma distribution and two auto-correlation lags. p-value greater than 0.05 in adjusted model suggests gamma model better suites the residual distribution at this site (407211)](default.vs.gamma.annual.two.state.residuals.407211.png){width=80%}
+![Comparison between the residual plots of the default annual model with a truncated normal distribution and adjusted annual model with a gamma distribution and two auto-correlation lags. p-value greater than 0.05 in adjusted model suggests gamma model better suites the residual distribution at this site (407211)](../man/figures/default.vs.gamma.annual.two.state.residuals.407211.png){width=100%}
 
 
 ## Evaluate the state-shifts
@@ -115,7 +115,7 @@ plot(adjusted.model.annual)
 
 ```
 
-![Timeseries plot of annual runoff states from adjusted model](gamma.annual.model.timeseries.407211.png){width=80%}
+![Timeseries plot of annual runoff states from adjusted model](../man/figures/gamma.annual.model.timeseries.407211.png){width=100%}
 
 
 ## Systematic state model selection

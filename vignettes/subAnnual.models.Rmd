@@ -86,11 +86,11 @@ Review the model's residuals from figures using `plot.hydroState()` to ensure th
 
 ```r
 # review residual plots
-plot.residuals(model.monthly.fitted.415201, pse.residuals = TRUE, siteID = '415201', do.pdf = FALSE) 
+plot(model.monthly.fitted.415201, pse.residuals = TRUE, siteID = '415201', do.pdf = FALSE) 
 
 ```
 
-![The residual plots of the best monthly model for site 415201 appear uniform and normally distributed despite the Shapiro-Wilk p-value being less than 0.05.](subAnnual.model.residuals.png){width=80%}
+![The residual plots of the best monthly model for site 415201 appear uniform and normally distributed despite the Shapiro-Wilk p-value being less than 0.05.](../man/figures/subAnnual.model.residuals.png){width=100%}
 
 
 
@@ -107,7 +107,7 @@ plot(model.monthly.fitted.415201, do.pdf = F)
 
 ```
 <center>
-![The monthly model considers seasonality and auto-correlation within the rainfall-runoff relationship, but these model results show there are state shifts within this relationship at this site. The 3-states suggests a shift in the rainfall-runoff relationship throughout the record better represent observations. The Very Low state persist at the end of the record after a prolonged drought from roughly 1997-2009.](subAnnual.model.states.png){width=80%}
+![The monthly model considers seasonality and auto-correlation within the rainfall-runoff relationship, but these model results show there are state shifts within this relationship at this site. The 3-states suggests a shift in the rainfall-runoff relationship throughout the record better represent observations. The Very Low state persist at the end of the record after a prolonged drought from roughly 1997-2009.](../man/figures/subAnnual.model.states.png){width=100%}
 
 
 

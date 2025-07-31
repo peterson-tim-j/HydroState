@@ -93,7 +93,7 @@ plot(default.model.annual, pse.residuals = TRUE, siteID = '221201', do.pdf = FAL
 model.residuals = get.residuals(default.model.annual)
 ```
 <center>
-![Residual plots to diagnose the fit of the annual model](annual.two.state.residuals.png){width=70%}
+![Residual plots to diagnose the fit of the annual model](../man/figures/annual.two.state.residuals.png){width=100%}
 </center>
 
 
@@ -109,7 +109,7 @@ plot(default.model.annual)
 
 ```
 <center>
-![Timeseries plot of annual runoff states](annual.two.state.timeseries.png){width=70%}
+![Timeseries plot of annual runoff states](../man/figures/annual.two.state.timeseries.png){width=100%}
 </center>
 
 To only receive the results without plotting a figure, use `get.states()`. This exports the Viterbi flow states, Normal flow state, conditional probabilities, and emission density. Please refer to `get.states()` for further explanation.
