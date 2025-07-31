@@ -5,4 +5,7 @@ articles:
   adjust.state.model: adjust.state.model.html
   hydroState: hydroState.html
   subAnnual.models: subAnnual.models.html
-last_built: 2025-07-31T05:02Z
+last_built: 2025-07-31T06:50Z
+urls:
+  reference: https://peterson-tim-j.github.io/HydroState/reference
+  article: https://peterson-tim-j.github.io/HydroState/articles
