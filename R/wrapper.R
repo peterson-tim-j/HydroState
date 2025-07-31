@@ -109,7 +109,7 @@ get.seasons <- function(input.data=data.frame(year=c(), month = c(), flow=c(), p
   return(streamflow_monthly.seasonal)
 }
 
-
+#' @keywords internal
 select.transform <- function(func = 'boxcox', input.data=data.frame(year=c(), flow=c(), precip=c())){
 
   #Validate
@@ -134,6 +134,7 @@ select.transform <- function(func = 'boxcox', input.data=data.frame(year=c(), fl
 
 }
 
+#' @keywords internal
 select.stateModel <- function(input.data = data.frame(year=c(), flow=c(), precip=c()),
                               parameters = c('a0','a1','std'),
                               seasonal.parameters,
@@ -468,7 +469,7 @@ select.stateModel <- function(input.data = data.frame(year=c(), flow=c(), precip
 
 }
 
-
+#' @keywords internal
 select.Markov <- function(flickering = FALSE,
                           transition.graph){
 
@@ -517,7 +518,7 @@ select.Markov <- function(flickering = FALSE,
 #' \item{State Dependent Parameters with \code{state.shift.parameters}}: These are state dependent parameters where they are subject to shift in order to better explain the state of streamflow over time. Any or all of the previously chosen parameters can be selected (\eqn{a_0, a_1, std, AR1, AR2, AR3}). The default model evaluates shifts in the rainfall-runoff relationship with \eqn{a_0} \eqn{std} as state dependent parameters.
 #' \item{Distribution of the Residuals with \code{error.distribution}}: The distribution of the residuals (error) within a state of the model can be chosen to reduce skew and assist with making models statistically adequate (see \code{plot(pse.residuals = TRUE)}). Either normal: \code{normal}, truncated normal: \code{truc.normal}, or gamma: \code{gamma} distributions are acceptable. These error distribution ensures streamflow is greater than zero \(Q $>$ 0\), and specifically for \code{truc.normal} greater than or equal to zero \(Q $>=$ 0\). The default is \code{truc.normal}. Sub-annual models are restricted to only a \code{gamma} distribution.
 #' \item{Markov flickering with \code{flickering}}: When flickering is \code{FALSE}, the markov avoids state shifts for very short duration, and hence for a state shift to occur it should last for an extended period. The default is FALSE. If TRUE, flickering between more states is more sensitive. For further explanation on this method, see: \href{https://hess.copernicus.org/articles/7/652/2003/}{Lambert et al., 2003}. The current form of the Markov model is homogeneous where the transition probabilities are time-invariant.
-#' \item{Number of States with \code{transition.graph}}: The number of possible states in the rainfall-runoff relationship and transition between the states is selected with the transition.graph. The default is a 2-state model in a 2 by 2 unstructured matrix with a TRUE transition to and from each state (i.e. \code{matrix(TRUE,2,2)}). hydroState accepts 1-state up to 3-states (i.e. for 3-state unstructured transition graph: \code{matrix(TRUE,3,3)}). The unstructured transition graph allows either state to remain in the current state or transition between any state. For the 3-state transition graph, one may want to assume the transitions can only occur in a particular order, as in (Very low -> Low -> Normal->) rather than (Very low <-> Low <-> Normal <-> Very low). Thus, a structured graph is also acceptable (3-state structured: \code{matrix(c(TRUE,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,FALSE,TRUE),3,3)}). More details in Supplementary Materials of \href{https://www.science.org/doi/10.1126/science.abd5085}{Peterson et al., 2021}.
+#' \item{Number of States with \code{transition.graph}}: The number of possible states in the rainfall-runoff relationship and transition between the states is selected with the transition.graph. The default is a 2-state model in a 2 by 2 unstructured matrix with a TRUE transition to and from each state (i.e. \code{matrix(TRUE,2,2)}). hydroState accepts 1-state up to 3-states (i.e. for 3-state unstructured transition graph: \code{matrix(TRUE,3,3)}). The unstructured transition graph allows either state to remain in the current state or transition between any state. For the 3-state transition graph, one may want to assume the transitions can only occur in a particular order, as in (Very low -> Low -> Normal->) rather than (Very low <-> Low <-> Normal <-> Very low). Thus, a structured graph is also acceptable (3-state structured: \code{matrix(c(TRUE,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,FALSE,TRUE),3,3)}). More details in Supplementary Materials of (Peterson TJ, Saft M, Peel MC & John A (2021), Watersheds may not recover from drought, Science, DOI: \doi{10.1126/science.abd5085}).
 #'}
 #'
 #' @param input.data dataframe of annual, seasonal, or monthly runoff and precipitation observations. Gaps with missing data in either streamflow or precipitation are permitted. Monthly data is required when using \code{seasonal.parameters}.
@@ -1091,7 +1092,7 @@ summary.hydroState.allModels <- function(object, ...){
 #' \code{fit.hydroState}
 #'
 #' @description
-#' \code{fit.hydroState} fits a single hydroState model (\code{build}) or multiple models (\code{build.all}) using global optimization by differential evolution \href{https://cran.r-project.org/web/packages/DEoptim/index.html}{DEoptim} library. If fitting all models be sure to install and load the \href{https://cran.r-project.org/web/packages/parallelly/index.html}{parallelly} library. The fitting of all models may take hours or days, but the calibration can occur in parallel if the \href{https://cran.r-project.org/web/packages/parallelly/index.html}{parallelly} library is installed and loaded.
+#' \code{fit.hydroState} fits a single hydroState model (\code{build}) or multiple models (\code{build.all}) using global optimization by differential evolution \href{https://cran.r-project.org/package=DEoptim}{DEoptim} library. If fitting all models be sure to install and load the \href{https://cran.r-project.org/package=parallelly}{parallelly} library. The fitting of all models may take hours or days, but the calibration can occur in parallel if the \href{https://cran.r-project.org/package=parallelly}{parallelly} library is installed and loaded.
 #'
 #' @details
 #' After a hydroState model object is built, the model is ready to fit to the observed streamflow through minimizing the negative log-likelihood function too calibrate model parameters. The only required input is the given built hydroState model object or hydroState.allModels object (all models from \code{build.all = TRUE}). When fitting all models, the models are fitted from least to most complex (least to max amount of parameters). Each model has a minimum of 5 and maximum of 20 calibration attempts to outperform the prior reference model else the model is rejected. For instance 'model.1State.normal.log.AR0' contains 3-parameters and is the reference model for 'model.1State.normal.log.AR1' which contains 4-parameters. The objective function of 'model.1State.normal.log.AR1' must calibrate the model with a lower negative log-likelihood than 'model.1State.normal.log.AR0'. These reference models are pre-defined, but this function allows the user to edit the reference models in the data.frame if needed using \code{summary}. Details on the likelihood function is as follows:
@@ -1108,9 +1109,10 @@ summary.hydroState.allModels <- function(object, ...){
 #'    \item{}{ \eqn{f_{Gau}(x=\widehat{_{obs}q_{t}}; \mu = \widehat{_{t}q_{i}}, \sigma = \sigma_{i}, a = 0) = \frac{\phi(\frac{x-\mu}{\sigma})}{\sigma(1-\Phi(\frac{a-\mu}{\sigma}))}}}
 #'    \item{}{ \eqn{f_{Gam}(x = \widehat{_{obs}q_{t}};k = \frac{\widehat{_{t}q_{i}}^2}{\sigma_{i}^2}, \theta = \frac{\sigma_{i}^2}{\widehat{_{t}q_{i}}}) = \frac{x^{k-1}e^{\frac{x}{\theta}}}{\theta^{k}\Gamma(k)}}}
 #'    \item{}{ where \eqn{\phi} is the probability density function for the standard normal distribution, \eqn{\Phi} is the cumulative distribution function for the standard normal distribution, \eqn{k} is the shape parameter, \eqn{\theta} is the scale parameter, and \eqn{\Gamma(k)} is the gamma function.
-#'    For more details, refer to pg. 8-17 in the \href{https://www.science.org/doi/10.1126/science.abd5085#supplementary-materials}{Supplementary Materials} of "Watersheds may not recover from drought".}}
+#'    For more details, refer to pg. 8-17 in Supplementary Materials of (Peterson TJ, Saft M, Peel MC & John A (2021), Watersheds may not recover from drought, Science, DOI: \doi{10.1126/science.abd5085}).}
 #'  \item{\eqn{\Gamma} is the transition matrix}
 #'  \item{\eqn{T} is the number of time-steps.}
+#'  }
 #'  }
 #'
 #' @param model built hydroState model object, hydroState.allModels object, or hydroState.subAnnual.allModels object
@@ -1142,20 +1144,20 @@ summary.hydroState.allModels <- function(object, ...){
 #' ## Build default annual hydroState model
 #' model = build(input.data = streamflow_annual_221201)
 #'
-#' ## Fit built model
+#' ## Fit built model (runtime ~ 14 sec)
 #' \dontrun{
 #' model = fit.hydroState(model)
 #' }
-#' ## Fit all built models (will take hours to run)
-#' \dontrun{
 #'
+#' ## Fit all built models (runtime > several hours)
 #' # Load data
 #' data(streamflow_annual_221201)
 #'
 #' ## Build all annual models
 #' all.annual.models = build.all(input.data = streamflow_annual_221201, siteID = '221201')
 #'
-#' ## Fit all
+#' \dontrun{
+#' # Fit all (runtime > several hours)
 #' all.annual.models = fit.hydroState(all.annual.models)
 #'
 #' }

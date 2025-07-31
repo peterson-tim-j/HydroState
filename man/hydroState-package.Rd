@@ -75,7 +75,7 @@ Useful links:
 
 }
 \author{
-\strong{Maintainer}: Tim Peterson \email{tim.peterson@monash.edu} (\href{https://orcid.org/0000-0002-1885-0826}{ORCID})
+\strong{Maintainer}: Tim Peterson \email{tim.peterson@monash.edu} (\href{https://orcid.org/0000-0002-1885-0826}{ORCID}) [copyright holder]
 
 Authors:
 \itemize{
