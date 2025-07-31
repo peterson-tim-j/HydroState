@@ -1,7 +1,0 @@
-{
-    "installOptions": {
-        "installFromRepository": true,
-        "libraryPath": "C:/Users/twes0006/AppData/Local/Programs/R/R-4.3.3/library",
-        "installDependencies": true
-    }
-}

@@ -1,17 +1,9 @@
 {
     "sortOrder": [
         {
-            "columnIndex": 1,
-            "ascending": true
-        },
-        {
             "columnIndex": 2,
             "ascending": true
-        },
-        {
-            "columnIndex": 4,
-            "ascending": false
         }
     ],
-    "path": "C:/Users/twes0006/OneDrive - Monash University/Git/hydroState/docs"
+    "path": "C:/Users/twes0006/OneDrive - Monash University/Git/HydroState"
 }
