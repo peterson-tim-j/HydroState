@@ -10,29 +10,29 @@
 #'
 #' @section Functions:
 #' \itemize{
-#'   \item \code{{build()}} — Builds hydroState model
-#'   \item \code{{build.all()}} — Builds all hydroState models
-#'   \item \code{{fit.hydroSata()}} — Fit hydroState model(s)
-#'   \item \code{{setInitialYear()}} — Sets state names given initial year
-#'   \item \code{{plot()}} — Plot states or pseudo residuals over time
-#'   \item \code{{get.residuals}} — Get pseudo residuals
-#'   \item \code{{get.states}} — Get states
-#'   \item \code{{check()}} — Check reliability of state predictions
-#'   \item \code{{get.AIC()}} — Get AIC
-#'   \item \code{{get.seasons}} — Get pseudo residuals
+#'   \item \code{build()} — Builds hydroState model
+#'   \item \code{build.all()} — Builds all hydroState models
+#'   \item \code{fit.hydroSata()} — Fit hydroState model(s)
+#'   \item \code{setInitialYear()} — Sets state names given initial year
+#'   \item \code{plot()} — Plot states or pseudo residuals over time
+#'   \item \code{get.residuals} — Get pseudo residuals
+#'   \item \code{get.states} — Get states
+#'   \item \code{check()} — Check reliability of state predictions
+#'   \item \code{get.AIC()} — Get AIC
+#'   \item \code{get.seasons} — Get pseudo residuals
 #' }
 #'
 #' @section Vignettes:
 #' \itemize{
-#'   \item {vignette("hydroState", package = "hydroState")}
-#'   \item {vignette("Adjust the default state model", package = "hydroState")}
-#'   \item {vignette("Seasonal and monthly models", package = "hydroState")}
+#'   \item \code{vignette("hydroState", package = "hydroState")}
+#'   \item \code{vignette("Adjust the default state model", package = "hydroState")}
+#'   \item \code{vignette("Seasonal and monthly models", package = "hydroState")}
 #' }
 #'
 #' @section Usage:
-#' The package contains a default \code{hydroState} model object that explains streamflow as a function of precipitation using a linear model. Once the model object is built (\code{{build()}}), the model is fitted (\code{{fit.hydroState()}}) to determine the most likely rainfall-runoff state at each time-step. To assess the adequacy of the fit, the residuals are plotted (\code{{plot()}}), and an adequate fit requires the residuals to be normally distributed, uniform, with minimal correlation and minimal trends. The resulting runoff states from the fitted model can then be evaluated over time (\code{{plot()}}) and even exported ({\code{get.states()}}) with the state values, confidence intervals, and conditional probabilities at each time-step. Input data requires a dataframe with catchment average runoff and precipitation at annual, seasonal, or monthly timesteps, and gaps with missing data are permitted. An example of this workflow with the default model is demonstrated within the {vignette("hydroState", package = "hydroState")} vignette.
+#' The package contains a default \code{hydroState} model object that explains streamflow as a function of precipitation using a linear model. Once the model object is built (\code{build()}), the model is fitted (\code{fit.hydroState()}) to determine the most likely rainfall-runoff state at each time-step. To assess the adequacy of the fit, the residuals are plotted (\code{plot()}), and an adequate fit requires the residuals to be normally distributed, uniform, with minimal correlation and minimal trends. The resulting runoff states from the fitted model can then be evaluated over time (\code{plot()}) and even exported (\code{get.states()}) with the state values, confidence intervals, and conditional probabilities at each time-step. Input data requires a dataframe with catchment average runoff and precipitation at annual, seasonal, or monthly timesteps, and gaps with missing data are permitted. An example of this workflow with the default model is demonstrated within the \code{vignette("hydroState", package = "hydroState")} vignette.
 #'
-#' To better explain the rainfall-runoff relationship, the default model can be adjusted by selecting various items within the \code{{build()}} function. These include:
+#' To better explain the rainfall-runoff relationship, the default model can be adjusted by selecting various items within the \code{build()} function. These include:
 #'  \itemize{
 #'   \item{\code{data.transform}:} transform streamflow observations in order to reduce skew: 'boxcox', 'log', 'burbidge', or 'none'
 #'   \item{\code{parameters}:} account for auto-correlation through including the degree of auto-correlation: 'AR1', 'AR2', or 'AR3'
@@ -42,11 +42,11 @@
 #'    \item{\code{transition.graph}:} set the number of possible states in the model (1, 2, or 3).
 #'  }
 #'
-#' An example of how to adjust the default model is demonstrated within the {vignette("Adjust the default state model", package = "hydroState")}
-#'   and {vignette("Seasonal and monthly models", package = "hydroState")}.
+#' An example of how to adjust the default model is demonstrated within the \code{vignette("Adjust the default state model", package = "hydroState")}
+#'   and \code{vignette("Seasonal and monthly models", package = "hydroState")}.
 #'
-#' There is an additional option to construct all possible types of models using the \code{{build.all()}}, and compare them using the same \code{{fit.hydroState()}} function. The most likely model can be selected based on the AIC where the best model will have the lowest AIC. An example of this is demonstrated at the end of the {vignette("Adjust the default state model", package = "hydroState")}
-#'   and {vignette("Seasonal and monthly models", package = "hydroState")}. To get stated, it is recommended to evaluate the default model at first with one state and again with two states.
+#' There is an additional option to construct all possible types of models using the \code{build.all()}, and compare them using the same \code{fit.hydroState()} function. The most likely model can be selected based on the AIC where the best model will have the lowest AIC. An example of this is demonstrated at the end of the \code{vignette("Adjust the default state model", package = "hydroState")}
+#'   and \code{vignette("Seasonal and monthly models", package = "hydroState")}. To get stated, it is recommended to evaluate the default model at first with one state and again with two states.
 #'
 #'
 #' @section Acknowledgments:

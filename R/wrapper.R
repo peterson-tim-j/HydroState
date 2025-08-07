@@ -491,29 +491,29 @@ select.Markov <- function(flickering = FALSE,
 #' \code{build}
 #'
 #' @description
-#' \code{build} builds a hydrostate model object with either a default model or the model can be specified with options from below. Every model depends on a linear base model where streamflow, \code{Q}, is a function of precipitation, \code{P}: \code{Q = Pa_1 + a_0}. The default model is a variant of this base linear model with state shifts expected in the intercept, \code{a_0}, and standard deviation, \code{std}, of the rainfall-runoff relationship. There are additional options to adjust this model with auto-correlation terms and seasonal parameters that can be both independent of state of change with state. The number of states and assumed error distribution can also be selected. After the model is built, the hydroState model is ready to be fitted with \code{fit.hydroState()}
+#' \code{build} builds a hydrostate model object with either a default model or the model can be specified with options from below. Every model depends on a linear base model where streamflow, \eqn{Q}, is a function of precipitation, \eqn{P}: \eqn{\hat{Q} = Pa_1 + a_0}. The default model is a variant of this base linear model with state shifts expected in the intercept, \eqn{a_0}, and standard deviation, \eqn{std}, of the rainfall-runoff relationship. There are additional options to adjust this model with auto-correlation terms and seasonal parameters that can be both independent of state or change with state. The number of states and assumed error distribution can also be selected. After the model is built, the hydroState model is ready to be fitted with \code{fit.hydroState()}
 #'
 #' @details
 #' There are a selection of items to consider when defining the rainfall-runoff relationship and investigating state shifts in this relationship. hydroState provides various options for modelling the rainfall-runoff relationship.
 #' \itemize{
 #' \item{Data gaps  with \code{input.data}}: When there is missing \code{input.data} in either the dependent variable, streamflow, or independent variable, precipitation, the emissions probability of the missing time-step is set equal to one. This essentially ignores the missing periods. The time step after the missing period has a state probability dependent on the length of the gap. The larger the gap, the closer the state probability gets to approaching a finite probability near zero (as the transition probabilities are recursively multiplied). When the model has auto-correlation terms and there are gaps in the dependent variable, the auto-correlation function restarts at the beginning of each continuous period after the gap. This ignores auto-correlation at the first time steps after the gap. For instance, an 'AR1' model would ignore the contribution of the prior time step for the first (1) observation after the gap.
 #' \item{Transform Observations with \code{data.transform}}: Transforms streamflow observations to remove heteroscedasticity. Often there is skew within hydrologic data. When defining relationships between rainfall-runoff, this skew results in an unequal variance in the residuals, heteroscedasticity. Transforming streamflow observations is often required. There are several options to transform observations. Since the degree of transformation is not typically known, \code{boxcox} is the default. Other options include: \code{log}, \code{burbidge}, and of course, \code{none} when no transformation is performed.
-#' \item{Model Structure with \code{parameters} and \code{seasonal.parameters}}: The structure of the model depends on the \code{parameters}. hydroState simulates runoff, \code{Q}, as being in one of a finite states, \code{i}, at every time-step, \code{t}, depending on the distribution of states at prior time steps. This results in a runoff distribution for each state that can vary over time (\code{\widehat{_tQ_i}}). The model defines the relationship that is susceptible to state shifts with precipitation, \code{P_t}, as a predictor. This takes the form as a simple linear model \code{\widehat{_tQ_i} = f(P_t)}:
+#' \item{Model Structure with \code{parameters} and \code{seasonal.parameters}}: The structure of the model depends on the \code{parameters}. hydroState simulates runoff, \eqn{Q}, as being in one of a finite states, \eqn{i}, at every time-step, \eqn{t}, depending on the distribution of states at prior time steps. This results in a runoff distribution for each state that can vary over time (\eqn{\hat{_tQ_i}}). The model defines the relationship that is susceptible to state shifts with precipitation, \eqn{P_t}, as a predictor. This takes the form as a simple linear model \eqn{\hat{_tQ_i} = f(P_t)}:
 #'
 #'
-#' \code{\widehat{_tQ_i} = P_ta_1 + a_0}
+#' \eqn{\hat{_tQ_i} = P_ta_1 + a_0}
 #'
-#' where \code{a_0} and \code{a_1} are constant parameters. These parameters and the model error, \code{std}, establish the rainfall-runoff relationship and are required parameters for every built model object. These are the default parameters: c(``a0",``a1",``std").
+#' where \eqn{a_0} and \eqn{a_1} are constant parameters. These parameters and the model error, \eqn{std}, establish the rainfall-runoff relationship and are required parameters for every built model object. These are the default parameters: \code{c('a0', 'a1', 'std')}.
 #' \item{Auto-correlation \code{parameters}}: The relationship may contain serial correlation and would be better defined with an auto-regressive term:
 #'
-#' \code{\widehat{_tQ_i} = P_ta_1 + a_0 + AR1\widehat{_{t-1}Q}}
+#' \eqn{\hat{_tQ_i} = P_ta_1 + a_0 + AR1\hat{_{t-1}Q}}
 #'
 #' where \code{AR1} is the lag-1 auto-correlation term. Either, lag-1: \code{AR1}, lag-2: \code{AR2}, and lag-3: \code{AR3} auto-correlation coefficients are an option as additional parameters to better define the rainfall-runoff relationship.
-#' \item{Sub-annual analysis with \code{seasonal.parameters}}: Additional options include explaining the seasonal rainfall-runoff relationship with a sinusoidal function that better defines either of the constant parameters or error (\code{a_0, a_1, std}) throughout the year, i.e:
+#' \item{Sub-annual analysis with \code{seasonal.parameters}}: Additional options include explaining the seasonal rainfall-runoff relationship with a sinusoidal function that better defines either of the constant parameters or error (\eqn{a_0, a_1, std}) throughout the year, i.e:
 #'
-#' \code{a_0 = a_{0.disp} + a_{0.amp} * sin(2\pi(\frac{M_t}{12} + a_{0.phase}))}
+#' \eqn{a_0 = a_{0.disp} + a_{0.amp} * sin(2\pi(\frac{M_t}{12} + a_{0.phase}))}
 #'
-#' where \code{M_t} is an integer month at \code{t}. Monthly streamflow and precipitation are required as \code{input.data} for the sub-annual analysis.
+#' where \eqn{M_t} is an integer month at \eqn{t}. Monthly streamflow and precipitation are required as \code{input.data} for the sub-annual analysis.
 #'
 #' \item{State Dependent Parameters with \code{state.shift.parameters}}: These are state dependent parameters where they are subject to shift in order to better explain the state of streamflow over time. Any or all of the previously chosen parameters can be selected (\code{a_0, a_1, std, AR1, AR2, AR3}). The default model evaluates shifts in the rainfall-runoff relationship with \code{a_0} \code{std} as state dependent parameters.
 #' \item{Distribution of the Residuals with \code{error.distribution}}: The distribution of the residuals (error) within a state of the model can be chosen to reduce skew and assist with making models statistically adequate (see \code{plot(pse.residuals = TRUE)}). Either normal: \code{normal}, truncated normal: \code{truc.normal}, or gamma: \code{gamma} distributions are acceptable. These error distribution ensures streamflow is greater than zero \code{Q > 0}, and specifically for \code{truc.normal} greater than or equal to zero \code{Q >= 0}. The default is \code{truc.normal}. Sub-annual models are restricted to only a \code{gamma} distribution.
@@ -766,12 +766,10 @@ build <- function(input.data = data.frame(year=c(), flow=c(), precip=c()),
 #' @param state.shift.parameters character vector of one or all parameters to identify state dependent parameters. Only one set of parameters permitted. If empty, the default builds all possible model combinations with \code{c('a0','std')} as state shift parameters.
 #' @param error.distribution character string of the distribution in the HMM error. If empty, the default builds models with all possible combinations of error distribution: \code{c('truc.normal', 'normal','gamma')}
 #' @param flickering logical \code{TRUE}/\code{FALSE}. \code{TRUE} = allows more sensitive markov flickering between states over time. When \code{FALSE} (default), state needs to persist for at least three time steps before state shift can occur.
-#' @param \item{transition.graph}{
-#'      matrix given the number of states. If empty, the default builds models with all possible combinations of states:
+#' @param transition.graph matrix given the number of states. If empty, the default builds models with all possible combinations of states:
 #'      1-state matrix (1 by 1): \code{matrix(TRUE,1,1)},
 #'      2-state matrix (2 by 2): \code{matrix(TRUE,2,2)},
 #'      3-state matrix (3 by 3): \code{matrix(TRUE,3,3)}.
-#'      }
 #' @param siteID character string of site identifier.
 #' @param summary.table data frame with a table summarizing all built models and corresponding reference model. From function \code{summary()}. If empty, summary table will be built automatically.
 #'
@@ -1104,20 +1102,20 @@ summary.hydroState.allModels <- function(object, ...){
 #'
 #' The likelihood function is estimated as:
 #'
-#' \code{L_{T} = \delta P(x_{1}) + \Gamma \delta P(x_{2})...\Gamma \delta P(x_{T})1'}
+#' \eqn{L_{T} = \delta P(x_{1}) + \Gamma \delta P(x_{2})...\Gamma \delta P(x_{T})1'}
 #'
 #' where:
 #' \itemize{
-#'  \item{\code{\delta}}{ is the initial state distribution, the initial probability of being in each state: \code{\delta = \begin{pmatrix} \delta_{1} \\ 1- \delta_{1} \end{pmatrix}}}
-#'  \item{\code{P(x)}}{ is the \code{m} x \code{m} diagonal emissions matrix of the probability density for each state using a lower tail truncated Gaussian distribution or a two-parameter Gamma distribution}
+#'  \item{\eqn{\delta}}{ is the initial state distribution, the initial probability of being in each state: \eqn{\delta = \begin{pmatrix} \delta_{1} \\ 1- \delta_{1} \end{pmatrix}}}
+#'  \item{\eqn{P(x)}}{ is the \eqn{m} x \eqn{m} diagonal emissions matrix of the probability density for each state using a lower tail truncated Gaussian distribution or a two-parameter Gamma distribution}
 #'    \itemize{
-#'    \item{}{ \code{f_{Gau}(x=\widehat{_{obs}q_{t}}; \mu = \widehat{_{t}q_{i}}, \sigma = \sigma_{i}, a = 0) = \frac{\phi(\frac{x-\mu}{\sigma})}{\sigma(1-\Phi(\frac{a-\mu}{\sigma}))}}}
-#'    \item{}{ \code{f_{Gam}(x = \widehat{_{obs}q_{t}};k = \frac{\widehat{_{t}q_{i}}^2}{\sigma_{i}^2}, \theta = \frac{\sigma_{i}^2}{\widehat{_{t}q_{i}}}) = \frac{x^{k-1}e^{\frac{x}{\theta}}}{\theta^{k}\Gamma(k)}}}
-#'    \item{}{ where \code{\phi} is the probability density function for the standard normal distribution, \code{\Phi} is the cumulative distribution function for the standard normal distribution, \code{k} is the shape parameter, \code{\theta} is the scale parameter, and \code{\Gamma(k)} is the gamma function.
+#'    \item{}{ \eqn{f_{Gau}(x=\hat{_{obs}q_{t}}; \mu = \hat{_{t}q_{i}}, \sigma = \sigma_{i}, a = 0) = \frac{\phi(\frac{x-\mu}{\sigma})}{\sigma(1-\Phi(\frac{a-\mu}{\sigma}))}}}
+#'    \item{}{ \eqn{f_{Gam}(x = \hat{_{obs}q_{t}};k = \frac{\hat{_{t}q_{i}}^2}{\sigma_{i}^2}, \theta = \frac{\sigma_{i}^2}{\hat{_{t}q_{i}}}) = \frac{x^{k-1}e^{\frac{x}{\theta}}}{\theta^{k}\Gamma(k)}}}
+#'    \item{}{ where \eqn{\phi} is the probability density function for the standard normal distribution, \eqn{\Phi} is the cumulative distribution function for the standard normal distribution, \eqn{k} is the shape parameter, \eqn{\theta} is the scale parameter, and \eqn{\Gamma(k)} is the gamma function.
 #'    For more details, refer to pg. 8-17 in Supplementary Materials of (Peterson TJ, Saft M, Peel MC & John A (2021), Watersheds may not recover from drought, Science, DOI: \doi{10.1126/science.abd5085}).}
 #'    }
-#'  \item{\code{\Gamma} is the transition matrix}
-#'  \item{\code{T} is the number of time-steps.}
+#'  \item{\eqn{\Gamma} is the transition matrix}
+#'  \item{\eqn{T} is the number of time-steps.}
 #'  }
 #'
 #' @param model built hydroState model object, hydroState.allModels object, or hydroState.subAnnual.allModels object

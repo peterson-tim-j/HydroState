@@ -27,7 +27,7 @@ The package allows a flexible set of Hidden Markov Models (HMMs) of annual, seas
 \item \code{get.states} — Get states
 \item \code{check()} — Check reliability of state predictions
 \item \code{get.AIC()} — Get AIC
-\item \code{get.seasons()} — Get pseudo residuals
+\item \code{get.seasons} — Get pseudo residuals
 }
 }
 

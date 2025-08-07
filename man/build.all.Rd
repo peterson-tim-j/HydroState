@@ -32,7 +32,10 @@ build.all(
 
 \item{flickering}{logical \code{TRUE}/\code{FALSE}. \code{TRUE} = allows more sensitive markov flickering between states over time. When \code{FALSE} (default), state needs to persist for at least three time steps before state shift can occur.}
 
-\item{transition.graph}{matrix given the number of states. If empty, the default builds models with all possible combinations of states: 1-state matrix (1 by 1): code{matrix(TRUE,1,1)},  2-state matrix (2 by 2): \code{matrix(TRUE,2,2)}, 3-state matrix (3 by 3): \code{matrix(TRUE,3,3)}.}
+\item{transition.graph}{matrix given the number of states. If empty, the default builds models with all possible combinations of states:
+1-state matrix (1 by 1): \code{matrix(TRUE,1,1)},
+2-state matrix (2 by 2): \code{matrix(TRUE,2,2)},
+3-state matrix (3 by 3): \code{matrix(TRUE,3,3)}.}
 
 \item{summary.table}{data frame with a table summarizing all built models and corresponding reference model. From function \code{summary()}. If empty, summary table will be built automatically.}
 
