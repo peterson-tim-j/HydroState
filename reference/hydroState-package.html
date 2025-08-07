@@ -54,40 +54,40 @@
     <h2 id="functions">Functions<a class="anchor" aria-label="anchor" href="#functions"></a></h2>
 
 
-<ul><li><p><code>{build()}</code> — Builds hydroState model</p></li>
-<li><p><code>{build.all()}</code> — Builds all hydroState models</p></li>
-<li><p><code>{fit.hydroSata()}</code> — Fit hydroState model(s)</p></li>
-<li><p><code>{setInitialYear()}</code> — Sets state names given initial year</p></li>
-<li><p><code>{plot()}</code> — Plot states or pseudo residuals over time</p></li>
-<li><p><code>{get.residuals}</code> — Get pseudo residuals</p></li>
-<li><p><code>{get.states}</code> — Get states</p></li>
-<li><p><code>{check()}</code> — Check reliability of state predictions</p></li>
-<li><p><code>{get.AIC()}</code> — Get AIC</p></li>
-<li><p><code>{get.seasons}</code> — Get pseudo residuals</p></li>
+<ul><li><p><code><a href="build.html">build()</a></code> — Builds hydroState model</p></li>
+<li><p><code><a href="build.all.html">build.all()</a></code> — Builds all hydroState models</p></li>
+<li><p><code>fit.hydroSata()</code> — Fit hydroState model(s)</p></li>
+<li><p><code><a href="setInitialYear.html">setInitialYear()</a></code> — Sets state names given initial year</p></li>
+<li><p><code><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot()</a></code> — Plot states or pseudo residuals over time</p></li>
+<li><p><code>get.residuals</code> — Get pseudo residuals</p></li>
+<li><p><code>get.states</code> — Get states</p></li>
+<li><p><code><a href="check.html">check()</a></code> — Check reliability of state predictions</p></li>
+<li><p><code><a href="get.AIC.html">get.AIC()</a></code> — Get AIC</p></li>
+<li><p><code><a href="get.seasons.html">get.seasons()</a></code> — Get pseudo residuals</p></li>
 </ul></div>
     <div class="section level2">
     <h2 id="vignettes">Vignettes<a class="anchor" aria-label="anchor" href="#vignettes"></a></h2>
 
 
-<ul><li><p>vignette("hydroState", package = "hydroState")</p></li>
-<li><p>vignette("Adjust the default state model", package = "hydroState")</p></li>
-<li><p>vignette("Seasonal and monthly models", package = "hydroState")</p></li>
+<ul><li><p><code><a href="../articles/hydroState.html">vignette("hydroState", package = "hydroState")</a></code></p></li>
+<li><p><code>vignette("Adjust the default state model", package = "hydroState")</code></p></li>
+<li><p><code>vignette("Seasonal and monthly models", package = "hydroState")</code></p></li>
 </ul></div>
     <div class="section level2">
     <h2 id="usage">Usage<a class="anchor" aria-label="anchor" href="#usage"></a></h2>
 
 
-<p>The package contains a default <code>hydroState</code> model object that explains streamflow as a function of precipitation using a linear model. Once the model object is built (<code>{build()}</code>), the model is fitted (<code>{fit.hydroState()}</code>) to determine the most likely rainfall-runoff state at each time-step. To assess the adequacy of the fit, the residuals are plotted (<code>{plot()}</code>), and an adequate fit requires the residuals to be normally distributed, uniform, with minimal correlation and minimal trends. The resulting runoff states from the fitted model can then be evaluated over time (<code>{plot()}</code>) and even exported (<code><a href="get.states.html">get.states()</a></code>) with the state values, confidence intervals, and conditional probabilities at each time-step. Input data requires a dataframe with catchment average runoff and precipitation at annual, seasonal, or monthly timesteps, and gaps with missing data are permitted. An example of this workflow with the default model is demonstrated within the vignette("hydroState", package = "hydroState") vignette.</p>
-<p>To better explain the rainfall-runoff relationship, the default model can be adjusted by selecting various items within the <code>{build()}</code> function. These include:</p><ul><li><p><code>data.transform</code>: transform streamflow observations in order to reduce skew: 'boxcox', 'log', 'burbidge', or 'none'</p></li>
+<p>The package contains a default <code>hydroState</code> model object that explains streamflow as a function of precipitation using a linear model. Once the model object is built (<code><a href="build.html">build()</a></code>), the model is fitted (<code><a href="fit.hydroState.html">fit.hydroState()</a></code>) to determine the most likely rainfall-runoff state at each time-step. To assess the adequacy of the fit, the residuals are plotted (<code><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot()</a></code>), and an adequate fit requires the residuals to be normally distributed, uniform, with minimal correlation and minimal trends. The resulting runoff states from the fitted model can then be evaluated over time (<code><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot()</a></code>) and even exported (<code><a href="get.states.html">get.states()</a></code>) with the state values, confidence intervals, and conditional probabilities at each time-step. Input data requires a dataframe with catchment average runoff and precipitation at annual, seasonal, or monthly timesteps, and gaps with missing data are permitted. An example of this workflow with the default model is demonstrated within the <code><a href="../articles/hydroState.html">vignette("hydroState", package = "hydroState")</a></code> vignette.</p>
+<p>To better explain the rainfall-runoff relationship, the default model can be adjusted by selecting various items within the <code><a href="build.html">build()</a></code> function. These include:</p><ul><li><p><code>data.transform</code>: transform streamflow observations in order to reduce skew: 'boxcox', 'log', 'burbidge', or 'none'</p></li>
 <li><p><code>parameters</code>: account for auto-correlation through including the degree of auto-correlation: 'AR1', 'AR2', or 'AR3'</p></li>
 <li><p><code>state.shift.parameters</code>: assign either the intercept, slope, or auto-correlation parameter as state dependent parameter</p></li>
 <li><p><code>error.distribution</code>: adjust the error distribution with 'normal', 'gamma', or 'truc.normal'</p></li>
 <li><p><code>seasonal.parameters</code>: account for intra-annual varation within the rainfall-runoff relationship</p></li>
 <li><p><code>transition.graph</code>: set the number of possible states in the model (1, 2, or 3).</p></li>
-</ul><p>An example of how to adjust the default model is demonstrated within the vignette("Adjust the default state model", package = "hydroState")
-and vignette("Seasonal and monthly models", package = "hydroState").</p>
-<p>There is an additional option to construct all possible types of models using the <code>{build.all()}</code>, and compare them using the same <code>{fit.hydroState()}</code> function. The most likely model can be selected based on the AIC where the best model will have the lowest AIC. An example of this is demonstrated at the end of the vignette("Adjust the default state model", package = "hydroState")
-and vignette("Seasonal and monthly models", package = "hydroState"). To get stated, it is recommended to evaluate the default model at first with one state and again with two states.</p>
+</ul><p>An example of how to adjust the default model is demonstrated within the <code>vignette("Adjust the default state model", package = "hydroState")</code>
+and <code>vignette("Seasonal and monthly models", package = "hydroState")</code>.</p>
+<p>There is an additional option to construct all possible types of models using the <code><a href="build.all.html">build.all()</a></code>, and compare them using the same <code><a href="fit.hydroState.html">fit.hydroState()</a></code> function. The most likely model can be selected based on the AIC where the best model will have the lowest AIC. An example of this is demonstrated at the end of the <code>vignette("Adjust the default state model", package = "hydroState")</code>
+and <code>vignette("Seasonal and monthly models", package = "hydroState")</code>. To get stated, it is recommended to evaluate the default model at first with one state and again with two states.</p>
     </div>
     <div class="section level2">
     <h2 id="acknowledgments">Acknowledgments<a class="anchor" aria-label="anchor" href="#acknowledgments"></a></h2>
