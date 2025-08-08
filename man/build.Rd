@@ -36,7 +36,7 @@ build(
 A built hydroState model object ready to be fitted with \code{fit.hydroState()}
 }
 \description{
-\code{build} builds a hydrostate model object with either a default model or the model can be specified with options from below. Every model depends on a linear base model where streamflow, \eqn{Q}, is a function of precipitation, \eqn{P}: \eqn{\hat{Q} = Pa_1 + a_0}. The default model is a variant of this base linear model with state shifts expected in the intercept, \eqn{a_0}, and standard deviation, \eqn{std}, of the rainfall-runoff relationship. There are additional options to adjust this model with auto-correlation terms and seasonal parameters that can be both independent of state or change with state. The number of states and assumed error distribution can also be selected. After the model is built, the hydroState model is ready to be fitted with \code{fit.hydroState()}
+\code{build} builds a hydrostate model object with either a default model or the model can be specified with options from below. Every model depends on a linear base model where streamflow, \ifelse{html}{\out{<math>Q</math>}}{\eqn{Q}}, is a function of precipitation,  \ifelse{html}{\out{<math>P</math>}}{\eqn{P}}: \ifelse{html}{\out{<math>\hat{Q} = Pa_1 + a_0</math>}}{\eqn{\hat{Q} = Pa_1 + a_0}}. The default model is a variant of this base linear model with state shifts expected in the intercept, \ifelse{html}{\out{<math>a_0</math>}}{\eqn{a_0}}, and standard deviation, \ifelse{html}{\out{<math>std</math>}}{\eqn{std}}, of the rainfall-runoff relationship. There are additional options to adjust this model with auto-correlation terms and seasonal parameters that can be both independent of state or change with state. The number of states and assumed error distribution can also be selected. After the model is built, the hydroState model is ready to be fitted with \code{fit.hydroState()}
 }
 \details{
 \code{build}
@@ -47,17 +47,23 @@ There are a selection of items to consider when defining the rainfall-runoff rel
 \item{Transform Observations with \code{data.transform}}: Transforms streamflow observations to remove heteroscedasticity. Often there is skew within hydrologic data. When defining relationships between rainfall-runoff, this skew results in an unequal variance in the residuals, heteroscedasticity. Transforming streamflow observations is often required. There are several options to transform observations. Since the degree of transformation is not typically known, \code{boxcox} is the default. Other options include: \code{log}, \code{burbidge}, and of course, \code{none} when no transformation is performed.
 \item{Model Structure with \code{parameters} and \code{seasonal.parameters}}: The structure of the model depends on the \code{parameters}. hydroState simulates runoff, \eqn{Q}, as being in one of a finite states, \eqn{i}, at every time-step, \eqn{t}, depending on the distribution of states at prior time steps. This results in a runoff distribution for each state that can vary over time (\eqn{\hat{_tQ_i}}). The model defines the relationship that is susceptible to state shifts with precipitation, \eqn{P_t}, as a predictor. This takes the form as a simple linear model \eqn{\hat{_tQ_i} = f(P_t)}:
 
-\eqn{\hat{_tQ_i} = P_ta_1 + a_0}
+\deqn{
+\hat{_tQ_i} = P_ta_1 + a_0
+}
 
 where \eqn{a_0} and \eqn{a_1} are constant parameters. These parameters and the model error, \eqn{std}, establish the rainfall-runoff relationship and are required parameters for every built model object. These are the default parameters: \code{c('a0', 'a1', 'std')}.
 \item{Auto-correlation \code{parameters}}: The relationship may contain serial correlation and would be better defined with an auto-regressive term:
 
-\eqn{\hat{_tQ_i} = P_ta_1 + a_0 + AR1\hat{_{t-1}Q}}
+\deqn{
+\hat{_tQ_i} = P_ta_1 + a_0 + AR1\hat{_{t-1}Q}
+}
 
 where \code{AR1} is the lag-1 auto-correlation term. Either, lag-1: \code{AR1}, lag-2: \code{AR2}, and lag-3: \code{AR3} auto-correlation coefficients are an option as additional parameters to better define the rainfall-runoff relationship.
 \item{Sub-annual analysis with \code{seasonal.parameters}}: Additional options include explaining the seasonal rainfall-runoff relationship with a sinusoidal function that better defines either of the constant parameters or error (\eqn{a_0, a_1, std}) throughout the year, i.e:
 
-\eqn{a_0 = a_{0.disp} + a_{0.amp} * sin(2\pi(\frac{M_t}{12} + a_{0.phase}))}
+\deqn{
+a_0 = a_{0.disp} + a_{0.amp} * sin(2\pi(\frac{M_t}{12} + a_{0.phase}))
+}
 
 where \eqn{M_t} is an integer month at \eqn{t}. Monthly streamflow and precipitation are required as \code{input.data} for the sub-annual analysis.
 
