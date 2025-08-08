@@ -19,7 +19,7 @@ library(hydroState)
 ```
 
 ## Sub-annual models
-Seasonal and monthly models provide further insight into the state of the rainfall-runoff relationship throughout the year, but with this more sensitive analysis, there is often more seasonal variation and auto-correlation. hydroState provides additional options to explain this variation so models are statistically adequate. These options are located within the `build()` function. The seasonal variation can be explained with a sinusoidal function for a particular parameter through identifying `seasonal.parameters` in `build()`. This vignette provides an example of an analysis on a monthly time-step with the intercept, `a0`, as a `seasonal.parameters`.
+Seasonal and monthly models provide further insight into the state of the rainfall-runoff relationship throughout the year, but with this more sensitive analysis, there is often more seasonal variation and auto-correlation. hydroState provides additional options to explain this variation so models are statistically adequate. These options are located within the `build()` function. The seasonal variation can be explained with a sinusoidal function for a particular parameter through identifying `seasonal.parameters` in `build()`. This vignette provides an example of an analysis on a seasonal time-step with the intercept, `a0`, as a `seasonal.parameters`.
 
 ## Load required data
 Seasonal and monthly rainfall-runoff models require a data frame with catchment average runoff and precipitation for each month. Load the data into the environment. Ensure there are four columns named "year", "month", "flow", and "precipitation", and verify the units for flow and precipitation are the same ('mm', 'in', etc.). 
@@ -63,22 +63,22 @@ For seasonal and monthly models, there are additional options when building a mo
 
 In addition to the options presented in [adjusting the default state model vignette](adjust.state.model.html), the seasonal and monthly models can assume parameters within the rainfall-runoff relationship vary seasonally throughout the year. This is available within the `seasonal.parameters`. This assumes a `parameter` is best modeled as a sinusoidal function representing seasonal trends. The input accepts any default parameter: `a1`, `a0`, or `std`. Typically, assuming seasonal trends in only the intercept, `a0`, explains trends in the residuals of the model. For further details, see `build()`.
 
-For this analysis, an adjusted model is built on a monthly time-step:
+For this analysis, an adjusted model is built on a seasonal time-step:
 
 ```r
-# Build monthly hydroState model with adjusted model, seasonal forcing
-model.monthly.adjusted = build(input.data = streamflow_monthly_415201,
-                          parameters = c('a0','a1','std','AR1'),
+# Build seasonal hydroState model with adjusted model, seasonal forcing
+model.seasonal.adjusted = build(input.data = streamflow_seasonal_415201,
+                          parameters = c('a0','a1','std','AR2'),
                           seasonal.parameters = 'a0',
-                          data.transform = 'log',
+                          data.transform = 'boxcox',
                           transition.graph = matrix(TRUE,3,3))
 ```
 
 ## Fit the model
-Fit the built models with `fit.hydroState()`.
+Fit the built models with `fit.hydroState()`. This will take typically an hour to run. 
 
 ```r
-<!-- model.monthly.adjusted = fit.hydroState(model.monthly.adjusted, pop.size.perParameter = 10, max.generations = 10000, doParallel = TRUE)  -->
+<!-- model.seasonal.adjusted = fit.hydroState(model.seasonal.adjusted, pop.size.perParameter = 10, max.generations = 10000, doParallel = TRUE)  -->
 ```
 
 ## Review the residuals
@@ -86,11 +86,11 @@ Review the model's residuals from figures using `plot.hydroState()` to ensure th
 
 ```r
 # review residual plots
-plot(model.monthly.fitted.415201, pse.residuals = TRUE, siteID = '415201', do.pdf = FALSE) 
+plot(model.seasonal.fitted.415201, pse.residuals = TRUE, siteID = '415201', do.pdf = FALSE) 
 
 ```
 
-![The residual plots of the best monthly model for site 415201 appear uniform and normally distributed despite the Shapiro-Wilk p-value being less than 0.05.](../man/figures/subAnnual.model.residuals.png){width=100%}
+![The residual plots of the best seasonal model for site 415201 appear uniform and normally distributed despite the Shapiro-Wilk p-value being less than 0.05.](../man/figures/subAnnual.model.residuals.png){width=100%}
 
 
 
@@ -99,47 +99,47 @@ Set the state names relative to a year in the record using `setInitialYear()`. T
 
 ```r
 # set the reference year to name the states
-model.monthly.fitted.415201 = setInitialYear(model.monthly.fitted.415201, 1990)
+model.seasonal.fitted.415201 = setInitialYear(model.seasonal.fitted.415201, 1990)
 
 
 # plot all four plots
-plot(model.monthly.fitted.415201, do.pdf = F)
+plot(model.seasonal.fitted.415201, do.pdf = F)
 
 ```
 <center>
-![The monthly model considers seasonality and auto-correlation within the rainfall-runoff relationship, but these model results show there are state shifts within this relationship at this site. The 3-states suggests a shift in the rainfall-runoff relationship throughout the record better represent observations. The Very Low state persist at the end of the record after a prolonged drought from roughly 1997-2009.](../man/figures/subAnnual.model.states.png){width=100%}
+![The seasonal model considers seasonality and auto-correlation within the rainfall-runoff relationship, but these model results show there are state shifts within this relationship at this site. The 3-states suggests a shift in the rainfall-runoff relationship throughout the record better represent observations. The Very Low state persist at the end of the record after a prolonged drought from roughly 1997-2009.](../man/figures/subAnnual.model.states.png){width=100%}
 
 
 
 ## Systematic model selection for sub-annual models
-To identify the best sub-annual model, a systematic evaluation of the possible model combinations can be performed using the `build.all()` function. Below is an example evaluating all possible model combinations when `a0` and `std` are the state dependent parameters, and `a0` is expressed as a `seasonal.parameter`. The procedure is identical to the systematic model evaluation within the ["Adjust the default state model vignette"](adjust.state.model.html), expect `seasonal.parameters` may be selected. Note, it is recommend to run this systematic analysis in parallel and on a high-performance computer where possible. The example below can take more than 24 hours to fit 24 models when running in parallel on a 7-core, 64-bit operating system. 
+To identify the best sub-annual model, a systematic evaluation of the possible model combinations can be performed using the `build.all()` function. Below is an example evaluating all possible model combinations when `a0` and `std` are the state dependent parameters, and `a0` is expressed as a `seasonal.parameter`. The procedure is identical to the systematic model evaluation within the ["Adjust the default state model vignette"](adjust.state.model.html), expect `seasonal.parameters` may be selected. Note, it is recommend to run this systematic analysis in parallel and on a high-performance computer where possible. The example below can take hours to fit 12 models when running in parallel on a 7-core, 64-bit operating system. 
 
 ```r
 # Build all possible models with the intercept, 'a0', as a seasonal parameter and state dependent parameter
-all.models.monthly = build.all(input.data = streamflow_monthly_415201,
+all.models.seasonal = build.all(input.data = streamflow_seasonal_415201,
                                         state.shift.parameter = c('a0','std'),
                                         seasonal.parameter = 'a0')
 
 # Review the order of the reference models, adjust reference models if needed.
-all.models.ref.table = summary(all.models.monthly)
+all.models.ref.table = summary(all.models.seasonal)
 
 # Re-build with adjusted reference table
-all.models.monthly = build.all(input.data = streamflow_monthly_415201,
+all.models.seasonal = build.all(input.data = streamflow_seasonal_415201,
                                         state.shift.parameter = c('a0','std'),
                                         seasonal.parameter = 'a0',
-                                        reference.table = all.models.ref.table)
+                                        summary.table = all.models.ref.table)
 
 # Fit all models (take hours to run)
-<!-- all.models.monthly = fit.hydroState(all.models.monthly, pop.size.perParameter = 10, max.generations = 10000, doParallel = T) -->
+<!-- all.models.seasonal = fit.hydroState(all.models.seasonal, pop.size.perParameter = 10, max.generations = 10000, doParallel = T) -->
 
 # Identify the best model with the lowest AIC
-get.AIC(all.models.monthly)
+get.AIC(all.models.seasonal)
 
 #>                                                  AIC    nParameters   AIC.weights
-#> model.3State.gamma.log.AR1.a0.seasonal.a0    -1419.6674          22  9.999604e-01
-#> model.3State.gamma.log.AR3.a0.seasonal.a0    -1369.1052          24  1.048454e-11
-#> model.3State.gamma.log.AR2.a0.seasonal.a0    -1347.3293          23  1.958698e-16
-#> model.3State.gamma.log.AR0.a0.seasonal.a0    -1341.4357          21  1.028478e-17
+#> model.3State.gamma.boxcox.AR2.a0.seasonal.a0std 101.7086          23 9.999966e-01
+#> model.3State.gamma.boxcox.AR3.a0.seasonal.a0std 126.8749          24 3.429339e-06
+#> model.2State.gamma.boxcox.AR3.a0.seasonal.a0std 137.4552          15 1.728674e-08
+#> model.2State.gamma.boxcox.AR1.a0.seasonal.a0std 156.0379          13 1.594226e-12
 #> ...
 ```
 

@@ -20,7 +20,8 @@ Suggests:
     knitr,
     rmarkdown,
     testthat (>= 3.0.0),
-    V8
+    V8,
+    mathml
 Config/testthat/edition: 3
 VignetteBuilder: knitr
 Collate: 
