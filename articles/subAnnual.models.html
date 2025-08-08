@@ -81,7 +81,7 @@ located within the <code><a href="../reference/build.html">build()</a></code> fu
 can be explained with a sinusoidal function for a particular parameter
 through identifying <code>seasonal.parameters</code> in
 <code><a href="../reference/build.html">build()</a></code>. This vignette provides an example of an analysis
-on a monthly time-step with the intercept, <code>a0</code>, as a
+on a seasonal time-step with the intercept, <code>a0</code>, as a
 <code>seasonal.parameters</code>.</p>
 </div>
 <div class="section level2">
@@ -145,21 +145,22 @@ parameter: <code>a1</code>, <code>a0</code>, or <code>std</code>.
 Typically, assuming seasonal trends in only the intercept,
 <code>a0</code>, explains trends in the residuals of the model. For
 further details, see <code><a href="../reference/build.html">build()</a></code>.</p>
-<p>For this analysis, an adjusted model is built on a monthly
+<p>For this analysis, an adjusted model is built on a seasonal
 time-step:</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># Build monthly hydroState model with adjusted model, seasonal forcing</span></span>
-<span><span class="va">model.monthly.adjusted</span> <span class="op">=</span> <span class="fu"><a href="../reference/build.html">build</a></span><span class="op">(</span>input.data <span class="op">=</span> <span class="va">streamflow_monthly_415201</span>,</span>
-<span>                          parameters <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">'a0'</span>,<span class="st">'a1'</span>,<span class="st">'std'</span>,<span class="st">'AR1'</span><span class="op">)</span>,</span>
+<code class="sourceCode R"><span><span class="co"># Build seasonal hydroState model with adjusted model, seasonal forcing</span></span>
+<span><span class="va">model.seasonal.adjusted</span> <span class="op">=</span> <span class="fu"><a href="../reference/build.html">build</a></span><span class="op">(</span>input.data <span class="op">=</span> <span class="va">streamflow_seasonal_415201</span>,</span>
+<span>                          parameters <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">'a0'</span>,<span class="st">'a1'</span>,<span class="st">'std'</span>,<span class="st">'AR2'</span><span class="op">)</span>,</span>
 <span>                          seasonal.parameters <span class="op">=</span> <span class="st">'a0'</span>,</span>
-<span>                          data.transform <span class="op">=</span> <span class="st">'log'</span>,</span>
+<span>                          data.transform <span class="op">=</span> <span class="st">'boxcox'</span>,</span>
 <span>                          transition.graph <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="cn">TRUE</span>,<span class="fl">3</span>,<span class="fl">3</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="fit-the-model">Fit the model<a class="anchor" aria-label="anchor" href="#fit-the-model"></a>
 </h2>
-<p>Fit the built models with <code><a href="../reference/fit.hydroState.html">fit.hydroState()</a></code>.</p>
-<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a><span class="sc">&lt;!--</span> model.monthly.adjusted <span class="ot">=</span> <span class="fu">fit.hydroState</span>(model.monthly.adjusted, <span class="at">pop.size.perParameter =</span> <span class="dv">10</span>, <span class="at">max.generations =</span> <span class="dv">10000</span>, <span class="at">doParallel =</span> <span class="cn">TRUE</span>)  <span class="sc">-</span><span class="ot">-&gt;</span></span></code></pre></div>
+<p>Fit the built models with <code><a href="../reference/fit.hydroState.html">fit.hydroState()</a></code>. This will
+take typically an hour to run.</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a><span class="sc">&lt;!--</span> model.seasonal.adjusted <span class="ot">=</span> <span class="fu">fit.hydroState</span>(model.seasonal.adjusted, <span class="at">pop.size.perParameter =</span> <span class="dv">10</span>, <span class="at">max.generations =</span> <span class="dv">10000</span>, <span class="at">doParallel =</span> <span class="cn">TRUE</span>)  <span class="sc">-</span><span class="ot">-&gt;</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="review-the-residuals">Review the residuals<a class="anchor" aria-label="anchor" href="#review-the-residuals"></a>
@@ -169,10 +170,10 @@ time-step:</p>
 distributed with no trends or auto-correlation.</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># review residual plots</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">model.monthly.fitted.415201</span>, pse.residuals <span class="op">=</span> <span class="cn">TRUE</span>, siteID <span class="op">=</span> <span class="st">'415201'</span>, do.pdf <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span> </span></code></pre></div>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">model.seasonal.fitted.415201</span>, pse.residuals <span class="op">=</span> <span class="cn">TRUE</span>, siteID <span class="op">=</span> <span class="st">'415201'</span>, do.pdf <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span> </span></code></pre></div>
 <div class="float">
-<img src="../reference/figures/subAnnual.model.residuals.png" style="width:100.0%" alt="The residual plots of the best monthly model for site 415201 appear uniform and normally distributed despite the Shapiro-Wilk p-value being less than 0.05."><div class="figcaption">The residual plots of the best monthly model for
-site 415201 appear uniform and normally distributed despite the
+<img src="../reference/figures/subAnnual.model.residuals.png" style="width:100.0%" alt="The residual plots of the best seasonal model for site 415201 appear uniform and normally distributed despite the Shapiro-Wilk p-value being less than 0.05."><div class="figcaption">The residual plots of the best seasonal model
+for site 415201 appear uniform and normally distributed despite the
 Shapiro-Wilk p-value being less than 0.05.</div>
 </div>
 </div>
@@ -190,14 +191,14 @@ using <code><a href="../reference/get.states.html">get.states()</a></code> which
 each time-step.</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># set the reference year to name the states</span></span>
-<span><span class="va">model.monthly.fitted.415201</span> <span class="op">=</span> <span class="fu"><a href="../reference/setInitialYear.html">setInitialYear</a></span><span class="op">(</span><span class="va">model.monthly.fitted.415201</span>, <span class="fl">1990</span><span class="op">)</span></span>
+<span><span class="va">model.seasonal.fitted.415201</span> <span class="op">=</span> <span class="fu"><a href="../reference/setInitialYear.html">setInitialYear</a></span><span class="op">(</span><span class="va">model.seasonal.fitted.415201</span>, <span class="fl">1990</span><span class="op">)</span></span>
 <span></span>
 <span></span>
 <span><span class="co"># plot all four plots</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">model.monthly.fitted.415201</span>, do.pdf <span class="op">=</span> <span class="cn">F</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">model.seasonal.fitted.415201</span>, do.pdf <span class="op">=</span> <span class="cn">F</span><span class="op">)</span></span></code></pre></div>
 <center>
 <div class="float">
-<img src="../reference/figures/subAnnual.model.states.png" style="width:100.0%" alt="The monthly model considers seasonality and auto-correlation within the rainfall-runoff relationship, but these model results show there are state shifts within this relationship at this site. The 3-states suggests a shift in the rainfall-runoff relationship throughout the record better represent observations. The Very Low state persist at the end of the record after a prolonged drought from roughly 1997-2009."><div class="figcaption">The monthly model considers seasonality and
+<img src="../reference/figures/subAnnual.model.states.png" style="width:100.0%" alt="The seasonal model considers seasonality and auto-correlation within the rainfall-runoff relationship, but these model results show there are state shifts within this relationship at this site. The 3-states suggests a shift in the rainfall-runoff relationship throughout the record better represent observations. The Very Low state persist at the end of the record after a prolonged drought from roughly 1997-2009."><div class="figcaption">The seasonal model considers seasonality and
 auto-correlation within the rainfall-runoff relationship, but these
 model results show there are state shifts within this relationship at
 this site. The 3-states suggests a shift in the rainfall-runoff
@@ -220,33 +221,33 @@ systematic model evaluation within the <a href="adjust.state.model.html">“Adju
 vignette”</a>, expect <code>seasonal.parameters</code> may be selected.
 Note, it is recommend to run this systematic analysis in parallel and on
 a high-performance computer where possible. The example below can take
-more than 24 hours to fit 24 models when running in parallel on a
-7-core, 64-bit operating system.</p>
+hours to fit 12 models when running in parallel on a 7-core, 64-bit
+operating system.</p>
 <div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" tabindex="-1"></a><span class="co"># Build all possible models with the intercept, 'a0', as a seasonal parameter and state dependent parameter</span></span>
-<span id="cb8-2"><a href="#cb8-2" tabindex="-1"></a>all.models.monthly <span class="ot">=</span> <span class="fu">build.all</span>(<span class="at">input.data =</span> streamflow_monthly_415201,</span>
+<span id="cb8-2"><a href="#cb8-2" tabindex="-1"></a>all.models.seasonal <span class="ot">=</span> <span class="fu">build.all</span>(<span class="at">input.data =</span> streamflow_seasonal_415201,</span>
 <span id="cb8-3"><a href="#cb8-3" tabindex="-1"></a>                                        <span class="at">state.shift.parameter =</span> <span class="fu">c</span>(<span class="st">'a0'</span>,<span class="st">'std'</span>),</span>
 <span id="cb8-4"><a href="#cb8-4" tabindex="-1"></a>                                        <span class="at">seasonal.parameter =</span> <span class="st">'a0'</span>)</span>
 <span id="cb8-5"><a href="#cb8-5" tabindex="-1"></a></span>
 <span id="cb8-6"><a href="#cb8-6" tabindex="-1"></a><span class="co"># Review the order of the reference models, adjust reference models if needed.</span></span>
-<span id="cb8-7"><a href="#cb8-7" tabindex="-1"></a>all.models.ref.table <span class="ot">=</span> <span class="fu">summary</span>(all.models.monthly)</span>
+<span id="cb8-7"><a href="#cb8-7" tabindex="-1"></a>all.models.ref.table <span class="ot">=</span> <span class="fu">summary</span>(all.models.seasonal)</span>
 <span id="cb8-8"><a href="#cb8-8" tabindex="-1"></a></span>
 <span id="cb8-9"><a href="#cb8-9" tabindex="-1"></a><span class="co"># Re-build with adjusted reference table</span></span>
-<span id="cb8-10"><a href="#cb8-10" tabindex="-1"></a>all.models.monthly <span class="ot">=</span> <span class="fu">build.all</span>(<span class="at">input.data =</span> streamflow_monthly_415201,</span>
+<span id="cb8-10"><a href="#cb8-10" tabindex="-1"></a>all.models.seasonal <span class="ot">=</span> <span class="fu">build.all</span>(<span class="at">input.data =</span> streamflow_seasonal_415201,</span>
 <span id="cb8-11"><a href="#cb8-11" tabindex="-1"></a>                                        <span class="at">state.shift.parameter =</span> <span class="fu">c</span>(<span class="st">'a0'</span>,<span class="st">'std'</span>),</span>
 <span id="cb8-12"><a href="#cb8-12" tabindex="-1"></a>                                        <span class="at">seasonal.parameter =</span> <span class="st">'a0'</span>,</span>
-<span id="cb8-13"><a href="#cb8-13" tabindex="-1"></a>                                        <span class="at">reference.table =</span> all.models.ref.table)</span>
+<span id="cb8-13"><a href="#cb8-13" tabindex="-1"></a>                                        <span class="at">summary.table =</span> all.models.ref.table)</span>
 <span id="cb8-14"><a href="#cb8-14" tabindex="-1"></a></span>
 <span id="cb8-15"><a href="#cb8-15" tabindex="-1"></a><span class="co"># Fit all models (take hours to run)</span></span>
-<span id="cb8-16"><a href="#cb8-16" tabindex="-1"></a><span class="sc">&lt;!--</span> all.models.monthly <span class="ot">=</span> <span class="fu">fit.hydroState</span>(all.models.monthly, <span class="at">pop.size.perParameter =</span> <span class="dv">10</span>, <span class="at">max.generations =</span> <span class="dv">10000</span>, <span class="at">doParallel =</span> T) <span class="sc">-</span><span class="ot">-&gt;</span></span>
+<span id="cb8-16"><a href="#cb8-16" tabindex="-1"></a><span class="sc">&lt;!--</span> all.models.seasonal <span class="ot">=</span> <span class="fu">fit.hydroState</span>(all.models.seasonal, <span class="at">pop.size.perParameter =</span> <span class="dv">10</span>, <span class="at">max.generations =</span> <span class="dv">10000</span>, <span class="at">doParallel =</span> T) <span class="sc">-</span><span class="ot">-&gt;</span></span>
 <span id="cb8-17"><a href="#cb8-17" tabindex="-1"></a></span>
 <span id="cb8-18"><a href="#cb8-18" tabindex="-1"></a><span class="co"># Identify the best model with the lowest AIC</span></span>
-<span id="cb8-19"><a href="#cb8-19" tabindex="-1"></a><span class="fu">get.AIC</span>(all.models.monthly)</span>
+<span id="cb8-19"><a href="#cb8-19" tabindex="-1"></a><span class="fu">get.AIC</span>(all.models.seasonal)</span>
 <span id="cb8-20"><a href="#cb8-20" tabindex="-1"></a></span>
 <span id="cb8-21"><a href="#cb8-21" tabindex="-1"></a><span class="co">#&gt;                                                  AIC    nParameters   AIC.weights</span></span>
-<span id="cb8-22"><a href="#cb8-22" tabindex="-1"></a><span class="co">#&gt; model.3State.gamma.log.AR1.a0.seasonal.a0    -1419.6674          22  9.999604e-01</span></span>
-<span id="cb8-23"><a href="#cb8-23" tabindex="-1"></a><span class="co">#&gt; model.3State.gamma.log.AR3.a0.seasonal.a0    -1369.1052          24  1.048454e-11</span></span>
-<span id="cb8-24"><a href="#cb8-24" tabindex="-1"></a><span class="co">#&gt; model.3State.gamma.log.AR2.a0.seasonal.a0    -1347.3293          23  1.958698e-16</span></span>
-<span id="cb8-25"><a href="#cb8-25" tabindex="-1"></a><span class="co">#&gt; model.3State.gamma.log.AR0.a0.seasonal.a0    -1341.4357          21  1.028478e-17</span></span>
+<span id="cb8-22"><a href="#cb8-22" tabindex="-1"></a><span class="co">#&gt; model.3State.gamma.boxcox.AR2.a0.seasonal.a0std 101.7086          23 9.999966e-01</span></span>
+<span id="cb8-23"><a href="#cb8-23" tabindex="-1"></a><span class="co">#&gt; model.3State.gamma.boxcox.AR3.a0.seasonal.a0std 126.8749          24 3.429339e-06</span></span>
+<span id="cb8-24"><a href="#cb8-24" tabindex="-1"></a><span class="co">#&gt; model.2State.gamma.boxcox.AR3.a0.seasonal.a0std 137.4552          15 1.728674e-08</span></span>
+<span id="cb8-25"><a href="#cb8-25" tabindex="-1"></a><span class="co">#&gt; model.2State.gamma.boxcox.AR1.a0.seasonal.a0std 156.0379          13 1.594226e-12</span></span>
 <span id="cb8-26"><a href="#cb8-26" tabindex="-1"></a><span class="co">#&gt; ...</span></span></code></pre></div>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
