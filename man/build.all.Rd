@@ -45,7 +45,7 @@ build.all(
 A list of built hydroState models with every combination of objects ready to be fitted
 }
 \description{
-\code{build.all} builds all possible combinations of hydroState models. The same fields are available as in \code{build()} in order to specify the type of models to be built. After all models are built, they are fitted using the same \code{fit.hydroState()} function.
+\code{build.all} builds all possible combinations of hydroState models. The same fields are available as in \code{\link{build()}} in order to specify the type of models to be built. After all models are built, they are fitted using the same \code{fit.hydroState()} function.
 }
 \details{
 \code{build.all}
