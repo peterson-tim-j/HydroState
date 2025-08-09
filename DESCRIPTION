@@ -7,7 +7,7 @@ Authors@R: c(
 Maintainer: Tim Peterson <tim.peterson@monash.edu>
 Depends: R (>= 3.5.0)
 Description: Identifies regime changes in streamflow runoff not explained by variations in precipitation. The package builds a flexible set of Hidden Markov Models of annual, seasonal or monthly streamflow runoff with precipitation as a predictor. Suites of models can be built for a single site, ranging from one to three states and each with differing combinations of error models and auto-correlation terms. The most parsimonious model is easily identified by AIC, and useful for understanding catchment drought non-recovery: Peterson TJ, Saft M, Peel MC & John A (2021) <doi:10.1126/science.abd5085>.
-Imports: methods, DEoptim, sn, truncnorm, diagram, padr, zoo, graphics, checkmate
+Imports: methods, DEoptim, sn, truncnorm, diagram, padr, zoo, graphics, checkmate, mathjaxr
 BugReports: https://github.com/peterson-tim-j/HydroState/issues
 URL: https://github.com/peterson-tim-j/HydroState, https://peterson-tim-j.github.io/HydroState/
 License: GPL-3
@@ -24,6 +24,8 @@ Suggests:
     mathml
 Config/testthat/edition: 3
 VignetteBuilder: knitr
+RdMacros: mathjaxr
+BuildManual: TRUE
 Collate: 
     'abstracts.R'
     'parameters.R'

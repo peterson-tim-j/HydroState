@@ -24,9 +24,9 @@
 #'
 #' @section Vignettes:
 #' \itemize{
-#'   \item \code{vignette("hydroState", package = "hydroState")}
-#'   \item \code{vignette("Adjust the default state model", package = "hydroState")}
-#'   \item \code{vignette("Seasonal and monthly models", package = "hydroState")}
+#'   \item \code{\link{vignette("hydroState", package = "hydroState")}}
+#'   \item \code{\link{vignette("Adjust the default state model", package = "hydroState")}}
+#'   \item \code{\link{vignette("Seasonal and monthly models", package = "hydroState")}}
 #' }
 #'
 #' @section Usage:
