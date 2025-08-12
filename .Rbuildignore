@@ -9,6 +9,7 @@ Build_commands_hydroState.R
 hydroState.pdf
 ^_pkgdown\.yml$
 ^docs$
+vignettes
 ^pkgdown$
 ^\.RData$
 ^\.vscode$
