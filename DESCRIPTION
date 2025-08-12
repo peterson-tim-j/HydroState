@@ -22,7 +22,6 @@ Suggests:
     testthat (>= 3.0.0),
     V8
 Config/testthat/edition: 3
-VignetteBuilder: knitr
 Collate: 
     'abstracts.R'
     'parameters.R'

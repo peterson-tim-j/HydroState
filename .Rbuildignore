@@ -7,7 +7,6 @@
 .Rd2pdf28108
 Build_commands_hydroState.R
 hydroState.pdf
-vignette
 ^_pkgdown\.yml$
 ^docs$
 ^pkgdown$
@@ -21,3 +20,5 @@ vignette
 ^cran-comments\.md$
 >>>>>>> 37add888202d9a0c34ba98cfa7647fb2051b3356
 ^CRAN-SUBMISSION$
+^doc$
+^Meta$
