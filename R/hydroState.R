@@ -1745,11 +1745,21 @@ setMethod(f="viterbi",signature=c("hydroState","data.frame","logical","numeric",
                 # Plot bar graph
                 # par(mar = c(4,5,0.2,5))
                 pframe = padr::pad(data.frame(obsDates.asISO, state.probs[1,]), interval = plot.units)
+                if(plot.units == "month"){ #if seasonal... adjust to get plot with connecting lines..
+                  if(with(rle(data$year), max(lengths)) <= 4){
+                    pframe$state.probs.1... = zoo::na.approx(object = replace(pframe$state.probs.1..., is.na(pframe$state.probs.1...), NA), maxgap = 2)
+                  }
+                }
                 plot(pframe, type = 'l', xlim=xlim, col=state.colours[1],
                      ylim=c(0,1),xlab='', ylab='', lwd=1, xaxt='n')
                 if (nStates>1) {
                   for ( i in 2:nStates) {
                     pframe = padr::pad(data.frame(obsDates.asISO, state.probs[i,]), interval = plot.units)
+                    if(plot.units == "month"){ #if seasonal... adjust to get plot with connecting lines..
+                      if(with(rle(data$year), max(lengths)) <= 4){
+                        pframe$state.probs.i... = zoo::na.approx(object = replace(pframe$state.probs.i..., is.na(pframe$state.probs.i...), NA), maxgap = 2)
+                      }
+                    }
                     lines(pframe, col=state.colours[i])
                   }
                 }

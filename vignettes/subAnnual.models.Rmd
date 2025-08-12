@@ -90,7 +90,7 @@ plot(model.seasonal.fitted.415201, pse.residuals = TRUE, siteID = '415201', do.p
 
 ```
 
-![The residual plots of the best seasonal model for site 415201 appear uniform and normally distributed despite the Shapiro-Wilk p-value being less than 0.05.](../man/figures/subAnnual.model.residuals.png){width=100%}
+![The residual plots of the best seasonal model for site 415201 are uniform and normally distributed with the Shapiro-Wilk p-value being greater than 0.05.](../man/figures/subAnnual.model.residuals.png){width=100%}
 
 
 
@@ -129,17 +129,17 @@ all.models.seasonal = build.all(input.data = streamflow_seasonal_415201,
                                         seasonal.parameter = 'a0',
                                         summary.table = all.models.ref.table)
 
-# Fit all models (take hours to run)
+# Fit all models (takes hours to run)
 <!-- all.models.seasonal = fit.hydroState(all.models.seasonal, pop.size.perParameter = 10, max.generations = 10000, doParallel = T) -->
 
 # Identify the best model with the lowest AIC
-get.AIC(all.models.seasonal)
+get.AIC(all.models.seasonal.fitted.415201)
 
 #>                                                  AIC    nParameters   AIC.weights
-#> model.3State.gamma.boxcox.AR2.a0.seasonal.a0std 101.7086          23 9.999966e-01
-#> model.3State.gamma.boxcox.AR3.a0.seasonal.a0std 126.8749          24 3.429339e-06
-#> model.2State.gamma.boxcox.AR3.a0.seasonal.a0std 137.4552          15 1.728674e-08
-#> model.2State.gamma.boxcox.AR1.a0.seasonal.a0std 156.0379          13 1.594226e-12
+#> model.3State.gamma.boxcox.AR2.a0.seasonal.a0std  92.73299          23 9.999948e-01
+#> model.3State.gamma.boxcox.AR3.a0.seasonal.a0std 117.07896          24 5.168178e-06
+#> model.2State.gamma.boxcox.AR3.a0.seasonal.a0std 133.67572          15 1.286464e-09
+#> model.3State.gamma.boxcox.AR1.a0.seasonal.a0std 150.25432          22 3.231464e-13
 #> ...
 ```
 

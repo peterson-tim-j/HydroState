@@ -71,6 +71,7 @@
 \alias{streamflow_daily_221201}
 \alias{all.models.annual.fitted.407211}
 \alias{model.monthly.fitted.415201}
+\alias{model.seasonal.fitted.415201}
 \alias{all.models.monthly.fitted.415201}
 \alias{all.models.seasonal.fitted.415201}
 \alias{get.summary.table}

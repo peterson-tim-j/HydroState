@@ -51,7 +51,7 @@ There is an additional option to construct all possible types of models using th
 
 Peterson TJ, Saft M, Peel MC & John A (2021), Watersheds may not recover from drought, Science, DOI: 10.1126/science.abd5085. 
 
-### Acknoledgement
+### Acknowledgments:
 
 The package development was funded by the Victorian Government The Department of Energy, Environment, and Climate Action (https://www.water.vic.gov.au/). 
 

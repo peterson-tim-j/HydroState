@@ -18,25 +18,25 @@ The package allows a flexible set of Hidden Markov Models (HMMs) of annual, seas
 \section{Functions}{
 
 \itemize{
-\item \code{build()} — Builds hydroState model
-\item \code{build.all()} — Builds all hydroState models
-\item \code{fit.hydroSata()} — Fit hydroState model(s)
-\item \code{setInitialYear()} — Sets state names given initial year
-\item \code{plot()} — Plot states or pseudo residuals over time
-\item \code{get.residuals} — Get pseudo residuals
-\item \code{get.states} — Get states
-\item \code{check()} — Check reliability of state predictions
-\item \code{get.AIC()} — Get AIC
-\item \code{get.seasons} — Get pseudo residuals
+\item \code{\link{build}} — Builds hydroState model
+\item \code{\link{build.all}} — Builds all hydroState models
+\item \code{\link{fit.hydroState}} — Fit hydroState model(s)
+\item \code{\link{setInitialYear}} — Sets state names given initial year
+\item \code{\link{plot}} — Plot states or pseudo residuals over time
+\item \code{\link{get.residuals}} — Get pseudo residuals
+\item \code{\link{get.states}} — Get states
+\item \code{\link{check}} — Check reliability of state predictions
+\item \code{\link{get.AIC}} — Get AIC
+\item \code{\link{get.seasons}} — Get pseudo residuals
 }
 }
 
 \section{Vignettes}{
 
 \itemize{
-\item \code{\link{vignette("hydroState", package = "hydroState")}}
-\item \code{\link{vignette("Adjust the default state model", package = "hydroState")}}
-\item \code{\link{vignette("Seasonal and monthly models", package = "hydroState")}}
+\item \code{vignette("hydroState", package = "hydroState")}
+\item \code{vignette("Adjust the default state model", package = "hydroState")}
+\item \code{vignette("Seasonal and monthly models", package = "hydroState")}
 }
 }
 
@@ -57,7 +57,7 @@ To better explain the rainfall-runoff relationship, the default model can be adj
 An example of how to adjust the default model is demonstrated within the \code{vignette("Adjust the default state model", package = "hydroState")}
 and \code{vignette("Seasonal and monthly models", package = "hydroState")}.
 
-There is an additional option to construct all possible types of models using the \code{build.all()}, and compare them using the same \code{fit.hydroState()} function. The most likely model can be selected based on the AIC where the best model will have the lowest AIC. An example of this is demonstrated at the end of the \code{vignette("Adjust the default state model", package = "hydroState")}
+There is an additional option to construct all possible types of models using the \code{\link{build.all}}, and compare them using the same \code{\link{fit.hydroState}} function. The most likely model can be selected based on the AIC where the best model will have the lowest AIC. An example of this is demonstrated at the end of the  \code{vignette("Adjust the default state model", package = "hydroState")}
 and \code{vignette("Seasonal and monthly models", package = "hydroState")}. To get stated, it is recommended to evaluate the default model at first with one state and again with two states.
 }
 
