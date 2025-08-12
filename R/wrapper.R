@@ -1361,27 +1361,27 @@ setInitialYear <- function(model, initial.year){ #make go to first year of dataf
 #' @details
 #' \code{plot} produces five figures of psuedo residuals OR up to four figures of the results from the fitted hydroState model. When the \code{pse.residuals} is FALSE, the default \code{plot} produces all four result figures. Figures are more easily viewed as a pdf exported to the current working directory (\code{do.pdf = TRUE}).
 #' \itemize{
-#'  \item{psuedo residual figures}{}
+#'  \item{psuedo residual figures}
 #'    \itemize{
-#'     \item{A)}{ Time-series of normal-pseudo residuals to ensure the residuals each year are within the confidence intervals.}
-#'     \item{B)}{ Auto-correlation function (ACF) of normal-pseudo residuals to ensure there is minimal serial correlation in residuals. Lag spikes should be below confidence interval at each lag (except 0).}
-#'     \item{C)}{ Histogram of uniform-pseudo residuals should show uniform distribution (equal frequency for each residual value)}
-#'     \item{D)}{ Histogram of normal-pseudo residuals should show normal distribution centered on zero and with no skew}
-#'     \item{E)}{ Quantile-Quantile (Q-Q) plot where normal-pseudo residuals vs. theoretical quantities should align on the diagonal line. The last plot contains the Akaike information criterion (AIC) and Shapiro-Wilk p-value. The AIC is an estimator to determine the most parsimonious, best performing model given the number of parameters. When comparing models, the lowest AIC is the best performing model. Shapiro-Wilks test for normality in the residuals and a p-value greater than 0.05 (chosen alpha level) indicates the residuals are normally distributed; the null hypothesis that the residuals are normally distributed is not rejected.}
+#'     \item{A) Time-series of normal-pseudo residuals to ensure the residuals each year are within the confidence intervals.}
+#'     \item{B) Auto-correlation function (ACF) of normal-pseudo residuals to ensure there is minimal serial correlation in residuals. Lag spikes should be below confidence interval at each lag (except 0).}
+#'     \item{C) Histogram of uniform-pseudo residuals should show uniform distribution (equal frequency for each residual value)}
+#'     \item{D) Histogram of normal-pseudo residuals should show normal distribution centered on zero and with no skew}
+#'     \item{E) Quantile-Quantile (Q-Q) plot where normal-pseudo residuals vs. theoretical quantities should align on the diagonal line. The last plot contains the Akaike information criterion (AIC) and Shapiro-Wilk p-value. The AIC is an estimator to determine the most parsimonious, best performing model given the number of parameters. When comparing models, the lowest AIC is the best performing model. Shapiro-Wilks test for normality in the residuals and a p-value greater than 0.05 (chosen alpha level) indicates the residuals are normally distributed; the null hypothesis that the residuals are normally distributed is not rejected.}
 #'  }
-#'  \item{markov state figures}{}
+#'  \item{markov state figures}
 #'    \itemize{
-#'      \item{A)}{ independent variable: precipitation}
-#'      \item{B)}{ dependent variable and states: streamflow observations, most likely state, and relative normal state estimate}
-#'      \item{C)}{ transformed dependent variable and states: transformed streamflow observations and most likely state}
-#'      \item{D)}{ conditional state probabilities for each state: probability of hydroState model remaining in given state}
+#'      \item{A) independent variable: precipitation}
+#'      \item{B) dependent variable and states: streamflow observations, most likely state, and relative normal state estimate}
+#'      \item{C) transformed dependent variable and states: transformed streamflow observations and most likely state}
+#'      \item{D) conditional state probabilities for each state: probability of hydroState model remaining in given state}
 #'    }
 #'   }
 #'
 #'   These figures are often large, and below are a few common errors when the plotting window is too small. Exporting the plots as a pdf is recommend for the pseudo residual figure (\code{do.pdf = TRUE}).
 #'  \itemize{
-#'  \item{"Error in plot.new() : figure margins too large":} reset plot window with "dev.off()", enlarge plot area and re-run \code{plot.residuals}.
-#'  \item{"Error in par(op) : invalid value specified for graphical parameter "pin"} if the R plot window is not reset with "dev.off", an additional \code{plot.residuals} attempt will result in this error.
+#'  \item{"Error in plot.new() : figure margins too large": reset plot window with "dev.off()", enlarge plot area and re-run \code{plot.residuals}.}
+#'  \item{"Error in par(op) : invalid value specified for graphical parameter "pin" if the R plot window is not reset with "dev.off", an additional \code{plot.residuals} attempt will result in this error.}
 #'  }
 #'
 #' @param x is the fitted hydroState model object.

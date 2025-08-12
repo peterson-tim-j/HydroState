@@ -38,12 +38,12 @@ The likelihood function is estimated as:
 where:
 \itemize{
 \item{\eqn{\delta} is the initial state distribution, the initial probability of being in each state: \eqn{\delta = \begin{pmatrix} \delta_{1} \\ 1- \delta_{1} \end{pmatrix}}}
-\item{\eqn{P(x)} is the \eqn{m} x \eqn{m} diagonal emissions matrix of the probability density for each state using a lower tail truncated Gaussian distribution or a two-parameter Gamma distribution}
+\item{\eqn{P(x)} is the \eqn{m} x \eqn{m} diagonal emissions matrix of the probability density for each state using a lower tail truncated Gaussian distribution or a two-parameter Gamma distribution:
 \itemize{
 \item{\eqn{f_{Gau}(x=\hat{_{obs}q_{t}}; \mu = \hat{_{t}q_{i}}, \sigma = \sigma_{i}, a = 0) = \frac{\phi(\frac{x-\mu}{\sigma})}{\sigma(1-\Phi(\frac{a-\mu}{\sigma}))}}}
-\item{\eqn{f_{Gam}(x = \hat{_{obs}q_{t}};k = \frac{\hat{_{t}q_{i}}^2}{\sigma_{i}^2}, \theta = \frac{\sigma_{i}^2}{\hat{_{t}q_{i}}}) = \frac{x^{k-1}e^{\frac{x}{\theta}}}{\theta^{k}\Gamma(k)}}}
-\item{where \eqn{\phi} is the probability density function for the standard normal distribution, \eqn{\Phi} is the cumulative distribution function for the standard normal distribution, \eqn{k} is the shape parameter, \eqn{\theta} is the scale parameter, and \eqn{\Gamma(k)} is the gamma function.
-For more details, refer to pg. 8-17 in Supplementary Materials of (Peterson TJ, Saft M, Peel MC & John A (2021), Watersheds may not recover from drought, Science, DOI: \doi{10.1126/science.abd5085}).}
+\item{\eqn{f_{Gam}(x = \hat{_{obs}q_{t}}; k = \frac{\hat{_{t}q_{i}}^2}{\sigma_{i}^2}, \theta = \frac{\sigma_{i}^2}{\hat{_{t}q_{i}}}) = \frac{x^{k-1}e^{\frac{x}{\theta}}}{\theta^{k}\Gamma(k)}}}
+\item{where \eqn{\phi} is the probability density function for the standard normal distribution, \eqn{\Phi} is the cumulative distribution function for the standard normal distribution, \eqn{k} is the shape parameter, \eqn{\theta} is the scale parameter, and \eqn{\Gamma(k)} is the gamma function. For more details, refer to pg. 8–17 in Supplementary Materials of (Peterson TJ, Saft M, Peel MC & John A (2021), Watersheds may not recover from drought, Science, DOI: \doi{10.1126/science.abd5085}).}
+}
 }
 \item{\eqn{\Gamma} is the transition matrix}
 \item{\eqn{T} is the number of time-steps.}
