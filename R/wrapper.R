@@ -1740,7 +1740,7 @@ plot.hydroState <- function(x, ...,
 
 get.states <- function(model){
 
-      return(viterbi(model, do.plot = F))
+      return(viterbi(model, do.plot = F, plot.options = c("A","B","C","D")))
 
 }
 
