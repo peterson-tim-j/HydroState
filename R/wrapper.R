@@ -579,6 +579,11 @@ build <- function(input.data = data.frame(year=c(), flow=c(), precip=c()),
                        transition.graph = matrix(TRUE,2,2)){
 
 
+  # reset defaults
+  oldpar <- par(no.readonly = TRUE)
+  on.exit(par(oldpar), add = TRUE)
+
+
   #Validate input.data
   if(!is.data.frame(input.data)){
     stop("'input.data' is not a dataframe")
@@ -820,7 +825,9 @@ build.all <-function(input.data = data.frame(year=c(), flow=c(), precip=c()),
 
   #######################################################
 
-  #called from build()
+  # reset defaults
+  oldpar <- par(no.readonly = TRUE)
+  on.exit(par(oldpar), add = TRUE)
 
 
   #site id
@@ -1074,9 +1081,8 @@ build.all <-function(input.data = data.frame(year=c(), flow=c(), precip=c()),
 #' @examples
 #' # Show summary table of all fitted model details and reference models
 #'
-#' \dontrun{
-#' all.models.ref.table = summary(all.models)
-#' }
+#' all.models.ref.table = summary(all.models.annual.fitted.407211)
+#'
 
 summary.hydroState.allModels <- function(object, ...){
 
@@ -1154,7 +1160,7 @@ summary.hydroState.allModels <- function(object, ...){
 #' model = build(input.data = streamflow_annual_221201)
 #'
 #' ## Fit built model (runtime ~ 14 sec)
-#' \dontrun{
+#' \donttest{
 #' model = fit.hydroState(model)
 #' }
 #'
@@ -1165,11 +1171,10 @@ summary.hydroState.allModels <- function(object, ...){
 #' ## Build all annual models
 #' all.annual.models = build.all(input.data = streamflow_annual_221201, siteID = '221201')
 #'
-#' \dontrun{
-#' # Fit all (runtime > several hours)
-#' all.annual.models = fit.hydroState(all.annual.models)
-#'
-#' }
+#' ## Fit all (runtime > several hours)
+#' #\donttest{
+#' #all.annual.models = fit.hydroState(all.annual.models)
+#' #}
 #'
 
 fit.hydroState <- function(model,
@@ -1177,6 +1182,11 @@ fit.hydroState <- function(model,
                 max.generations = 500,
                 doParallel = FALSE
                 ) {
+
+
+  # reset defaults
+  oldpar <- par(no.readonly = TRUE)
+  on.exit(par(oldpar), add = TRUE)
 
   if (methods::is(model, "hydroState")) {
     return(fit(model,
@@ -1300,6 +1310,7 @@ get.AIC <- function(model){
 
 get.residuals <- function(model){
 
+
     return(check.PseudoResiduals(model, do.plot = F))
 
 }
@@ -1341,6 +1352,7 @@ get.residuals <- function(model){
 
 setInitialYear <- function(model, initial.year){ #make go to first year of dataframe
 
+
   #set state names
   if(is.null(initial.year)){
     stop("Please provide an initial.year to set the state names")
@@ -1359,7 +1371,7 @@ setInitialYear <- function(model, initial.year){ #make go to first year of dataf
 #' \code{plot} produces several figures to visualize pseudo residuals or results of the markov states over time. \code{setInitialYear} is required before \code{plot}. It is recommend to evaluate the pseudo residuals before the markov states. The pseudo residuals are the probability of an observation occurring at each time-step given the prior observations and latter observations, and these are derived from the conditional probabilities of the observations. The markov states are from the Viterbi algorithm globally decoding the model to estimate the most probable sequence of states.
 #'
 #' @details
-#' \code{plot} produces five figures of psuedo residuals OR up to four figures of the results from the fitted hydroState model. When the \code{pse.residuals} is FALSE, the default \code{plot} produces all four result figures. Figures are more easily viewed as a pdf exported to the current working directory (\code{do.pdf = TRUE}).
+#' \code{plot} produces five figures of psuedo residuals OR up to four figures of the results from the fitted hydroState model. When the \code{pse.residuals} is FALSE, the default \code{plot} produces all four result figures. Figures are more easily viewed as an exported pdf when directory/file name is given with \code{file = "flow.state.plots.siteID.pdf"}.
 #' \itemize{
 #'  \item{psuedo residual figures}
 #'    \itemize{
@@ -1378,7 +1390,7 @@ setInitialYear <- function(model, initial.year){ #make go to first year of dataf
 #'    }
 #'   }
 #'
-#'   These figures are often large, and below are a few common errors when the plotting window is too small. Exporting the plots as a pdf is recommend for the pseudo residual figure (\code{do.pdf = TRUE}).
+#'   These figures are often large, and below are a few common errors when the plotting window is too small. Exporting the plots as a file is recommend for the pseudo residual figure (\code{file = "file name"}).
 #'  \itemize{
 #'  \item{"Error in plot.new() : figure margins too large": reset plot window with "dev.off()", enlarge plot area and re-run \code{plot.residuals}.}
 #'  \item{"Error in par(op) : invalid value specified for graphical parameter "pin" if the R plot window is not reset with "dev.off", an additional \code{plot.residuals} attempt will result in this error.}
@@ -1390,8 +1402,8 @@ setInitialYear <- function(model, initial.year){ #make go to first year of dataf
 #' @param dep.variable option to plot dependent variable and states over time. Default is TRUE.
 #' @param dep.variable.transformed option to plot transformed dependent variable and states over time. Default is TRUE.
 #' @param cond.state.prob option to plot the conditional state probabilities over time for each state. Default is TRUE.
-#' @param siteID character string of catchment identifier (i.e. gauge ID). Default is NULL. Only recommended when do.pdf = TRUE.
-#' @param do.pdf option to export figures as a pdf. Default is FALSE.
+#' @param siteID character string of catchment identifier (i.e. gauge ID). Default is NULL. Only recommended when exporting (i.e, file = "filename.pdf").
+#' @param file character string of file directory/name to export plots as a pdf: "flow.state.plots.407211.pdf". Default is NULL, no pdf file is exported.
 #' @param ... additional arguments passed for plotting, none available at this time.
 #'
 #' @return
@@ -1439,61 +1451,55 @@ plot.hydroState <- function(x, ...,
                        dep.variable.transformed = TRUE,
                        cond.state.prob = TRUE,
                        siteID = NULL,
-                       do.pdf = FALSE
+                       file = NULL
                        ){
 
   model = x
 
-    if(pse.residuals == TRUE & do.pdf == TRUE){
+  # reset params
+  oldpar <- par(no.readonly = TRUE)
+  on.exit(par(oldpar), add = TRUE)
 
-      pdf(paste(siteID,"_Residuals_",class(model@QhatModel.object)[1],"_states-",model@QhatModel.object@nStates,".pdf",sep=""), width = 8.5, height = 11)
-      check.PseudoResiduals(model, do.plot = T)
-      title(siteID)
+
+  # if file
+  if (!is.null(file)) {
+    pdf(file, width = 8.5, height = 11)
+    on.exit(
       dev.off()
-      return(check.PseudoResiduals(model, do.plot = T))
+    , add = TRUE)
 
-    }else if(pse.residuals == TRUE & do.pdf == FALSE){
+  }
 
-      par(mar=c(4,4,1,1))
-      return(check.PseudoResiduals(model, do.plot = T))
+  # if site ID is NULL
+  if (is.null(siteID)) {
+    siteID = ""
+  }
+
+    if(pse.residuals == TRUE){
+
+      temp.plot = check.PseudoResiduals(model, do.plot = T)
+      title(siteID)
+      return(temp.plot)
     }
 
 
     # plot everything, default, export as pdf is option too..
     if(ind.variable == TRUE && dep.variable == TRUE && dep.variable.transformed == TRUE && cond.state.prob == TRUE){
 
-      if(do.pdf == TRUE){
-
-        pdf(paste(siteID,"_Results_ABCD_",class(model@QhatModel.object)[1],"_states-",model@QhatModel.object@nStates,".pdf",sep=""), width = 8.5, height = 11)
-        viterbi(model, do.plot = T, plot.options = c("A","B","C","D"))
-        title(siteID)
-        dev.off()
-        return(viterbi(model, do.plot = T, plot.options = c("A","B","C","D")))
-
-      } else {
-
-          return(viterbi(model, do.plot = T, plot.options = c("A","B","C","D")))
+      temp.plot = viterbi(model, do.plot = T, plot.options = c("A","B","C","D"))
+      title(siteID)
+      return(temp.plot)
 
       }
 
-    }
+
 
     # plot only A
     if(ind.variable == TRUE && dep.variable != TRUE && dep.variable.transformed != TRUE && cond.state.prob != TRUE){
 
-      if(do.pdf == TRUE){
-
-        pdf(paste(siteID,"_Results_A_",class(model@QhatModel.object)[1],"_states-",model@QhatModel.object@nStates,".pdf",sep=""), width = 8.5, height = 11)
-        viterbi(model, do.plot = T, plot.options = c("A"))
+        temp.plot = viterbi(model, do.plot = T, plot.options = c("A"))
         title(siteID)
-        dev.off()
-        return(viterbi(model, do.plot = T, plot.options = c("A")))
-
-      } else {
-
-            return(viterbi(model, do.plot = T, plot.options = c("A")))
-
-        }
+        return(temp.plot)
 
       }
 
@@ -1501,194 +1507,104 @@ plot.hydroState <- function(x, ...,
 
     # plot only A and B
     if(ind.variable == TRUE && dep.variable == TRUE && dep.variable.transformed != TRUE && cond.state.prob != TRUE){
-#
-      if(do.pdf == TRUE){
 
-        pdf(paste(siteID,"_Results_AB_",class(model@QhatModel.object)[1],"_states-",model@QhatModel.object@nStates,".pdf",sep=""), width = 8.5, height = 11)
-        viterbi(model, do.plot = T, plot.options = c("A","B"))
+        temp.plot = viterbi(model, do.plot = T, plot.options = c("A","B"))
         title(siteID)
-        dev.off()
-        return(viterbi(model, do.plot = T, plot.options = c("A","B")))
-
-      } else {
-        return(viterbi(model, do.plot = T, plot.options = c("A","B")))
+        return(temp.plot)
       }
-    }
+
 
       # plot only A and B and C
       if(ind.variable == TRUE && dep.variable == TRUE && dep.variable.transformed == TRUE && cond.state.prob != TRUE){
 
-        if(do.pdf == TRUE){
 
-          pdf(paste(siteID,"_Results_ABC_",class(model@QhatModel.object)[1],"_states-",model@QhatModel.object@nStates,".pdf",sep=""), width = 8.5, height = 11)
-          viterbi(model, do.plot = T, plot.options = c("A","B","C"))
+          temp.plot = viterbi(model, do.plot = T, plot.options = c("A","B","C"))
           title(siteID)
-          dev.off()
-          return(viterbi(model, do.plot = T, plot.options = c("A","B","C")))
+          return(temp.plot)
 
-        } else {
-          return(viterbi(model, do.plot = T, plot.options = c("A","B","C")))
-        }
       }
 
     # plot only A and D
     if(ind.variable == TRUE && dep.variable != TRUE && dep.variable.transformed != TRUE && cond.state.prob == TRUE){
 
-      if(do.pdf == TRUE){
-
-        pdf(paste(siteID,"_Results_AD_",class(model@QhatModel.object)[1],"_states-",model@QhatModel.object@nStates,".pdf",sep=""), width = 8.5, height = 11)
-        viterbi(model, do.plot = T, plot.options = c("A","D"))
+        temp.plot = viterbi(model, do.plot = T, plot.options = c("A","D"))
         title(siteID)
-        dev.off()
-        return(viterbi(model, do.plot = T, plot.options = c("A","D")))
-
-      } else {
-        return(viterbi(model, do.plot = T, plot.options = c("A","D")))
-      }
+        return(temp.plot)
     }
 
     # plot only A and C
     if(ind.variable == TRUE && dep.variable != TRUE && dep.variable.transformed == TRUE && cond.state.prob != TRUE){
 
-      if(do.pdf == TRUE){
-
-        pdf(paste(siteID,"_Results_AC_",class(model@QhatModel.object)[1],"_states-",model@QhatModel.object@nStates,".pdf",sep=""), width = 8.5, height = 11)
-        viterbi(model, do.plot = T, plot.options = c("A","C"))
+        temp.plot = viterbi(model, do.plot = T, plot.options = c("A","C"))
         title(siteID)
-        dev.off()
-        return(viterbi(model, do.plot = T, plot.options = c("A","C")))
-
-      } else {
-        return(viterbi(model, do.plot = T, plot.options = c("A","C")))
-      }
+        return(temp.plot)
     }
 
     # plot only A , C, D
     if(ind.variable == TRUE && dep.variable != TRUE && dep.variable.transformed == TRUE && cond.state.prob == TRUE){
 
-      if(do.pdf == TRUE){
-
-        pdf(paste(siteID,"_Results_ACD_",class(model@QhatModel.object)[1],"_states-",model@QhatModel.object@nStates,".pdf",sep=""), width = 8.5, height = 11)
-        viterbi(model, do.plot = T, plot.options = c("A","C","D"))
+        temp.plot = viterbi(model, do.plot = T, plot.options = c("A","C","D"))
         title(siteID)
-        dev.off()
-        return(viterbi(model, do.plot = T, plot.options = c("A","C","D")))
+        return(temp.plot)
 
-      } else {
-        return(viterbi(model, do.plot = T, plot.options = c("A","C","D")))
-      }
     }
 
     # plot only B
     if(ind.variable != TRUE && dep.variable == TRUE && dep.variable.transformed != TRUE && cond.state.prob != TRUE){
 
-      if(do.pdf == TRUE){
-
-        pdf(paste(siteID,"_Results_B_",class(model@QhatModel.object)[1],"_states-",model@QhatModel.object@nStates,".pdf",sep=""), width = 8.5, height = 11)
-        viterbi(model, do.plot = T, plot.options = c("B"))
+        temp.plot = viterbi(model, do.plot = T, plot.options = c("B"))
         title(siteID)
-        dev.off()
-        return(viterbi(model, do.plot = T, plot.options = c("B")))
-
-      } else {
-        return(viterbi(model, do.plot = T, plot.options = c("B")))
-      }
+        return(temp.plot)
     }
 
     # plot only B and C
     if(ind.variable != TRUE && dep.variable == TRUE && dep.variable.transformed == TRUE && cond.state.prob != TRUE){
 
-      if(do.pdf == TRUE){
-
-        pdf(paste(siteID,"_Results_BC_",class(model@QhatModel.object)[1],"_states-",model@QhatModel.object@nStates,".pdf",sep=""), width = 8.5, height = 11)
-        viterbi(model, do.plot = T, plot.options = c("B","C"))
+        temp.plot = viterbi(model, do.plot = T, plot.options = c("B","C"))
         title(siteID)
-        dev.off()
-        return(viterbi(model, do.plot = T, plot.options = c("B","C")))
-
-      } else {
-        return(viterbi(model, do.plot = T, plot.options = c("B","C")))
-      }
+        return(temp.plot)
     }
 
     # plot only B and D
     if(ind.variable != TRUE && dep.variable == TRUE && dep.variable.transformed != TRUE && cond.state.prob == TRUE){
-#
-      if(do.pdf == TRUE){
 
-        pdf(paste(siteID,"_Results_BD_",class(model@QhatModel.object)[1],"_states-",model@QhatModel.object@nStates,".pdf",sep=""), width = 8.5, height = 11)
-        viterbi(model, do.plot = T, plot.options = c("B","D"))
+        temp.plot = viterbi(model, do.plot = T, plot.options = c("B","D"))
         title(siteID)
-        dev.off()
-        return(viterbi(model, do.plot = T, plot.options = c("B","D")))
+        return(temp.plot)
 
-      } else {
-        return(viterbi(model, do.plot = T, plot.options = c("B","D")))
-      }
     }
 
     # plot only B,  C and D
     if(ind.variable != TRUE && dep.variable == TRUE && dep.variable.transformed == TRUE && cond.state.prob == TRUE){
 
-      if(do.pdf == TRUE){
-
-        pdf(paste(siteID,"_Results_BCD_",class(model@QhatModel.object)[1],"_states-",model@QhatModel.object@nStates,".pdf",sep=""), width = 8.5, height = 11)
-        viterbi(model, do.plot = T, plot.options = c("B","C","D"))
+        temp.plot = viterbi(model, do.plot = T, plot.options = c("B","C","D"))
         title(siteID)
-        dev.off()
-        return(viterbi(model, do.plot = T, plot.options = c("B","C","D")))
-
-      } else {
-        return(viterbi(model, do.plot = T, plot.options = c("B","C","D")))
-      }
+        return(temp.plot)
     }
 
     # plot only  C
     if(ind.variable != TRUE && dep.variable != TRUE && dep.variable.transformed == TRUE && cond.state.prob != TRUE){
 
-      if(do.pdf == TRUE){
-
-          pdf(paste(siteID,"_Results_C_",class(model@QhatModel.object)[1],"_states-",model@QhatModel.object@nStates,".pdf",sep=""), width = 8.5, height = 11)
-        viterbi(model, do.plot = T, plot.options = c("C"))
+        temp.plot = viterbi(model, do.plot = T, plot.options = c("C"))
         title(siteID)
-        dev.off()
-        return(viterbi(model, do.plot = T, plot.options = c("C")))
-
-      } else {
-        return(viterbi(model, do.plot = T, plot.options = c("C")))
-      }
+        return(temp.plot)
     }
 
     # plot only  C & D
     if(ind.variable != TRUE && dep.variable != TRUE && dep.variable.transformed == TRUE && cond.state.prob == TRUE){
 
-      if(do.pdf == TRUE){
-
-        pdf(paste(siteID,"_Results_CD_",class(model@QhatModel.object)[1],"_states-",model@QhatModel.object@nStates,".pdf",sep=""), width = 8.5, height = 11)
-        viterbi(model, do.plot = T, plot.options = c("C","D"))
+        temp.plot = viterbi(model, do.plot = T, plot.options = c("C","D"))
         title(siteID)
-        dev.off()
-        return(viterbi(model, do.plot = T, plot.options = c("C","D")))
+        return(temp.plot)
 
-      } else {
-        return(viterbi(model, do.plot = T, plot.options = c("C","D")))
-      }
     }
 
     # plot only   D
     if(ind.variable != TRUE && dep.variable != TRUE && dep.variable.transformed != TRUE && cond.state.prob == TRUE){
 
-      if(do.pdf == TRUE){
-
-        pdf(paste(siteID,"_Results_D_",class(model@QhatModel.object)[1],"_states-",model@QhatModel.object@nStates,".pdf",sep=""), width = 8.5, height = 11)
-        viterbi(model, do.plot = T, plot.options = c("D"))
+        temp.plot = viterbi(model, do.plot = T, plot.options = c("D"))
         title(siteID)
-        dev.off()
-        return(viterbi(model, do.plot = T, plot.options = c("D")))
-
-      } else {
-        return(viterbi(model, do.plot = T, plot.options = c("D")))
-      }
+        return(temp.plot)
     }
 
 
@@ -1740,6 +1656,7 @@ plot.hydroState <- function(x, ...,
 
 get.states <- function(model){
 
+
       return(viterbi(model, do.plot = F, plot.options = c("A","B","C","D")))
 
 }
@@ -1767,12 +1684,13 @@ get.states <- function(model){
 #'
 #' @examples
 #' ## Check reliability of state predictions (>5s to run)
-#' \dontrun{
+#' \donttest{
 #' check(model = model.annual.fitted.221201)
 #'}
 
 
 check <- function(model, n.samples = 100000){
+
 
   if(class(model)[1] == "hydroState"){
 

@@ -1362,7 +1362,7 @@ setMethod(f="check.viterbi",signature="hydroState",definition=function(.Object, 
   data = cbind.data.frame(data, Qhat.flow = Qhat.sample)
 
   # Find the Viterbi states for the sample Qhat data
-  states.viterbi = viterbi(.Object, data, do.plot = F, plot.percentiles=c(0.05, 0.5, 0.95),plot.yearRange=numeric())
+  states.viterbi = viterbi(.Object, data, do.plot = F, plot.percentiles=c(0.05, 0.5, 0.95),plot.yearRange=numeric(),plot.options = c("A","B","C","D"))
 
   # Filer out NAs
   states.sample = states.sample[is.finite(Qhat.sample)]

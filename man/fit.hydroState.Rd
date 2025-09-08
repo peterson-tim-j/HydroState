@@ -58,7 +58,7 @@ data(streamflow_annual_221201)
 model = build(input.data = streamflow_annual_221201)
 
 ## Fit built model (runtime ~ 14 sec)
-\dontrun{
+\donttest{
 model = fit.hydroState(model)
 }
 
@@ -69,11 +69,10 @@ data(streamflow_annual_221201)
 ## Build all annual models
 all.annual.models = build.all(input.data = streamflow_annual_221201, siteID = '221201')
 
-\dontrun{
-# Fit all (runtime > several hours)
-all.annual.models = fit.hydroState(all.annual.models)
-
-}
+## Fit all (runtime > several hours)
+#\donttest{
+#all.annual.models = fit.hydroState(all.annual.models)
+#}
 
 }
 \keyword{fit}

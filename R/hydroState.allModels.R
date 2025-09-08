@@ -666,7 +666,7 @@ setMethod(f="getAIC.bestModel",signature="hydroState.allModels",definition=funct
     current.model.name <- model.names[i]
 
     # get Viterbi states.
-    viterbi.data <- viterbi(.Object@models[[current.model.name]], do.plot=F)
+    viterbi.data <- viterbi(.Object@models[[current.model.name]], do.plot=F, plot.options = c("A","B","C","D"))
 
     # Count frequency of each state.
     if (any(table(viterbi.data[,'Viterbi State Number'])<min.obs.per.state)) {

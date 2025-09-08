@@ -24,7 +24,7 @@ This validates the model's states at each time-step through re-sampling the inpu
 }
 \examples{
 ## Check reliability of state predictions (>5s to run)
-\dontrun{
+\donttest{
 check(model = model.annual.fitted.221201)
 }
 }

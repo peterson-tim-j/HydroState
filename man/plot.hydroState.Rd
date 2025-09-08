@@ -13,7 +13,7 @@
   dep.variable.transformed = TRUE,
   cond.state.prob = TRUE,
   siteID = NULL,
-  do.pdf = FALSE
+  file = NULL
 )
 }
 \arguments{
@@ -31,9 +31,9 @@
 
 \item{cond.state.prob}{option to plot the conditional state probabilities over time for each state. Default is TRUE.}
 
-\item{siteID}{character string of catchment identifier (i.e. gauge ID). Default is NULL. Only recommended when do.pdf = TRUE.}
+\item{siteID}{character string of catchment identifier (i.e. gauge ID). Default is NULL. Only recommended when exporting (i.e, file = "filename.pdf").}
 
-\item{do.pdf}{option to export figures as a pdf. Default is FALSE.}
+\item{file}{character string of file directory/name to export plots as a pdf: "flow.state.plots.407211.pdf". Default is NULL, no pdf file is exported.}
 }
 \value{
 plots to evaluate rainfall-runoff states over time along with observations and the conditional probabilities of each state.
@@ -44,7 +44,7 @@ plots to evaluate rainfall-runoff states over time along with observations and t
 \details{
 \code{plot}
 
-\code{plot} produces five figures of psuedo residuals OR up to four figures of the results from the fitted hydroState model. When the \code{pse.residuals} is FALSE, the default \code{plot} produces all four result figures. Figures are more easily viewed as a pdf exported to the current working directory (\code{do.pdf = TRUE}).
+\code{plot} produces five figures of psuedo residuals OR up to four figures of the results from the fitted hydroState model. When the \code{pse.residuals} is FALSE, the default \code{plot} produces all four result figures. Figures are more easily viewed as an exported pdf when directory/file name is given with \code{file = "flow.state.plots.siteID.pdf"}.
 \itemize{
 \item{psuedo residual figures}
 \itemize{
@@ -63,7 +63,7 @@ plots to evaluate rainfall-runoff states over time along with observations and t
 }
 }
 
-These figures are often large, and below are a few common errors when the plotting window is too small. Exporting the plots as a pdf is recommend for the pseudo residual figure (\code{do.pdf = TRUE}).
+These figures are often large, and below are a few common errors when the plotting window is too small. Exporting the plots as a file is recommend for the pseudo residual figure (\code{file = "file name"}).
 \itemize{
 \item{"Error in plot.new() : figure margins too large": reset plot window with "dev.off()", enlarge plot area and re-run \code{plot.residuals}.}
 \item{"Error in par(op) : invalid value specified for graphical parameter "pin" if the R plot window is not reset with "dev.off", an additional \code{plot.residuals} attempt will result in this error.}

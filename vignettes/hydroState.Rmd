@@ -74,7 +74,7 @@ default.model.annual = fit.hydroState(default.model.annual, pop.size.perParamete
 ```
 
 ## Review the residuals
-Review the model's residuals from figures using `plot.hydroState()` to ensure they are uniform and normally distributed with no trends or auto-correlation. A large plot with five figures (A-E) is produced and the check for each is discussed below. There is also an option to export the plot as a PDF with `do.pdf = T` and label plots with the site ID (i.e. `siteID = 221201`). Alternatively, the residuals can be reviewed without plotting using `get.residuals()` which returns a data frame of the normal pseudo residuals at each time-step. If the residuals of the fitted model do not meet these checks below, consider adjusting the model as discussed in the [Adjust the default state model](articles/adjust.state.model.html) vignette.
+Review the model's residuals from figures using `plot.hydroState()` to ensure they are uniform and normally distributed with no trends or auto-correlation. A large plot with five figures (A-E) is produced and the check for each is discussed below. There is also an option to export the plot as a PDF when a file name is given: (i.e. `file = siteID.pdf`) and label plots with the site ID (i.e. `siteID = 221201`). Alternatively, the residuals can be reviewed without plotting using `get.residuals()` which returns a data frame of the normal pseudo residuals at each time-step. If the residuals of the fitted model do not meet these checks below, consider adjusting the model as discussed in the [Adjust the default state model](articles/adjust.state.model.html) vignette.
 
 A)  Time-series of normal-pseudo residuals to ensure the residuals each year are within the confidence intervals.
 B)  Auto-correlation function (ACF) of normal-pseudo residuals to ensure there is no serial correlation in residuals. Lag spikes should be below confidence interval at each lag (except 0).
@@ -87,7 +87,7 @@ E)  Quantile-Quantile (Q-Q) plot where normal-pseudo residuals vs. theoretical q
 
 ```r
 # review residual plots
-plot(default.model.annual, pse.residuals = TRUE, siteID = '221201', do.pdf = FALSE)
+plot(default.model.annual, pse.residuals = TRUE, siteID = '221201')
 
 # get residual values
 model.residuals = get.residuals(default.model.annual)

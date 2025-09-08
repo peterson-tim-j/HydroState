@@ -86,7 +86,7 @@ Review the model's residuals from figures using `plot.hydroState()` to ensure th
 
 ```r
 # review residual plots
-plot(model.seasonal.fitted.415201, pse.residuals = TRUE, siteID = '415201', do.pdf = FALSE) 
+plot(model.seasonal.fitted.415201, pse.residuals = TRUE, siteID = '415201') 
 
 ```
 
@@ -103,7 +103,7 @@ model.seasonal.fitted.415201 = setInitialYear(model.seasonal.fitted.415201, 1990
 
 
 # plot all four plots
-plot(model.seasonal.fitted.415201, do.pdf = F)
+plot(model.seasonal.fitted.415201)
 
 ```
 <center>

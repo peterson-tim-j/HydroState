@@ -95,9 +95,9 @@ Review the residuals of both models using `plot.hydroState()` to determine which
 
 ```r
 # review residual plots
-plot(default.model.annual, pse.residuals = TRUE, siteID = '407211', do.pdf = FALSE)
+plot(default.model.annual, pse.residuals = TRUE, siteID = '407211')
 
-plot(adjusted.model.annual, pse.residuals = TRUE, siteID = '407211', do.pdf = FALSE)
+plot(adjusted.model.annual, pse.residuals = TRUE, siteID = '407211')
 
 ```
 ![Comparison between the residual plots of the default annual model with a truncated normal distribution and adjusted annual model with a gamma distribution and two auto-correlation lags. p-value greater than 0.05 in adjusted model suggests gamma model better suites the residual distribution at this site (407211)](../man/figures/default.vs.gamma.annual.two.state.residuals.407211.png){width=100%}

@@ -25,9 +25,8 @@ For every model object in \code{build.all}, there is a reference model for calib
 \examples{
 # Show summary table of all fitted model details and reference models
 
-\dontrun{
-all.models.ref.table = summary(all.models)
-}
+all.models.ref.table = summary(all.models.annual.fitted.407211)
+
 }
 \keyword{all}
 \keyword{hydroState}
