@@ -1464,10 +1464,7 @@ plot.hydroState <- function(x, ...,
   # if file
   if (!is.null(file)) {
     pdf(file, width = 8.5, height = 11)
-    on.exit(
-      dev.off()
-    , add = TRUE)
-
+    on.exit(dev.off(), add = TRUE)
   }
 
   # if site ID is NULL
@@ -1478,7 +1475,7 @@ plot.hydroState <- function(x, ...,
     if(pse.residuals == TRUE){
 
       temp.plot = check.PseudoResiduals(model, do.plot = T)
-      title(siteID)
+      if (dev.cur() != 1) title(siteID)
       return(temp.plot)
     }
 
@@ -1487,7 +1484,7 @@ plot.hydroState <- function(x, ...,
     if(ind.variable == TRUE && dep.variable == TRUE && dep.variable.transformed == TRUE && cond.state.prob == TRUE){
 
       temp.plot = viterbi(model, do.plot = T, plot.options = c("A","B","C","D"))
-      title(siteID)
+      if (dev.cur() != 1) title(siteID)
       return(temp.plot)
 
       }
@@ -1498,7 +1495,7 @@ plot.hydroState <- function(x, ...,
     if(ind.variable == TRUE && dep.variable != TRUE && dep.variable.transformed != TRUE && cond.state.prob != TRUE){
 
         temp.plot = viterbi(model, do.plot = T, plot.options = c("A"))
-        title(siteID)
+        if (dev.cur() != 1) title(siteID)
         return(temp.plot)
 
       }
@@ -1509,7 +1506,7 @@ plot.hydroState <- function(x, ...,
     if(ind.variable == TRUE && dep.variable == TRUE && dep.variable.transformed != TRUE && cond.state.prob != TRUE){
 
         temp.plot = viterbi(model, do.plot = T, plot.options = c("A","B"))
-        title(siteID)
+        if (dev.cur() != 1) title(siteID)
         return(temp.plot)
       }
 
@@ -1519,7 +1516,7 @@ plot.hydroState <- function(x, ...,
 
 
           temp.plot = viterbi(model, do.plot = T, plot.options = c("A","B","C"))
-          title(siteID)
+          if (dev.cur() != 1) title(siteID)
           return(temp.plot)
 
       }
@@ -1528,7 +1525,7 @@ plot.hydroState <- function(x, ...,
     if(ind.variable == TRUE && dep.variable != TRUE && dep.variable.transformed != TRUE && cond.state.prob == TRUE){
 
         temp.plot = viterbi(model, do.plot = T, plot.options = c("A","D"))
-        title(siteID)
+        if (dev.cur() != 1) title(siteID)
         return(temp.plot)
     }
 
@@ -1536,7 +1533,7 @@ plot.hydroState <- function(x, ...,
     if(ind.variable == TRUE && dep.variable != TRUE && dep.variable.transformed == TRUE && cond.state.prob != TRUE){
 
         temp.plot = viterbi(model, do.plot = T, plot.options = c("A","C"))
-        title(siteID)
+        if (dev.cur() != 1) title(siteID)
         return(temp.plot)
     }
 
@@ -1544,7 +1541,7 @@ plot.hydroState <- function(x, ...,
     if(ind.variable == TRUE && dep.variable != TRUE && dep.variable.transformed == TRUE && cond.state.prob == TRUE){
 
         temp.plot = viterbi(model, do.plot = T, plot.options = c("A","C","D"))
-        title(siteID)
+        if (dev.cur() != 1) title(siteID)
         return(temp.plot)
 
     }
@@ -1553,7 +1550,7 @@ plot.hydroState <- function(x, ...,
     if(ind.variable != TRUE && dep.variable == TRUE && dep.variable.transformed != TRUE && cond.state.prob != TRUE){
 
         temp.plot = viterbi(model, do.plot = T, plot.options = c("B"))
-        title(siteID)
+        if (dev.cur() != 1) title(siteID)
         return(temp.plot)
     }
 
@@ -1561,7 +1558,7 @@ plot.hydroState <- function(x, ...,
     if(ind.variable != TRUE && dep.variable == TRUE && dep.variable.transformed == TRUE && cond.state.prob != TRUE){
 
         temp.plot = viterbi(model, do.plot = T, plot.options = c("B","C"))
-        title(siteID)
+        if (dev.cur() != 1) title(siteID)
         return(temp.plot)
     }
 
@@ -1569,7 +1566,7 @@ plot.hydroState <- function(x, ...,
     if(ind.variable != TRUE && dep.variable == TRUE && dep.variable.transformed != TRUE && cond.state.prob == TRUE){
 
         temp.plot = viterbi(model, do.plot = T, plot.options = c("B","D"))
-        title(siteID)
+        if (dev.cur() != 1) title(siteID)
         return(temp.plot)
 
     }
@@ -1578,7 +1575,7 @@ plot.hydroState <- function(x, ...,
     if(ind.variable != TRUE && dep.variable == TRUE && dep.variable.transformed == TRUE && cond.state.prob == TRUE){
 
         temp.plot = viterbi(model, do.plot = T, plot.options = c("B","C","D"))
-        title(siteID)
+        if (dev.cur() != 1) title(siteID)
         return(temp.plot)
     }
 
@@ -1586,7 +1583,7 @@ plot.hydroState <- function(x, ...,
     if(ind.variable != TRUE && dep.variable != TRUE && dep.variable.transformed == TRUE && cond.state.prob != TRUE){
 
         temp.plot = viterbi(model, do.plot = T, plot.options = c("C"))
-        title(siteID)
+        if (dev.cur() != 1) title(siteID)
         return(temp.plot)
     }
 
@@ -1594,7 +1591,7 @@ plot.hydroState <- function(x, ...,
     if(ind.variable != TRUE && dep.variable != TRUE && dep.variable.transformed == TRUE && cond.state.prob == TRUE){
 
         temp.plot = viterbi(model, do.plot = T, plot.options = c("C","D"))
-        title(siteID)
+        if (dev.cur() != 1) title(siteID)
         return(temp.plot)
 
     }
@@ -1603,7 +1600,7 @@ plot.hydroState <- function(x, ...,
     if(ind.variable != TRUE && dep.variable != TRUE && dep.variable.transformed != TRUE && cond.state.prob == TRUE){
 
         temp.plot = viterbi(model, do.plot = T, plot.options = c("D"))
-        title(siteID)
+        if (dev.cur() != 1) title(siteID)
         return(temp.plot)
     }
 
