@@ -70,9 +70,9 @@ data(streamflow_annual_221201)
 all.annual.models = build.all(input.data = streamflow_annual_221201, siteID = '221201')
 
 ## Fit all (runtime > several hours)
-#\donttest{
-#all.annual.models = fit.hydroState(all.annual.models)
-#}
+\donttest{
+all.annual.models = fit.hydroState(all.annual.models)
+}
 
 }
 \keyword{fit}
