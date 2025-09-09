@@ -1417,6 +1417,7 @@ setInitialYear <- function(model, initial.year){ #make go to first year of dataf
 #' @import graphics
 #' @importFrom grDevices dev.off
 #' @importFrom grDevices pdf
+#' @importFrom grDevices dev.cur
 #' @importFrom utils tail
 #' @importFrom zoo na.approx
 #'
