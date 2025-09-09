@@ -1456,16 +1456,30 @@ plot.hydroState <- function(x, ...,
 
   model = x
 
-  # reset params
+  # reset params after plotting anything
   oldpar <- par(no.readonly = TRUE)
+  oldpar$new <- NULL
   on.exit(par(oldpar), add = TRUE)
 
+  # if .pdf given in file continue else error
 
-  # if file
-  if (!is.null(file)) {
-    pdf(file, width = 8.5, height = 11)
-    on.exit(dev.off(), add = TRUE)
-  }
+
+    if (!is.null(file)) {
+
+      if(endsWith(file, ".pdf")){
+
+        pdf(file, width = 8.5, height = 11)
+
+        device_opened <- TRUE
+
+      }else{
+        stop("Error: file name is not a .pdf file")
+      }
+    } else {
+      device_opened <- FALSE
+    }
+
+
 
   # if site ID is NULL
   if (is.null(siteID)) {
@@ -1474,135 +1488,102 @@ plot.hydroState <- function(x, ...,
 
     if(pse.residuals == TRUE){
 
+      par(mar = c(4, 4, 1, 1))
       temp.plot = check.PseudoResiduals(model, do.plot = T)
-      if (dev.cur() != 1) title(siteID)
-      return(temp.plot)
-    }
 
 
     # plot everything, default, export as pdf is option too..
-    if(ind.variable == TRUE && dep.variable == TRUE && dep.variable.transformed == TRUE && cond.state.prob == TRUE){
+    }else if(ind.variable == TRUE && dep.variable == TRUE && dep.variable.transformed == TRUE && cond.state.prob == TRUE){
 
       temp.plot = viterbi(model, do.plot = T, plot.options = c("A","B","C","D"))
-      if (dev.cur() != 1) title(siteID)
-      return(temp.plot)
 
-      }
 
 
 
     # plot only A
-    if(ind.variable == TRUE && dep.variable != TRUE && dep.variable.transformed != TRUE && cond.state.prob != TRUE){
+    }else if(ind.variable == TRUE && dep.variable != TRUE && dep.variable.transformed != TRUE && cond.state.prob != TRUE){
 
         temp.plot = viterbi(model, do.plot = T, plot.options = c("A"))
-        if (dev.cur() != 1) title(siteID)
-        return(temp.plot)
 
-      }
 
 
 
     # plot only A and B
-    if(ind.variable == TRUE && dep.variable == TRUE && dep.variable.transformed != TRUE && cond.state.prob != TRUE){
+    }else if(ind.variable == TRUE && dep.variable == TRUE && dep.variable.transformed != TRUE && cond.state.prob != TRUE){
 
         temp.plot = viterbi(model, do.plot = T, plot.options = c("A","B"))
-        if (dev.cur() != 1) title(siteID)
-        return(temp.plot)
-      }
+
 
 
       # plot only A and B and C
-      if(ind.variable == TRUE && dep.variable == TRUE && dep.variable.transformed == TRUE && cond.state.prob != TRUE){
-
+    }else if(ind.variable == TRUE && dep.variable == TRUE && dep.variable.transformed == TRUE && cond.state.prob != TRUE){
 
           temp.plot = viterbi(model, do.plot = T, plot.options = c("A","B","C"))
-          if (dev.cur() != 1) title(siteID)
-          return(temp.plot)
 
-      }
 
     # plot only A and D
-    if(ind.variable == TRUE && dep.variable != TRUE && dep.variable.transformed != TRUE && cond.state.prob == TRUE){
+    }else if(ind.variable == TRUE && dep.variable != TRUE && dep.variable.transformed != TRUE && cond.state.prob == TRUE){
 
         temp.plot = viterbi(model, do.plot = T, plot.options = c("A","D"))
-        if (dev.cur() != 1) title(siteID)
-        return(temp.plot)
-    }
+
 
     # plot only A and C
-    if(ind.variable == TRUE && dep.variable != TRUE && dep.variable.transformed == TRUE && cond.state.prob != TRUE){
+    }else if(ind.variable == TRUE && dep.variable != TRUE && dep.variable.transformed == TRUE && cond.state.prob != TRUE){
 
         temp.plot = viterbi(model, do.plot = T, plot.options = c("A","C"))
-        if (dev.cur() != 1) title(siteID)
-        return(temp.plot)
-    }
 
     # plot only A , C, D
-    if(ind.variable == TRUE && dep.variable != TRUE && dep.variable.transformed == TRUE && cond.state.prob == TRUE){
+    }else if(ind.variable == TRUE && dep.variable != TRUE && dep.variable.transformed == TRUE && cond.state.prob == TRUE){
 
         temp.plot = viterbi(model, do.plot = T, plot.options = c("A","C","D"))
-        if (dev.cur() != 1) title(siteID)
-        return(temp.plot)
 
-    }
 
     # plot only B
-    if(ind.variable != TRUE && dep.variable == TRUE && dep.variable.transformed != TRUE && cond.state.prob != TRUE){
+    }else if(ind.variable != TRUE && dep.variable == TRUE && dep.variable.transformed != TRUE && cond.state.prob != TRUE){
 
         temp.plot = viterbi(model, do.plot = T, plot.options = c("B"))
-        if (dev.cur() != 1) title(siteID)
-        return(temp.plot)
-    }
+
 
     # plot only B and C
-    if(ind.variable != TRUE && dep.variable == TRUE && dep.variable.transformed == TRUE && cond.state.prob != TRUE){
+    }else if(ind.variable != TRUE && dep.variable == TRUE && dep.variable.transformed == TRUE && cond.state.prob != TRUE){
 
         temp.plot = viterbi(model, do.plot = T, plot.options = c("B","C"))
-        if (dev.cur() != 1) title(siteID)
-        return(temp.plot)
-    }
 
     # plot only B and D
-    if(ind.variable != TRUE && dep.variable == TRUE && dep.variable.transformed != TRUE && cond.state.prob == TRUE){
+    }else if(ind.variable != TRUE && dep.variable == TRUE && dep.variable.transformed != TRUE && cond.state.prob == TRUE){
 
         temp.plot = viterbi(model, do.plot = T, plot.options = c("B","D"))
-        if (dev.cur() != 1) title(siteID)
-        return(temp.plot)
-
-    }
 
     # plot only B,  C and D
-    if(ind.variable != TRUE && dep.variable == TRUE && dep.variable.transformed == TRUE && cond.state.prob == TRUE){
+    }else if(ind.variable != TRUE && dep.variable == TRUE && dep.variable.transformed == TRUE && cond.state.prob == TRUE){
 
         temp.plot = viterbi(model, do.plot = T, plot.options = c("B","C","D"))
-        if (dev.cur() != 1) title(siteID)
-        return(temp.plot)
-    }
 
     # plot only  C
-    if(ind.variable != TRUE && dep.variable != TRUE && dep.variable.transformed == TRUE && cond.state.prob != TRUE){
+    }else if(ind.variable != TRUE && dep.variable != TRUE && dep.variable.transformed == TRUE && cond.state.prob != TRUE){
 
         temp.plot = viterbi(model, do.plot = T, plot.options = c("C"))
-        if (dev.cur() != 1) title(siteID)
-        return(temp.plot)
-    }
 
     # plot only  C & D
-    if(ind.variable != TRUE && dep.variable != TRUE && dep.variable.transformed == TRUE && cond.state.prob == TRUE){
+    }else if(ind.variable != TRUE && dep.variable != TRUE && dep.variable.transformed == TRUE && cond.state.prob == TRUE){
 
         temp.plot = viterbi(model, do.plot = T, plot.options = c("C","D"))
-        if (dev.cur() != 1) title(siteID)
-        return(temp.plot)
-
-    }
 
     # plot only   D
-    if(ind.variable != TRUE && dep.variable != TRUE && dep.variable.transformed != TRUE && cond.state.prob == TRUE){
+    }else if(ind.variable != TRUE && dep.variable != TRUE && dep.variable.transformed != TRUE && cond.state.prob == TRUE){
 
         temp.plot = viterbi(model, do.plot = T, plot.options = c("D"))
-        if (dev.cur() != 1) title(siteID)
-        return(temp.plot)
     }
+
+  # if pdf do title
+  if (nzchar(siteID) && dev.cur() > 1) {
+    try(title(siteID), silent = TRUE)
+  }
+
+  # if pdf opened closed
+  if (device_opened) dev.off()
+
+  return(temp.plot)
 
 
 }
