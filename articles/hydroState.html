@@ -195,14 +195,15 @@ maximum number of generations, it is recommended to increase
 <code><a href="../reference/plot.hydroState.html">plot.hydroState()</a></code> to ensure they are uniform and normally
 distributed with no trends or auto-correlation. A large plot with five
 figures (A-E) is produced and the check for each is discussed below.
-There is also an option to export the plot as a PDF with
-<code>do.pdf = T</code> and label plots with the site ID
-(i.e. <code>siteID = 221201</code>). Alternatively, the residuals can be
-reviewed without plotting using <code><a href="../reference/get.residuals.html">get.residuals()</a></code> which
-returns a data frame of the normal pseudo residuals at each time-step.
-If the residuals of the fitted model do not meet these checks below,
-consider adjusting the model as discussed in the <a href="articles/adjust.state.model.html">Adjust the default state
-model</a> vignette.</p>
+There is also an option to export the plot as a PDF when a file name is
+given: (i.e. <code>file = siteID.pdf</code>) and label plots with the
+site ID (i.e. <code>siteID = 221201</code>). Alternatively, the
+residuals can be reviewed without plotting using
+<code><a href="../reference/get.residuals.html">get.residuals()</a></code> which returns a data frame of the normal
+pseudo residuals at each time-step. If the residuals of the fitted model
+do not meet these checks below, consider adjusting the model as
+discussed in the <a href="articles/adjust.state.model.html">Adjust the
+default state model</a> vignette.</p>
 <ol style="list-style-type: upper-alpha">
 <li>Time-series of normal-pseudo residuals to ensure the residuals each
 year are within the confidence intervals.</li>
@@ -230,7 +231,7 @@ distributed</li>
 </ol>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># review residual plots</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">default.model.annual</span>, pse.residuals <span class="op">=</span> <span class="cn">TRUE</span>, siteID <span class="op">=</span> <span class="st">'221201'</span>, do.pdf <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">default.model.annual</span>, pse.residuals <span class="op">=</span> <span class="cn">TRUE</span>, siteID <span class="op">=</span> <span class="st">'221201'</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># get residual values</span></span>
 <span><span class="va">model.residuals</span> <span class="op">=</span> <span class="fu"><a href="../reference/get.residuals.html">get.residuals</a></span><span class="op">(</span><span class="va">default.model.annual</span><span class="op">)</span></span></code></pre></div>

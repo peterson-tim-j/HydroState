@@ -170,7 +170,7 @@ take typically an hour to run.</p>
 distributed with no trends or auto-correlation.</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># review residual plots</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">model.seasonal.fitted.415201</span>, pse.residuals <span class="op">=</span> <span class="cn">TRUE</span>, siteID <span class="op">=</span> <span class="st">'415201'</span>, do.pdf <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span> </span></code></pre></div>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">model.seasonal.fitted.415201</span>, pse.residuals <span class="op">=</span> <span class="cn">TRUE</span>, siteID <span class="op">=</span> <span class="st">'415201'</span><span class="op">)</span> </span></code></pre></div>
 <div class="float">
 <img src="../reference/figures/subAnnual.model.residuals.png" style="width:100.0%" alt="The residual plots of the best seasonal model for site 415201 are uniform and normally distributed with the Shapiro-Wilk p-value being greater than 0.05."><div class="figcaption">The residual plots of the best seasonal model
 for site 415201 are uniform and normally distributed with the
@@ -195,7 +195,7 @@ each time-step.</p>
 <span></span>
 <span></span>
 <span><span class="co"># plot all four plots</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">model.seasonal.fitted.415201</span>, do.pdf <span class="op">=</span> <span class="cn">F</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">model.seasonal.fitted.415201</span><span class="op">)</span></span></code></pre></div>
 <center>
 <div class="float">
 <img src="../reference/figures/subAnnual.model.states.png" style="width:100.0%" alt="The seasonal model considers seasonality and auto-correlation within the rainfall-runoff relationship, but these model results show there are state shifts within this relationship at this site. The 3-states suggests a shift in the rainfall-runoff relationship throughout the record better represent observations. The Very Low state persist at the end of the record after a prolonged drought from roughly 1997-2009."><div class="figcaption">The seasonal model considers seasonality and

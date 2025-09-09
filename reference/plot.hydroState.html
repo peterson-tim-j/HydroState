@@ -55,7 +55,7 @@
 <span>  dep.variable.transformed <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  cond.state.prob <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  siteID <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  do.pdf <span class="op">=</span> <span class="cn">FALSE</span></span>
+<span>  file <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -92,11 +92,11 @@
 
 
 <dt id="arg-siteid">siteID<a class="anchor" aria-label="anchor" href="#arg-siteid"></a></dt>
-<dd><p>character string of catchment identifier (i.e. gauge ID). Default is NULL. Only recommended when do.pdf = TRUE.</p></dd>
+<dd><p>character string of catchment identifier (i.e. gauge ID). Default is NULL. Only recommended when exporting (i.e, file = "filename.pdf").</p></dd>
 
 
-<dt id="arg-do-pdf">do.pdf<a class="anchor" aria-label="anchor" href="#arg-do-pdf"></a></dt>
-<dd><p>option to export figures as a pdf. Default is FALSE.</p></dd>
+<dt id="arg-file">file<a class="anchor" aria-label="anchor" href="#arg-file"></a></dt>
+<dd><p>character string of file directory/name to export plots as a pdf: "flow.state.plots.407211.pdf". Default is NULL, no pdf file is exported.</p></dd>
 
 </dl></div>
     <div class="section level2">
@@ -106,7 +106,7 @@
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
     <p><code>plot</code></p>
-<p><code>plot</code> produces five figures of psuedo residuals OR up to four figures of the results from the fitted hydroState model. When the <code>pse.residuals</code> is FALSE, the default <code>plot</code> produces all four result figures. Figures are more easily viewed as a pdf exported to the current working directory (<code>do.pdf = TRUE</code>).</p><ul><li><p>psuedo residual figures</p><ul><li><p>A) Time-series of normal-pseudo residuals to ensure the residuals each year are within the confidence intervals.</p></li>
+<p><code>plot</code> produces five figures of psuedo residuals OR up to four figures of the results from the fitted hydroState model. When the <code>pse.residuals</code> is FALSE, the default <code>plot</code> produces all four result figures. Figures are more easily viewed as an exported pdf when directory/file name is given with <code>file = "flow.state.plots.siteID.pdf"</code>.</p><ul><li><p>psuedo residual figures</p><ul><li><p>A) Time-series of normal-pseudo residuals to ensure the residuals each year are within the confidence intervals.</p></li>
 <li><p>B) Auto-correlation function (ACF) of normal-pseudo residuals to ensure there is minimal serial correlation in residuals. Lag spikes should be below confidence interval at each lag (except 0).</p></li>
 <li><p>C) Histogram of uniform-pseudo residuals should show uniform distribution (equal frequency for each residual value)</p></li>
 <li><p>D) Histogram of normal-pseudo residuals should show normal distribution centered on zero and with no skew</p></li>
@@ -117,7 +117,7 @@
 <li><p>C) transformed dependent variable and states: transformed streamflow observations and most likely state</p></li>
 <li><p>D) conditional state probabilities for each state: probability of hydroState model remaining in given state</p></li>
 </ul></li>
-</ul><p>These figures are often large, and below are a few common errors when the plotting window is too small. Exporting the plots as a pdf is recommend for the pseudo residual figure (<code>do.pdf = TRUE</code>).</p><ul><li><p>"Error in plot.new() : figure margins too large": reset plot window with "dev.off()", enlarge plot area and re-run <code>plot.residuals</code>.</p></li>
+</ul><p>These figures are often large, and below are a few common errors when the plotting window is too small. Exporting the plots as a file is recommend for the pseudo residual figure (<code>file = "file name"</code>).</p><ul><li><p>"Error in plot.new() : figure margins too large": reset plot window with "dev.off()", enlarge plot area and re-run <code>plot.residuals</code>.</p></li>
 <li><p>"Error in par(op) : invalid value specified for graphical parameter "pin" if the R plot window is not reset with "dev.off", an additional <code>plot.residuals</code> attempt will result in this error.</p></li>
 </ul></div>
 
@@ -133,11 +133,11 @@
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co">## Plot only residuals</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">model.annual.fitted.221201</span>, pse.residuals <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
-<span class="r-plt img"><img src="plot.hydroState-1.png" alt="" width="700" height="433"></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> NULL</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co">## Plot all markov state figures</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">model.annual.fitted.221201</span><span class="op">)</span></span></span>
-<span class="r-plt img"><img src="plot.hydroState-2.png" alt="" width="700" height="433"></span>
+<span class="r-plt img"><img src="plot.hydroState-1.png" alt="" width="700" height="433"></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> NULL</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co">## Plot only dependent variable transformed with markov states</span></span></span>
@@ -146,9 +146,9 @@
 <span class="r-in"><span>             dep.variable <span class="op">=</span> <span class="cn">FALSE</span>,</span></span>
 <span class="r-in"><span>             dep.variable.transformed <span class="op">=</span> <span class="cn">TRUE</span>,</span></span>
 <span class="r-in"><span>             cond.state.prob <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></span>
-<span class="r-plt img"><img src="plot.hydroState-3.png" alt="" width="700" height="433"></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> NULL</span>
 <span class="r-in"><span></span></span>
+<span class="r-plt img"><img src="plot.hydroState-2.png" alt="" width="700" height="433"></span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
