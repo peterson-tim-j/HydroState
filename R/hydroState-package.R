@@ -14,7 +14,7 @@
 #'   \item \code{\link{build.all}} — Builds all hydroState models
 #'   \item \code{\link{fit.hydroState}} — Fit hydroState model(s)
 #'   \item \code{\link{setInitialYear}} — Sets state names given initial year
-#'   \item \code{\link{plot}} — Plot states or pseudo residuals over time
+#'   \item \code{\link{plot.hydroState}} — Plot states or pseudo residuals over time
 #'   \item \code{\link{get.residuals}} — Get pseudo residuals
 #'   \item \code{\link{get.states}} — Get states
 #'   \item \code{\link{check}} — Check reliability of state predictions

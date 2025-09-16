@@ -8,7 +8,8 @@ fit.hydroState(
   model,
   pop.size.perParameter = 10,
   max.generations = 500,
-  doParallel = FALSE
+  doParallel = FALSE,
+  ...
 )
 }
 \arguments{
@@ -19,6 +20,8 @@ fit.hydroState(
 \item{max.generations}{integer that will stop the optimizer when set number of generations are reached. The default is '500'.}
 
 \item{doParallel}{TRUE/FALSE to perform fitting in parallel on all computer cores. Default is FALSE}
+
+\item{...}{additional options to change the optimization settings: reltol, print.iterations, etc. from the \href{https://cran.r-project.org/package=DEoptim}{DEoptim} library}
 }
 \value{
 A fitted hydroState model
@@ -69,7 +72,7 @@ data(streamflow_annual_221201)
 ## Build all annual models
 all.annual.models = build.all(input.data = streamflow_annual_221201, siteID = '221201')
 
-## Fit all (runtime > several hours)
+# Fit all (runtime > several hours)
 \donttest{
 all.annual.models = fit.hydroState(all.annual.models)
 }

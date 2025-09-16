@@ -613,6 +613,10 @@ setMethod(f="getAIC",signature="hydroState.allModels",definition=function(.Objec
 
   # Plot AIC vs model name
   if (plot.data) {
+    #reset graphics state on exit
+    op <- par(no.readonly = T)
+    on.exit(par(op))
+
     par(mar=c(15,2,2,2))
     plot(1:nModels, AIC[,1], type='p',ylab = 'AIC')
     axis(1, at=1:nModels, labels=model.names,las=2)

@@ -8,10 +8,10 @@
   x,
   ...,
   pse.residuals = FALSE,
-  ind.variable = TRUE,
-  dep.variable = TRUE,
-  dep.variable.transformed = TRUE,
-  cond.state.prob = TRUE,
+  ind.variable = FALSE,
+  dep.variable = FALSE,
+  dep.variable.transformed = FALSE,
+  cond.state.prob = FALSE,
   siteID = NULL,
   file = NULL
 )
@@ -23,13 +23,13 @@
 
 \item{pse.residuals}{option to plot pseudo residuals. Default is FALSE.}
 
-\item{ind.variable}{option to plot independent variable over time. Default is TRUE.}
+\item{ind.variable}{option to plot independent variable over time.}
 
-\item{dep.variable}{option to plot dependent variable and states over time. Default is TRUE.}
+\item{dep.variable}{option to plot dependent variable and states over time.}
 
-\item{dep.variable.transformed}{option to plot transformed dependent variable and states over time. Default is TRUE.}
+\item{dep.variable.transformed}{option to plot transformed dependent variable and states over time.}
 
-\item{cond.state.prob}{option to plot the conditional state probabilities over time for each state. Default is TRUE.}
+\item{cond.state.prob}{option to plot the conditional state probabilities over time for each state.}
 
 \item{siteID}{character string of catchment identifier (i.e. gauge ID). Default is NULL. Only recommended when exporting (i.e, file = "filename.pdf").}
 
@@ -44,7 +44,7 @@ plots to evaluate rainfall-runoff states over time along with observations and t
 \details{
 \code{plot}
 
-\code{plot} produces five figures of psuedo residuals OR up to four figures of the results from the fitted hydroState model. When the \code{pse.residuals} is FALSE, the default \code{plot} produces all four result figures. Figures are more easily viewed as an exported pdf when directory/file name is given with \code{file = "flow.state.plots.siteID.pdf"}.
+\code{plot} produces five figures of psuedo residuals OR up to four figures of the results from the fitted hydroState model. When the \code{pse.residuals} is FALSE, the default \code{plot} produces all four markov state plots (ind.variable, dep.variable, dep.variable.transformed, cond.state.prob). Figures are more easily viewed as an exported pdf when directory/file name is given (i.e. \code{file = "flow.state.plots.siteID.pdf"}).
 \itemize{
 \item{psuedo residual figures}
 \itemize{
@@ -81,15 +81,11 @@ model.annual.fitted.221201 =
 ## Plot only residuals
 plot(model.annual.fitted.221201, pse.residuals = TRUE)
 
-## Plot all markov state figures
+## Plot all markov state figures (default)
 plot(model.annual.fitted.221201)
 
 ## Plot only dependent variable transformed with markov states
-plot(model.annual.fitted.221201,
-             ind.variable = FALSE,
-             dep.variable = FALSE,
-             dep.variable.transformed = TRUE,
-             cond.state.prob = FALSE)
+plot(model.annual.fitted.221201, dep.variable.transformed = TRUE)
 
 }
 \keyword{plot}

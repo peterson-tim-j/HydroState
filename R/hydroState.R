@@ -1035,7 +1035,8 @@ setMethod(f="viterbi",signature=c("hydroState","data.frame","logical","numeric",
               flow.line.matrix <- cbind(flow.viterbi.est[,1], flow.viterbi.est[,3])
 
               # Get input grapics settings
-              op <- par(no.readonly = T);
+              op <- par(no.readonly = T)
+              on.exit(par(op))
 
               # Change graphics settings
               nrow.plots = length(plot.options)
@@ -1311,7 +1312,7 @@ setMethod(f="viterbi",signature=c("hydroState","data.frame","logical","numeric",
                 grid(NA,NULL)
                 legend('bottomleft', legend=.Object@state.labels,
                        lty=c(1,1),pch=c(NA,NA), col=state.colours,lwd=1,
-                       xjust=0, cex=1.1, bg='white')
+                       xjust=0, cex=1.1,bg='transparent')
                 plot.range=par("usr")
                 text(plot.range[1]+diff(plot.range[1:2])*0.025, plot.range[3]+diff(par("usr")[3:4])*0.95, labels="", font=1, cex=2,pos=1)
               }
@@ -1320,7 +1321,7 @@ setMethod(f="viterbi",signature=c("hydroState","data.frame","logical","numeric",
 
               # Reset graphics options
               #--------------
-              par(op)
+              # par(op)
 
             }
 
@@ -1528,12 +1529,13 @@ setMethod(f="check.PseudoResiduals",signature="hydroState",definition=function(.
       }
 
       # Get input grapics settings
-      op <- par(no.readonly = T);
+      op <- par(no.readonly = T)
+      on.exit(par(op))
 
       plot.titles=F
 
       # Change graphics settings
-      #par(mar = rep(4, 4))
+      par(mar = c(4, 4, 1, 1))
       #par(mfrow=c(3,2),cex=1.2)
       #par(mfrow=c(3,2), cex.axis=1.2, cex.lab=1.2)
       par(mfrow=c(5,1), cex.axis=1.2, cex.lab=1.2)
@@ -1615,7 +1617,7 @@ setMethod(f="check.PseudoResiduals",signature="hydroState",definition=function(.
       text(plot.range[1]+diff(plot.range[1:2])*0.99, plot.range[3]+diff(par("usr")[3:4])*0.225, labels=paste("AIC=",round(AIC,2)), font=1, cex=1.5,pos=2)
 
       # Reset graphics options
-      par(op)
+      # par(op)
     }
 
     if(do.plot){

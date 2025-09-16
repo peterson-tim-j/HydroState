@@ -579,9 +579,6 @@ build <- function(input.data = data.frame(year=c(), flow=c(), precip=c()),
                        transition.graph = matrix(TRUE,2,2)){
 
 
-  # reset defaults
-  oldpar <- par(no.readonly = TRUE)
-  on.exit(par(oldpar), add = TRUE)
 
 
   #Validate input.data
@@ -825,9 +822,6 @@ build.all <-function(input.data = data.frame(year=c(), flow=c(), precip=c()),
 
   #######################################################
 
-  # reset defaults
-  oldpar <- par(no.readonly = TRUE)
-  on.exit(par(oldpar), add = TRUE)
 
 
   #site id
@@ -1134,7 +1128,7 @@ summary.hydroState.allModels <- function(object, ...){
 #' @param pop.size.perParameter integer that should be greater than or equal to the number of parameters in the model. The default is '10' and is sufficient for all models.
 #' @param max.generations integer that will stop the optimizer when set number of generations are reached. The default is '500'.
 #' @param doParallel TRUE/FALSE to perform fitting in parallel on all computer cores. Default is FALSE
-#'
+#' @param ... additional options to change the optimization settings: reltol, print.iterations, etc. from the \href{https://cran.r-project.org/package=DEoptim}{DEoptim} library
 #' @return
 #' A fitted hydroState model
 #'
@@ -1171,7 +1165,7 @@ summary.hydroState.allModels <- function(object, ...){
 #' ## Build all annual models
 #' all.annual.models = build.all(input.data = streamflow_annual_221201, siteID = '221201')
 #'
-#' ## Fit all (runtime > several hours)
+#' # Fit all (runtime > several hours)
 #' \donttest{
 #' all.annual.models = fit.hydroState(all.annual.models)
 #' }
@@ -1180,13 +1174,11 @@ summary.hydroState.allModels <- function(object, ...){
 fit.hydroState <- function(model,
                 pop.size.perParameter = 10,
                 max.generations = 500,
-                doParallel = FALSE
+                doParallel = FALSE,
+                ...
                 ) {
 
 
-  # reset defaults
-  oldpar <- par(no.readonly = TRUE)
-  on.exit(par(oldpar), add = TRUE)
 
   if (methods::is(model, "hydroState")) {
     return(fit(model,
@@ -1371,7 +1363,7 @@ setInitialYear <- function(model, initial.year){ #make go to first year of dataf
 #' \code{plot} produces several figures to visualize pseudo residuals or results of the markov states over time. \code{setInitialYear} is required before \code{plot}. It is recommend to evaluate the pseudo residuals before the markov states. The pseudo residuals are the probability of an observation occurring at each time-step given the prior observations and latter observations, and these are derived from the conditional probabilities of the observations. The markov states are from the Viterbi algorithm globally decoding the model to estimate the most probable sequence of states.
 #'
 #' @details
-#' \code{plot} produces five figures of psuedo residuals OR up to four figures of the results from the fitted hydroState model. When the \code{pse.residuals} is FALSE, the default \code{plot} produces all four result figures. Figures are more easily viewed as an exported pdf when directory/file name is given with \code{file = "flow.state.plots.siteID.pdf"}.
+#' \code{plot} produces five figures of psuedo residuals OR up to four figures of the results from the fitted hydroState model. When the \code{pse.residuals} is FALSE, the default \code{plot} produces all four markov state plots (ind.variable, dep.variable, dep.variable.transformed, cond.state.prob). Figures are more easily viewed as an exported pdf when directory/file name is given (i.e. \code{file = "flow.state.plots.siteID.pdf"}).
 #' \itemize{
 #'  \item{psuedo residual figures}
 #'    \itemize{
@@ -1398,10 +1390,10 @@ setInitialYear <- function(model, initial.year){ #make go to first year of dataf
 #'
 #' @param x is the fitted hydroState model object.
 #' @param pse.residuals option to plot pseudo residuals. Default is FALSE.
-#' @param ind.variable option to plot independent variable over time. Default is TRUE.
-#' @param dep.variable option to plot dependent variable and states over time. Default is TRUE.
-#' @param dep.variable.transformed option to plot transformed dependent variable and states over time. Default is TRUE.
-#' @param cond.state.prob option to plot the conditional state probabilities over time for each state. Default is TRUE.
+#' @param ind.variable option to plot independent variable over time.
+#' @param dep.variable option to plot dependent variable and states over time.
+#' @param dep.variable.transformed option to plot transformed dependent variable and states over time.
+#' @param cond.state.prob option to plot the conditional state probabilities over time for each state.
 #' @param siteID character string of catchment identifier (i.e. gauge ID). Default is NULL. Only recommended when exporting (i.e, file = "filename.pdf").
 #' @param file character string of file directory/name to export plots as a pdf: "flow.state.plots.407211.pdf". Default is NULL, no pdf file is exported.
 #' @param ... additional arguments passed for plotting, none available at this time.
@@ -1433,38 +1425,28 @@ setInitialYear <- function(model, initial.year){ #make go to first year of dataf
 #' ## Plot only residuals
 #' plot(model.annual.fitted.221201, pse.residuals = TRUE)
 #'
-#' ## Plot all markov state figures
+#' ## Plot all markov state figures (default)
 #' plot(model.annual.fitted.221201)
 #'
 #' ## Plot only dependent variable transformed with markov states
-#' plot(model.annual.fitted.221201,
-#'              ind.variable = FALSE,
-#'              dep.variable = FALSE,
-#'              dep.variable.transformed = TRUE,
-#'              cond.state.prob = FALSE)
+#' plot(model.annual.fitted.221201, dep.variable.transformed = TRUE)
 #'
 
 
 plot.hydroState <- function(x, ...,
                        pse.residuals = FALSE,
-                       ind.variable = TRUE,
-                       dep.variable = TRUE,
-                       dep.variable.transformed = TRUE,
-                       cond.state.prob = TRUE,
+                       ind.variable = FALSE,
+                       dep.variable = FALSE,
+                       dep.variable.transformed = FALSE,
+                       cond.state.prob = FALSE,
                        siteID = NULL,
                        file = NULL
                        ){
 
   model = x
 
-  # reset params after plotting anything
-  oldpar <- par(no.readonly = TRUE)
-  oldpar$new <- NULL
-  on.exit(par(oldpar), add = TRUE)
 
   # if .pdf given in file continue else error
-
-
     if (!is.null(file)) {
 
       if(endsWith(file, ".pdf")){
@@ -1489,91 +1471,26 @@ plot.hydroState <- function(x, ...,
 
     if(pse.residuals == TRUE){
 
-      par(mar = c(4, 4, 1, 1))
       temp.plot = check.PseudoResiduals(model, do.plot = T)
 
 
-    # plot everything, default, export as pdf is option too..
-    }else if(ind.variable == TRUE && dep.variable == TRUE && dep.variable.transformed == TRUE && cond.state.prob == TRUE){
+    }else{
 
-      temp.plot = viterbi(model, do.plot = T, plot.options = c("A","B","C","D"))
+      # default is to plot everything
+      if(missing(ind.variable) & missing(dep.variable) & missing(dep.variable.transformed) & missing(cond.state.prob)){
 
+        temp.plot = viterbi(model, do.plot = T, plot.options = c("A","B","C","D"))
 
+      }else{
 
+        plot.type = c()
+        if(ind.variable) plot.type = c(plot.type, "A")
+        if(dep.variable) plot.type = c(plot.type, "B")
+        if(dep.variable.transformed) plot.type = c(plot.type, "C")
+        if(cond.state.prob) plot.type = c(plot.type, "D")
 
-    # plot only A
-    }else if(ind.variable == TRUE && dep.variable != TRUE && dep.variable.transformed != TRUE && cond.state.prob != TRUE){
-
-        temp.plot = viterbi(model, do.plot = T, plot.options = c("A"))
-
-
-
-
-    # plot only A and B
-    }else if(ind.variable == TRUE && dep.variable == TRUE && dep.variable.transformed != TRUE && cond.state.prob != TRUE){
-
-        temp.plot = viterbi(model, do.plot = T, plot.options = c("A","B"))
-
-
-
-      # plot only A and B and C
-    }else if(ind.variable == TRUE && dep.variable == TRUE && dep.variable.transformed == TRUE && cond.state.prob != TRUE){
-
-          temp.plot = viterbi(model, do.plot = T, plot.options = c("A","B","C"))
-
-
-    # plot only A and D
-    }else if(ind.variable == TRUE && dep.variable != TRUE && dep.variable.transformed != TRUE && cond.state.prob == TRUE){
-
-        temp.plot = viterbi(model, do.plot = T, plot.options = c("A","D"))
-
-
-    # plot only A and C
-    }else if(ind.variable == TRUE && dep.variable != TRUE && dep.variable.transformed == TRUE && cond.state.prob != TRUE){
-
-        temp.plot = viterbi(model, do.plot = T, plot.options = c("A","C"))
-
-    # plot only A , C, D
-    }else if(ind.variable == TRUE && dep.variable != TRUE && dep.variable.transformed == TRUE && cond.state.prob == TRUE){
-
-        temp.plot = viterbi(model, do.plot = T, plot.options = c("A","C","D"))
-
-
-    # plot only B
-    }else if(ind.variable != TRUE && dep.variable == TRUE && dep.variable.transformed != TRUE && cond.state.prob != TRUE){
-
-        temp.plot = viterbi(model, do.plot = T, plot.options = c("B"))
-
-
-    # plot only B and C
-    }else if(ind.variable != TRUE && dep.variable == TRUE && dep.variable.transformed == TRUE && cond.state.prob != TRUE){
-
-        temp.plot = viterbi(model, do.plot = T, plot.options = c("B","C"))
-
-    # plot only B and D
-    }else if(ind.variable != TRUE && dep.variable == TRUE && dep.variable.transformed != TRUE && cond.state.prob == TRUE){
-
-        temp.plot = viterbi(model, do.plot = T, plot.options = c("B","D"))
-
-    # plot only B,  C and D
-    }else if(ind.variable != TRUE && dep.variable == TRUE && dep.variable.transformed == TRUE && cond.state.prob == TRUE){
-
-        temp.plot = viterbi(model, do.plot = T, plot.options = c("B","C","D"))
-
-    # plot only  C
-    }else if(ind.variable != TRUE && dep.variable != TRUE && dep.variable.transformed == TRUE && cond.state.prob != TRUE){
-
-        temp.plot = viterbi(model, do.plot = T, plot.options = c("C"))
-
-    # plot only  C & D
-    }else if(ind.variable != TRUE && dep.variable != TRUE && dep.variable.transformed == TRUE && cond.state.prob == TRUE){
-
-        temp.plot = viterbi(model, do.plot = T, plot.options = c("C","D"))
-
-    # plot only   D
-    }else if(ind.variable != TRUE && dep.variable != TRUE && dep.variable.transformed != TRUE && cond.state.prob == TRUE){
-
-        temp.plot = viterbi(model, do.plot = T, plot.options = c("D"))
+        temp.plot = viterbi(model, do.plot = T, plot.options = plot.type)
+      }
     }
 
   # if pdf do title
