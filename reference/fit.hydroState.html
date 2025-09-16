@@ -49,7 +49,8 @@
 <span>  <span class="va">model</span>,</span>
 <span>  pop.size.perParameter <span class="op">=</span> <span class="fl">10</span>,</span>
 <span>  max.generations <span class="op">=</span> <span class="fl">500</span>,</span>
-<span>  doParallel <span class="op">=</span> <span class="cn">FALSE</span></span>
+<span>  doParallel <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  <span class="va">...</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -71,6 +72,10 @@
 
 <dt id="arg-doparallel">doParallel<a class="anchor" aria-label="anchor" href="#arg-doparallel"></a></dt>
 <dd><p>TRUE/FALSE to perform fitting in parallel on all computer cores. Default is FALSE</p></dd>
+
+
+<dt id="arg--">...<a class="anchor" aria-label="anchor" href="#arg--"></a></dt>
+<dd><p>additional options to change the optimization settings: reltol, print.iterations, etc. from the <a href="https://cran.r-project.org/package=DEoptim" class="external-link">DEoptim</a> library</p></dd>
 
 </dl></div>
     <div class="section level2">
@@ -124,7 +129,6 @@
 <span class="r-out co"><span class="r-pr">#&gt;</span> Iteration: 225 bestvalit: 36.908176 bestmemit:   -8.272617    0.009365    0.016122   -2.450765    0.417791    0.120533    0.896103    0.961131    0.000000</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> ... Finished Calibration.</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span>     Best solution: 36.9081759056722</span>
-<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>calling par(new=TRUE) with no plot</span>
 <span class="r-in"><span><span class="co"># }</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co">## Fit all built models (runtime &gt; several hours)</span></span></span>
@@ -133,45 +137,8 @@
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co">## Build all annual models</span></span></span>
 <span class="r-in"><span><span class="va">all.annual.models</span> <span class="op">=</span> <span class="fu"><a href="build.all.html">build.all</a></span><span class="op">(</span>input.data <span class="op">=</span> <span class="va">streamflow_annual_221201</span>, siteID <span class="op">=</span> <span class="st">'221201'</span><span class="op">)</span></span></span>
-<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>calling par(new=TRUE) with no plot</span>
-<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>calling par(new=TRUE) with no plot</span>
-<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>calling par(new=TRUE) with no plot</span>
-<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>calling par(new=TRUE) with no plot</span>
-<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>calling par(new=TRUE) with no plot</span>
-<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>calling par(new=TRUE) with no plot</span>
-<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>calling par(new=TRUE) with no plot</span>
-<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>calling par(new=TRUE) with no plot</span>
-<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>calling par(new=TRUE) with no plot</span>
-<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>calling par(new=TRUE) with no plot</span>
-<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>calling par(new=TRUE) with no plot</span>
-<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>calling par(new=TRUE) with no plot</span>
-<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>calling par(new=TRUE) with no plot</span>
-<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>calling par(new=TRUE) with no plot</span>
-<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>calling par(new=TRUE) with no plot</span>
-<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>calling par(new=TRUE) with no plot</span>
-<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>calling par(new=TRUE) with no plot</span>
-<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>calling par(new=TRUE) with no plot</span>
-<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>calling par(new=TRUE) with no plot</span>
-<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>calling par(new=TRUE) with no plot</span>
-<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>calling par(new=TRUE) with no plot</span>
-<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>calling par(new=TRUE) with no plot</span>
-<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>calling par(new=TRUE) with no plot</span>
-<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>calling par(new=TRUE) with no plot</span>
-<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>calling par(new=TRUE) with no plot</span>
-<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>calling par(new=TRUE) with no plot</span>
-<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>calling par(new=TRUE) with no plot</span>
-<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>calling par(new=TRUE) with no plot</span>
-<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>calling par(new=TRUE) with no plot</span>
-<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>calling par(new=TRUE) with no plot</span>
-<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>calling par(new=TRUE) with no plot</span>
-<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>calling par(new=TRUE) with no plot</span>
-<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>calling par(new=TRUE) with no plot</span>
-<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>calling par(new=TRUE) with no plot</span>
-<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>calling par(new=TRUE) with no plot</span>
-<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>calling par(new=TRUE) with no plot</span>
-<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>calling par(new=TRUE) with no plot</span>
 <span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="co">## Fit all (runtime &gt; several hours)</span></span></span>
+<span class="r-in"><span><span class="co"># Fit all (runtime &gt; several hours)</span></span></span>
 <span class="r-in"><span><span class="co"># \donttest{</span></span></span>
 <span class="r-in"><span><span class="va">all.annual.models</span> <span class="op">=</span> <span class="fu">fit.hydroState</span><span class="op">(</span><span class="va">all.annual.models</span><span class="op">)</span></span></span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Calibrating  36 Models.</span>
@@ -7118,7 +7085,6 @@
 <span class="r-msg co"><span class="r-pr">#&gt;</span>     Best solution: 24.9506446317583</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Best solution was &lt;= reference model calibration solution!</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> ************************************</span>
-<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>calling par(new=TRUE) with no plot</span>
 <span class="r-in"><span><span class="co"># }</span></span></span>
 <span class="r-in"><span></span></span>
 </code></pre></div>
