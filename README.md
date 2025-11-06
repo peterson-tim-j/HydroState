@@ -1,8 +1,10 @@
 # hydroState
 
 ![](https://img.shields.io/cran/v/hydroState?style=flat)
-![](https://img.shields.io/github/downloads/peterson-tim-j/HydroState/total?style=flat-square)
+[![CRAN RStudio mirror downloads](https://cranlogs.r-pkg.org/badges/grand-total/hydroState?color=blue)](https://r-pkg.org/pkg/hydroState)
+[![CRAN RStudio mirror downloads](https://cranlogs.r-pkg.org/badges/last-month/hydroState?color=blue)](https://r-pkg.org/pkg/hydroState)
 ![](https://img.shields.io/github/stars/peterson-tim-j/HydroState?style=social&labelColor=yellow&color=yellow)
+[![GitHub forks](https://img.shields.io/github/forks/peterson-tim-j/HydroState)](https://github.com/peterson-tim-j/HydroState/network)
 
 ### Overview
 hydroState is an R-package that identifies regime changes in streamflow time-series that is not explained by variations in precipitation. For details of the mathematics, and its use in understanding catchment drought non-recovery, see:
