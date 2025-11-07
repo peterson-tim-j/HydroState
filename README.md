@@ -1,6 +1,6 @@
 # hydroState
 
-![CRAN/METACRAN Version](https://img.shields.io/cran/v/hydroState?logo=R&logoColor=blue&label=R%20CRAN%20version)
+![CRAN/METACRAN Version](https://img.shields.io/cran/v/hydroState?logo=R&logoColor=blue&label=CRAN%20version)
 [![](http://cranlogs.r-pkg.org/badges/grand-total/hydroState)](https://cran.r-project.org/package=hydroState)
 [![](http://cranlogs.r-pkg.org/badges/last-month/hydroState)](https://cran.r-project.org/package=hydroState)
 ![Static Badge](https://img.shields.io/badge/Scence_Magazine-red?logo=Clarivate&label=Top%201%25%20Most%20Cited%20in&link=https%3A%2F%2Fdoi.org%2F10.1126%2Fscience.abd5085)
