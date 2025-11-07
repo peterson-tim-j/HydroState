@@ -1,8 +1,10 @@
 # hydroState
 
-![](https://img.shields.io/cran/v/hydroState?style=flat)
-[![CRAN RStudio mirror downloads](https://cranlogs.r-pkg.org/badges/grand-total/hydroState?color=blue)](https://r-pkg.org/pkg/hydroState)
-[![CRAN RStudio mirror downloads](https://cranlogs.r-pkg.org/badges/last-month/hydroState?color=blue)](https://r-pkg.org/pkg/hydroState)
+[![R CRAN version](https://www.r-pkg.org/badges/version/hydroState)](https://cran.r-project.org/package=hydroState)
+[![R CRAN status](https://badges.cranchecks.info/summary/hydroState.svg)](https://cran.r-project.org/web/checks/check_results_hydroState.html)
+[![](http://cranlogs.r-pkg.org/badges/grand-total/hydroState)](https://cran.r-project.org/package=hydroState)
+[![](http://cranlogs.r-pkg.org/badges/last-month/hydroState)](https://cran.r-project.org/package=hydroState)
+[![](https://img.shields.io/badge/1%%20most%20cited%20paper%20in-Science-blue.svg)](https://doi.org/10.1126/science.abd5085)
 ![](https://img.shields.io/github/stars/peterson-tim-j/HydroState?style=social&labelColor=yellow&color=yellow)
 [![GitHub forks](https://img.shields.io/github/forks/peterson-tim-j/HydroState)](https://github.com/peterson-tim-j/HydroState/network)
 
