@@ -74,21 +74,7 @@ setMethod(f="getStateFlicker",signature=c("markov.annualHomogeneous.flickering")
   # any other state to A is >=1, the then model DOES NOT persist in state A.
   # Martin F. Lambert, Julian P. Whiting, and Andrew V. Metcalfe, (2003) A non-parametric hidden Markov model for climate state
   # identification, Hydrology and Earth System Sciences, 7(5), 652667
-  flickerValue = rep(0,nStates)
-  for (i in 1:nStates) {
-    # Get prob. of switching out of state i
-    ind = 1:nStates
-    ind = ind[ind!=i]
-    prob.out = sum(Tprob[i,ind])
-
-    # Get prob of switching into state i
-    prob.in = sum(Tprob[ind,i])
-
-    flickerValue[i] = (prob.in + prob.out) - 1
-  }
-
-  return(flickerValue)
-
+  return(colSums(Tprob) - 2 * diag(Tprob))
 }
 )
 
