@@ -1598,4 +1598,16 @@ check <- function(model, n.samples = 100000){
 }
 
 
+# predict inputs:
+# built and fitted model
+# new input forcing data
+# returns model with prediction.
+# If no rainfall is input then predict only gives the predicted state probs.
+# If rain is input then Q and state probs are given
 
+# Check plot works with predict() and
+# shows prediction period as a different style of line/colour
+
+# get.CRPS
+# return list variable of mean and at each timestep
+# check predict is done
