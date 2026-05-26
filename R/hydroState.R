@@ -1718,11 +1718,230 @@ setMethod(f="drought.resilience.index",signature="hydroState",definition=functio
 }
 )
 
-# @exportMethod forecast
-setGeneric(name="forecast",def=function(.Object, t) {standardGeneric("forecast")})
-setMethod(f="forecast",signature="hydroState",definition=function(.Object, t)
-  {
+# @exportMethod predict
+# @exportMethod predict
+setGeneric(name = "predict", def = function(.Object, t) {
+  standardGeneric("predict")
+})
 
+setMethod(f = "predict", signature = "hydroState", definition = function(.Object, t) {
 
+  # --------------------------------------------------
+  # Validate prediction horizon
+  # --------------------------------------------------
+
+  if (missing(t)) {
+    stop("Please provide prediction horizon t, e.g. predict(model, t = 6)")
   }
-)
+
+  if (!is.numeric(t) || length(t) != 1 || t <= 0) {
+    stop("'t' must be a positive number showing the number of future observations to predict.")
+  }
+
+  H <- as.integer(t)
+
+  # --------------------------------------------------
+  # Get transformed training data from fitted model
+  # --------------------------------------------------
+
+  data2 <- getQhat(
+    .Object@Qhat.object,
+    .Object@input.data
+  )
+
+  Qhat <- data2$Qhat.flow
+
+  emissionProbs2 <- getEmissionDensity(
+    .Object@QhatModel.object,
+    data2,
+    NA
+  )
+
+  if (is.null(dim(emissionProbs2))) {
+    emissionProbs2 <- matrix(emissionProbs2, ncol = 1)
+  }
+
+  filt <- !is.na(data2$Qhat.flow)
+  emissionProbs2[!filt, ] <- NA
+
+  # Keep only valid training observations
+  data2 <- data2[filt, ]
+  emissionProbs2 <- emissionProbs2[filt, , drop = FALSE]
+
+  Qhat <- data2$Qhat.flow
+
+  n <- nrow(data2)
+  m <- ncol(emissionProbs2)
+
+  # --------------------------------------------------
+  # Forward filtering using training data only
+  # --------------------------------------------------
+
+  alpha <- getInitialStateProbabilities(.Object)
+  Tprob <- getTransitionProbabilities(.Object)
+
+  foo <- alpha * as.vector(emissionProbs2[1, ])
+
+  foo <- ifelse(foo == 0, 0.0001, foo)
+  foo <- ifelse(foo == 1, 0.9999, foo)
+  foo <- foo / sum(foo)
+
+  if (n > 1) {
+
+    for (i in 2:n) {
+
+      foo <- foo %*% Tprob * as.vector(emissionProbs2[i, ])
+
+      foo <- ifelse(foo == 0, 0.0001, foo)
+      foo <- ifelse(foo == 1, 0.9999, foo)
+
+      foo <- foo / sum(foo)
+    }
+  }
+
+  last.state.prob <- as.vector(foo)
+
+  # --------------------------------------------------
+  # Predict future state probabilities
+  # No future observed data is used
+  # --------------------------------------------------
+
+  state.probs.pred <- matrix(
+    NA,
+    nrow = H,
+    ncol = m
+  )
+
+  colnames(state.probs.pred) <- paste0("State_", 1:m)
+  rownames(state.probs.pred) <- paste0("t+", 1:H)
+
+  foo.pred <- last.state.prob
+
+  for (h in 1:H) {
+
+    foo.pred <- foo.pred %*% Tprob
+
+    foo.pred <- ifelse(foo.pred == 0, 0.0001, foo.pred)
+    foo.pred <- ifelse(foo.pred == 1, 0.9999, foo.pred)
+
+    foo.pred <- foo.pred / sum(foo.pred)
+
+    state.probs.pred[h, ] <- as.vector(foo.pred)
+  }
+
+  # --------------------------------------------------
+  # Direct PDF from fitted emission density
+  # --------------------------------------------------
+
+  Qhat.increments <- seq(
+    floor(min(Qhat, na.rm = TRUE)),
+    ceiling(max(Qhat, na.rm = TRUE)),
+    length.out = 1000
+  )
+
+  grid.data <- data2[rep(1, length(Qhat.increments)), ]
+  grid.data$Qhat.flow <- Qhat.increments
+
+  state.pdf <- getEmissionDensity(
+    .Object@QhatModel.object,
+    grid.data,
+    NA
+  )
+
+  if (is.null(dim(state.pdf))) {
+    state.pdf <- matrix(state.pdf, ncol = 1)
+  }
+
+  state.pdf[!is.finite(state.pdf)] <- 0
+  state.pdf[state.pdf < 0] <- 0
+
+  # --------------------------------------------------
+  # Predictive PDF for each future time step
+  # --------------------------------------------------
+
+  pdf_matrix_qhat <- matrix(
+    NA,
+    nrow = length(Qhat.increments),
+    ncol = H
+  )
+
+  for (h in 1:H) {
+
+    pdf_matrix_qhat[, h] <- as.vector(
+      state.pdf %*% as.vector(state.probs.pred[h, ])
+    )
+  }
+
+  colnames(pdf_matrix_qhat) <- paste0("t_plus_", 1:H)
+
+  # --------------------------------------------------
+  # Back-transform Qhat grid to original flow scale
+  # --------------------------------------------------
+
+  backtransform_input <- data.frame(
+    Qhat.flow = Qhat.increments
+  )
+
+  flow.grid <- getQ.backTransformed(
+    .Object@Qhat.object,
+    backtransform_input
+  )$flow.modelled
+
+  ord <- order(flow.grid)
+
+  flow.grid <- flow.grid[ord]
+  Qhat.ordered <- Qhat.increments[ord]
+  pdf_matrix_qhat <- pdf_matrix_qhat[ord, , drop = FALSE]
+
+  # --------------------------------------------------
+  # Convert density from Qhat scale to flow scale
+  # --------------------------------------------------
+
+  dQhat <- c(diff(Qhat.ordered), tail(diff(Qhat.ordered), 1))
+  dFlow <- c(diff(flow.grid), tail(diff(flow.grid), 1))
+
+  jacobian <- abs(dQhat / dFlow)
+  jacobian[!is.finite(jacobian)] <- 0
+
+  pdf_matrix_flow <- sweep(
+    pdf_matrix_qhat,
+    1,
+    jacobian,
+    "*"
+  )
+
+  pdf_matrix_flow[!is.finite(pdf_matrix_flow)] <- 0
+  pdf_matrix_flow[pdf_matrix_flow < 0] <- 0
+
+  # --------------------------------------------------
+  # Normalise each PDF so area equals 1
+  # --------------------------------------------------
+
+  for (h in 1:ncol(pdf_matrix_flow)) {
+
+    y <- pdf_matrix_flow[, h]
+
+    area <- sum(
+      diff(flow.grid) *
+        (head(y, -1) + tail(y, -1)) / 2,
+      na.rm = TRUE
+    )
+
+    if (is.finite(area) && area > 0) {
+      pdf_matrix_flow[, h] <- y / area
+    }
+  }
+
+  # --------------------------------------------------
+  # Final output: LLL
+  # --------------------------------------------------
+
+  LLL <- data.frame(
+    range = flow.grid,
+    pdf_matrix_flow
+  )
+
+  colnames(LLL)[-1] <- paste0("t_plus_", 1:H)
+
+  return(LLL)
+})
