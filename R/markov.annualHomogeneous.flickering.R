@@ -69,11 +69,13 @@ setMethod(f="getStateFlicker",signature=c("markov.annualHomogeneous.flickering")
   if (nStates==1)
     return(0)
 
-  # Estimate the flickering from an extenstion of the reference below to >2 states.
-  # Specifically, if the sum of the probs of switching from state A to any oter state  and from
+  # Estimate the flickering from an extension of the reference below to >2 states.
+  # Specifically, if the sum of the probs of switching from state A to any other state and from
   # any other state to A is >=1, the then model DOES NOT persist in state A.
   # Martin F. Lambert, Julian P. Whiting, and Andrew V. Metcalfe, (2003) A non-parametric hidden Markov model for climate state
-  # identification, Hydrology and Earth System Sciences, 7(5), 652667
+  # identification, Hydrology and Earth System Sciences, 7(5), 652-667.
+  # Here is is implemented by summing the probability into a state and out of the state.
+  # Each state is assessed and returned. Later, if >=1 then the state is deemed as not persisting.
   flickerValue = rep(0,nStates)
   for (i in 1:nStates) {
     # Get prob. of switching out of state i
@@ -84,7 +86,7 @@ setMethod(f="getStateFlicker",signature=c("markov.annualHomogeneous.flickering")
     # Get prob of switching into state i
     prob.in = sum(Tprob[ind,i])
 
-    flickerValue[i] = (prob.in + prob.out) - 1
+    flickerValue[i] = prob.in + prob.out
   }
 
   return(flickerValue)
@@ -124,8 +126,8 @@ setMethod(f="getLogLikelihood", signature=c("markov.annualHomogeneous.flickering
               return(Inf)
 
             # Only accept the transition probs. if the model persists in each state.
-            # This is defined as any state having a flicker value >1.
-            if (!.Object@allow.flickering && any(getStateFlicker(.Object)>1))
+            # This is defined as any state having a flicker value >=1.
+            if (!.Object@allow.flickering && any(getStateFlicker(.Object)>=1))
               return(Inf)
 
             # Only accept the parameters if the forward probabilities from the first to next time step show
@@ -157,9 +159,6 @@ setMethod(f="getLogLikelihood", signature=c("markov.annualHomogeneous.flickering
               sumalpha <- sum(alpha)
               lscale <- lscale+log(sumalpha)
               alpha    <- alpha/sumalpha
-
-              # if (!is.finite(lscale))
-              #   stop('DBG')
             }
 
             return(lscale)
