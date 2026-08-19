@@ -765,10 +765,10 @@ build <- function(input.data = data.frame(year=c(), flow=c(), precip=c()),
 #' @param state.shift.parameters character vector of one or all parameters to identify state dependent parameters. Only one set of parameters permitted. If empty, the default builds all possible model combinations with \code{c('a0','std')} as state shift parameters.
 #' @param error.distribution character string of the distribution in the HMM error. If empty, the default builds models with all possible combinations of error distribution: \code{c('truc.normal', 'normal','gamma')}
 #' @param flickering logical \code{TRUE}/\code{FALSE}. \code{TRUE} = allows more sensitive markov flickering between states over time. When \code{FALSE} (default), state needs to persist for at least three time steps before state shift can occur.
-#' @param transition.graph matrix given the number of states. If empty, the default builds models with all possible combinations of states:
-#'      1-state matrix (1 by 1): \code{matrix(TRUE,1,1)},
-#'      2-state matrix (2 by 2): \code{matrix(TRUE,2,2)},
-#'      3-state matrix (3 by 3): \code{matrix(TRUE,3,3)}.
+#' @param transition.graph list of transition.graph matrices for the given number of states. If empty, the default builds models with all possible combinations of states.
+#'      Default (all state models): \code{list(matrix(TRUE,1,1),matrix(TRUE,2,2),matrix(TRUE,3,3))},
+#'      Only 1 and 2 state models:  \code{list(matrix(TRUE,1,1),matrix(TRUE,2,2))},
+#'      Only 2 state models:  \code{list(matrix(TRUE,2,2))}
 #' @param siteID character string of site identifier.
 #' @param summary.table data frame with a table summarizing all built models and corresponding reference model. From function \code{summary()}. If empty, summary table will be built automatically.
 #'
@@ -844,10 +844,47 @@ build.all <-function(input.data = data.frame(year=c(), flow=c(), precip=c()),
   if(is.null(transition.graph)){
     transition.graph = list(matrix(TRUE,1,1),matrix(TRUE,2,2),matrix(TRUE,3,3))#,matrix(c(TRUE,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,FALSE,TRUE),3,3))
     names(transition.graph) = c("1State","2State","3State")
+
   }else{
-    transition.graph = list(transition.graph)
-    names(transition.graph) = ifelse(transition.graph == matrix(TRUE,1,1),"1State", ifelse(transition.graph == matrix(TRUE,2,2), "2State",ifelse(transition.graph == matrix(TRUE,3,3),"3State",paste(NCOL(transition.graph),"UserState",sep=""))))
-  }
+
+    # if(length(transition.graph) == 1){
+      if(!is.list(transition.graph)){
+        stop("transition.graph must be a list of a matrix or matrices for investigating transition state graphs in build.all")
+      }
+      # if(!(is.matrix(transition.graph))){
+      #   stop("transition.graph must be a matrix for investigating one transition graph in build.all")
+      # }
+    # }else{
+
+      # if(length(transition.graph) > 1){
+      #   if(!(is.list(transition.graph))){
+      #     stop("transition.graph must be a list of matrices for investigating multiple transition state graphs in build.all")
+      #   }
+      #   if(!(is.matrix(unlist(transition.graph)))){
+      #     stop("transition.graph must be a list of matrices for investigating multiple transition state graphs in build.all, items in list are not matrices")
+      #   }
+      # }
+    # }
+
+      if(any(lengths(transition.graph) ==1)){
+        names(transition.graph)[which(lengths(transition.graph) ==1)] = "1State"
+      }
+
+      if(any(lengths(transition.graph) ==4)){
+        names(transition.graph)[which(lengths(transition.graph) ==4)] = "2State"
+      }
+
+      if(any(lengths(transition.graph) ==9)){
+        names(transition.graph)[which(lengths(transition.graph) ==9)] = "3State"
+      }
+
+    # which list item does not have a 1, 2, 3 state matrix
+      if(length(which(!(lengths(transition.graph) %in% c(1, 4, 9)))) >0){
+      names(transition.graph)[length(which(!(lengths(transition.graph) %in% c(1, 4, 9))))] <- "UserState"
+      }
+
+    }
+
 
   if(is.null(state.shift.parameters)){
     state.shift.parameters = list(c('a0','std'))
@@ -1218,7 +1255,7 @@ fit.hydroState <- function(model,
 #'
 #' @param model fitted \code{hydroState} model object.
 #'
-#' @return AIC value of a single model or a list variable of AIC values for al models
+#' @return AIC value of a single model or a list variable of AIC values for all models
 #'
 #' @keywords AIC
 #'
