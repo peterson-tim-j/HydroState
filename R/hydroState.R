@@ -1,6 +1,5 @@
 ##' @include Qhat.boxcox.R
-##' @include QhatModel.homo.normal.linear.R
-##' ##' @include QhatModel.homo.normal.linear.AR1..R
+##' @include QhatModel.R
 ##' @include markov.annualHomogeneous.R
 ## @export
 hydroState <- setClass(
@@ -23,7 +22,7 @@ hydroState <- setClass(
   prototype=list(
     input.data = data.frame(year=c(0),month=c(0),precipitation=c(0),flow=c(0)),
     Qhat.object  = new('Qhat.boxcox',input.data = data.frame(year=c(0),month=c(0),precipitation=c(0),flow=c(0))),
-    QhatModel.object = new('QhatModel.homo.normal.linear',input.data = data.frame(year=c(0),month=c(0),precipitation=c(0),flow=c(0))),
+    QhatModel.object = new('QhatModel',data = data.frame(year=c(0),month=c(0),precipitation=c(0),flow=c(0))),
     markov.model.object = new('markov.annualHomogeneous',transition.graph = matrix(TRUE,2,2)),
     calibration.results = list(optim=0,member=0),
     state.labels = c('')
@@ -69,30 +68,30 @@ setMethod(f="validObject",
 #setGeneric(name="initialize",def=function(.Object,input.data, Qhat.object, QhatModel.object, markov.model.object, ...){standardGeneric("initialize")})
 setMethod(f="initialize",signature="hydroState",definition=function(.Object, input.data, Qhat.object, QhatModel.object, markov.model.object)
           {
-          # Check the input data has columns 'precipitation' and 'flow' and the 'recipitation has no gaps.
+          # Check the input data has columns 'precipitation' and 'flow' and the 'precipitation has no gaps.
           if (!is.data.frame(input.data))
             stop('The input input.data must be a data frame.')
-          if (!any(names(input.data)=='precipitation'))
-            stop('The input input.data must contain the column "precipitation".')
-          if (!any(names(input.data)=='flow'))
-            stop('The input input.data must contain the column "flow".')
+          if (!any(names(input.data)=='p'))
+            stop('The input input.data must contain the column "p".')
+          if (!any(names(input.data)=='q'))
+            stop('The input input.data must contain the column "q".')
           if (!any(names(input.data)=='year'))
             stop('The input input.data must contain the column "year".')
 
-          # if (length(diff(which(!is.finite(input.data$precipitation)))) >= 1)
-          #   message(paste('The independent varaible (precip.) contains gaps at ', sum(!is.finite(input.data$precipitation)), ' timesteps.',' Model built ignoring gaps.',sep=""))
+          # if (length(diff(which(!is.finite(input.data$p)))) >= 1)
+          #   message(paste('The independent varaible (precip.) contains gaps at ', sum(!is.finite(input.data$p)), ' timesteps.',' Model built ignoring gaps.',sep=""))
 
-          if (all(!is.finite(input.data$flow)))
-            stop('The input input.data$flow does not contain any finite values".')
+          if (all(!is.finite(input.data$q)))
+            stop('The input input.data$q does not contain any finite values".')
 
           if (max(diff(unique(input.data$year)), na.rm = TRUE) !=1){
             message(paste('There are ',sum(ifelse(diff(na.omit(unique(input.data$year))) !=1, diff(na.omit(unique(input.data$year))), 0)), ' years missing.',' Model built ignoring missing years.', sep=""))
           }
 
-          if (any(!is.numeric(input.data$flow)))
-            stop('The input input.data$flow must contain only numeric data.')
-          if (any(!is.numeric(input.data$precipitation)))
-            stop('The input input.data$precipitation must contain only numeric data.')
+          if (any(!is.numeric(input.data$q)))
+            stop('The input input.data$q must contain only numeric data.')
+          if (any(!is.numeric(input.data$p)))
+            stop('The input input.data$p must contain only numeric data.')
 
           .Object@input.data = input.data
           .Object@Qhat.object = Qhat.object
@@ -113,196 +112,147 @@ setMethod(f="getNumMarkovStates",
 )
 
 # Get the full set of model parameters as a list.
-#setGeneric(name="getParameters",def=function(.Object) {standardGeneric("getParameters")})
-setMethod(f="getParameters",
-          signature="hydroState",
-          definition=function(.Object)
+setMethod(f="parameters", signature = c(.Object="hydroState", transformed='missing', as_df='missing'),
+          definition=function(.Object, transformed, as_df)
           {
             return(list(
-              Qhat = getParameters(.Object@Qhat.object@parameters),
-              QhatModel = getParameters(.Object@QhatModel.object@parameters),
-              markov = getParameters(.Object@markov.model.object@parameters)
+              Qhat = parameters(.Object@Qhat.object@parameters),
+              QhatModel = parameters(.Object@QhatModel.object@parameters),
+              markov = parameters(.Object@markov.model.object@parameters)
             ))
           }
 )
-
-# Get the full set of model parameters as a list.
-# @exportMethod getParameters.asVector
-setGeneric(name="getParameters.asVector",def=function(.Object) {standardGeneric("getParameters.asVector")})
-setMethod(f="getParameters.asVector",
-          signature="hydroState",
-          definition=function(.Object)
+setMethod(f="parameters", signature = c(.Object="hydroState", transformed='logical', as_df='missing'),
+          definition=function(.Object, transformed, as_df)
           {
-            parameters.all = getParameters(.Object);
+            vals =  list( parameters(.Object@Qhat.object@parameters, transformed),
+                          parameters(.Object@Qhat.object@parameters, transformed),
+                          parameters(.Object@Qhat.object@parameters, transformed)
+                        )
+            return(vals)
+          }
+)
+setMethod(f="parameters", signature = c(.Object="hydroState", transformed='logical', as_df='logical'),
+          definition=function(.Object, transformed, as_df)
+          {
+            if (as_df)
+              vals =  rbind.data.frame( parameters(.Object@Qhat.object@parameters, transformed, as_df),
+                                        parameters(.Object@QhatModel.object@parameters, transformed, as_df),
+                                        parameters(.Object@markov.model.object@parameters, transformed, as_df),
+                                        make.row.names = F
+                                      )
+            else
+              vals =  parameters(.Object, transformed)
 
-            return( c(
-              unlist(parameters.all$Qhat.flow),
-              unlist(parameters.all$QhatModel),
-              unlist(parameters.all$markov)
-              ))
+            return(vals)
+          }
+)
+setMethod(f="parameters<-", signature = c(.Object="hydroState", transformed='missing', value="list"),
+          definition=function(.Object, transformed, value)
+          {
+            parameters(.Object@Qhat.object@parameters) <- parameters$Qhat
+            parameters(.Object@QhatModel.object@parameters) <- parameters$QhatModel
+            parameters(.Object@markov.model.object@parameters) <- parameters$markov
+
+            return(.Object)
+          }
+)
+setMethod(f="parameters<-", signature = c(.Object="hydroState", transformed='logical', value="list"),
+          definition=function(.Object, transformed, value)
+          {
+            parameters(.Object@Qhat.object@parameters, transformed=transformed) <- parameters$Qhat
+            parameters(.Object@QhatModel.object@parameters, transformed=transformed) <- parameters$QhatModel
+            parameters(.Object@markov.model.object@parameters, transformed=transformed) <- parameters$markov
+
+            return(.Object)
+          }
+)
+setMethod(f="parameters<-", c(.Object="hydroState", transformed='logical', value="numeric"),
+          definition=function(.Object, transformed, value)
+          {
+            # Get the parameter structure for each object
+            Qhat = parameters(.Object@Qhat.object@parameters, transformed=transformed)
+            QhatModel = parameters(.Object@QhatModel.object@parameters, transformed=transformed)
+            markov = parameters(.Object@markov.model.object@parameters, transformed=transformed)
+
+            # Calc. number parameters per object
+            nQhat <- sum(lengths(Qhat))
+            nQhatModel <- sum(lengths(QhatModel))
+            nMarkov <- sum(lengths(markov))
+
+            if (nQhat>0) {
+              from =1;
+              to = nQhat;
+              parameters.aslist = relist(value[from:to],Qhat)
+              parameters(.Object@Qhat.object@parameters, transformed=transformed) <- parameters.aslist
+            }
+
+            if (nQhatModel>0)
+            {
+              from =1+nQhat;
+              to = nQhat+nQhatModel;
+              parameters.aslist = relist(value[from:to],QhatModel)
+              parameters(.Object@QhatModel.object@parameters, transformed=transformed) <- parameters.aslist
+            }
+
+            if (nMarkov>0) {
+              from =1+nQhat+nQhatModel;
+              to = nQhat+nQhatModel+nMarkov;
+              parameters.aslist = relist(value[from:to],markov)
+              parameters(.Object@markov.model.object@parameters, transformed=transformed) <- parameters.aslist
+            }
+
+            return(.Object)
           }
 )
 
-# #' @exportMethod getParameters.transformed
-#setGeneric(name="getParameters.transformed",def=function(.Object) {standardGeneric("getParameters.transformed")})
-setMethod(f="getParameters.transformed",
-          signature="hydroState",
-          definition=function(.Object)
+# Set / get parameter bounds
+setMethod(f="bounds", c(.Object="hydroState", transformed='missing'),
+          definition=function(.Object, transformed)
           {
-            Qhat = getParameters.transformed(.Object@Qhat.object@parameters)
-            QhatModel = getParameters.transformed(.Object@QhatModel.object@parameters)
-            markov = getParameters.transformed(.Object@markov.model.object@parameters)
-
-            return(list(
-              Qhat = Qhat,
-              QhatModel = QhatModel,
-              markov = markov
-            ))
+            Qhat = bounds(.Object@Qhat.object@parameters)
+            QhatModel = bounds(.Object@QhatModel.object@parameters)
+            markov = bounds(.Object@markov.model.object@parameters)
+            return( rbind(Qhat, QhatModel,markov) )
+          }
+)
+setMethod(f="bounds", signature = c(.Object="hydroState", transformed='logical'),
+          definition=function(.Object, transformed)
+          {
+            Qhat = bounds(.Object@Qhat.object@parameters, transformed)
+            QhatModel = bounds(.Object@QhatModel.object@parameters, transformed)
+            markov = bounds(.Object@markov.model.object@parameters, transformed)
+            return( rbind(Qhat, QhatModel,markov) )
+          }
+)
+setMethod(f="bounds<-", signature = c(.Object="hydroState",value='matrix'),
+          definition=function(.Object, value)
+          {
+            bounds(.Object@Qhat.object@parameters) <- value
+            bounds(.Object@QhatModel.object@parameters) <- value
+            bounds(.Object@markov.model.object@parameters) <- value
+            return(.Object)
           }
 )
 
-# @exportMethod getParameters.transformed.asVector
-setGeneric(name="getParameters.transformed.asVector",def=function(.Object) {standardGeneric("getParameters.transformed.asVector")})
-setMethod(f="getParameters.transformed.asVector",
-          signature="hydroState",
-          definition=function(.Object)
-          {
-            parameters.all = getParameters.transformed(.Object);
-
-            return( c(
-              unlist(parameters.all$Qhat),
-              unlist(parameters.all$QhatModel),
-              unlist(parameters.all$markov)
-            ))
-          }
-)
-
-# @exportMethod getBounds.transformed.asVector
-setGeneric(name="getBounds.transformed.asVector",def=function(.Object) {standardGeneric("getBounds.transformed.asVector")})
-setMethod(f="getBounds.transformed.asVector",
-          signature="hydroState",
+# Set / get parameter transform
+setMethod(f="transforms", signature=c(.Object="hydroState"),
           definition=function(.Object)
           {
             # Get the parameter bounds for each object
-            Qhat = getBounds.transformed(.Object@Qhat.object@parameters)
-            QhatModel = getBounds.transformed(.Object@QhatModel.object@parameters)
-            markov = getBounds.transformed(.Object@markov.model.object@parameters)
-
-            lowerBound = c( unlist(Qhat$lower),
-                            unlist(QhatModel$lower),
-                            unlist(markov$lower))
-
-            upperBound = c( unlist(Qhat$upper),
-                            unlist(QhatModel$upper),
-                            unlist(markov$upper))
-            return( cbind(lowerBound, upperBound))
+            Qhat = transforms(.Object@Qhat.object@parameters)
+            QhatModel = transforms(.Object@QhatModel.object@parameters)
+            markov = transforms(.Object@markov.model.object@parameters)
+            return( c(Qhat, QhatModel,markov) )
           }
 )
-
-# Get the full set of model parameters as a list.
-#setGeneric(name="setParameters",def=function(.Object,parameters) {standardGeneric("setParameters")})
-setMethod(f="setParameters",
-          signature=c("hydroState","list"),
-          definition=function(.Object,parameters)
+setMethod(f="transforms<-", signature = c(.Object ="hydroState",value='logical'),
+          definition=function(.Object, value)
           {
-
-            if (is.list(parameters)) {
-              .Object@Qhat.object@parameters <- setParameters(.Object@Qhat.object@parameters, parameters$Qhat)
-              .Object@QhatModel.object@parameters <- setParameters(.Object@QhatModel.object@parameters, parameters$QhatModel)
-              .Object@markov.model.object@parameters <- setParameters(.Object@markov.model.object@parameters, parameters$markov)
-            # } else if(is.numeric(parameters)) {
-            #   .Object@Qhat.object@parameters <- setParameters.fromVector(.Object@Qhat.object@parameters, parameters$Qhat)
-            #   .Object@QhatModel.object@parameters <- setParameters.fromVector(.Object@QhatModel.object@parameters, parameters$QhatModel)
-            #   .Object@markov.model.object@parameters <- setParameters.fromVector(.Object@markov.model.object@parameters, parameters$markov)
-
-            } else{
-              message("setParameters error")
-            }
-            return(.Object)
-          }
-)
-# Get the full set of model parameters as a list.
-#setGeneric(name="setParameters",def=function(.Object,parameters) {standardGeneric("setParameters")})
-setMethod(f="setParameters",
-          signature=c("hydroState","numeric"),
-          definition=function(.Object,parameters)
-          {
-            # Get the parameter structure for each object
-            Qhat = getParameters(.Object@Qhat.object@parameters)
-            QhatModel = getParameters(.Object@QhatModel.object@parameters)
-            markov = getParameters(.Object@markov.model.object@parameters)
-
-            # Calc. number parameters per object
-            nQhat <- sum(lengths(Qhat))
-            nQhatModel <- sum(lengths(QhatModel))
-            nMarkov <- sum(lengths(markov))
-
-            if (nQhat>0) {
-              from =1;
-              to = nQhat;
-              parameters.aslist = relist(parameters[from:to],Qhat)
-              .Object@Qhat.object@parameters < -setParameters(.Object@Qhat.object@parameters, parameters.aslist)
-            }
-
-
-            if (nQhatModel>0)
-            {
-              from =1+nQhat;
-              to = nQhat+nQhatModel;
-              parameters.aslist = relist(parameters[from:to],QhatModel)
-              .Object@QhatModel.object@parameters <- setParameters(.Object@QhatModel.object@parameters, parameters.aslist)
-            }
-
-            if (nMarkov>0) {
-              from =1+nQhat+nQhatModel;
-              to = nQhat+nQhatModel+nMarkov;
-              parameters.aslist = relist(parameters[from:to],markov)
-              .Object@markov.model.object@parameters <- setParameters(.Object@markov.model.object@parameters, parameters.aslist)
-            }
-
-            return(.Object)
-
-          }
-)
-
-# @exportMethod setParameters.fromTransformed.asVector
-setGeneric(name="setParameters.fromTransformed.asVector",def=function(.Object,parameters.asVector) {standardGeneric("setParameters.fromTransformed.asVector")})
-setMethod(f="setParameters.fromTransformed.asVector",
-          signature=c("hydroState","numeric"),
-          definition=function(.Object,parameters.asVector)
-          {
-            # Get the parameter structure for each object
-            Qhat = getParameters(.Object@Qhat.object@parameters)
-            QhatModel = getParameters(.Object@QhatModel.object@parameters)
-            markov = getParameters(.Object@markov.model.object@parameters)
-
-            # Calc. number parameters per object
-            nQhat <- sum(lengths(Qhat))
-            nQhatModel <- sum(lengths(QhatModel))
-            nMarkov <- sum(lengths(markov))
-
-            if (nQhat>0) {
-              from =1;
-              to = nQhat;
-              parameters.aslist = relist(parameters.asVector[from:to],Qhat)
-              .Object@Qhat.object@parameters <- setParameters.fromTransformed(.Object@Qhat.object@parameters, parameters.aslist)
-            }
-
-            if (nQhatModel>0)
-            {
-              from =1+nQhat;
-              to = nQhat+nQhatModel;
-              parameters.aslist = relist(parameters.asVector[from:to],QhatModel)
-              .Object@QhatModel.object@parameters <- setParameters.fromTransformed(.Object@QhatModel.object@parameters, parameters.aslist)
-            }
-
-            if (nMarkov>0) {
-              from =1+nQhat+nQhatModel;
-              to = nQhat+nQhatModel+nMarkov;
-              parameters.aslist = relist(parameters.asVector[from:to],markov)
-              .Object@markov.model.object@parameters <- setParameters.fromTransformed(.Object@markov.model.object@parameters, parameters.aslist)
-            }
-
+            # Set the parameter transform for each object
+            transforms(.Object@Qhat.object@parameters) <- value
+            transforms(.Object@QhatModel.object@parameters) <- value
+            transforms(.Object@markov.model.object@parameters) <- value
             return(.Object)
           }
 )
@@ -333,9 +283,7 @@ setMethod(f="getTransitionProbabilities",
 setGeneric(name="getNegLogLikelihood",def=function(.Object, parameters, ...) {standardGeneric("getNegLogLikelihood")})
 setMethod(f="getNegLogLikelihood",signature=c(.Object="hydroState",parameters="list"),definition=function(.Object,parameters)
           {
-            # Set the parameters.
-           .Object <- setParameters(.Object, parameters)
-
+            parameters(.Object, transform=T) <- parameters
             return(getNegLogLikelihood(.Object))
           }
           )
@@ -343,7 +291,6 @@ setMethod(f="getNegLogLikelihood",signature=c(.Object="hydroState",parameters="l
 #setGeneric(name="getNegLogLikelihood",def=function(.Object) {standardGeneric("getNegLogLikelihood")})
 setMethod(f="getNegLogLikelihood",signature=c(.Object="hydroState",parameters='missing'),definition=function(.Object)
           {
-
             # Get the transformed flow, Qhat
             data = getQhat(.Object@Qhat.object, .Object@input.data)
 
@@ -351,7 +298,7 @@ setMethod(f="getNegLogLikelihood",signature=c(.Object="hydroState",parameters='m
             zero.Flow = get.zeroFlow(.Object@Qhat.object)
 
             # Get emission probs
-            emission.probs = getEmissionDensity(.Object@QhatModel.object, data, zero.Flow, NA)
+            emission.probs = getEmissionDensity(.Object@QhatModel.object, data, zero.Flow)
 
             if (all(is.na(emission.probs)) || max(emission.probs, na.rm=T)==0) {
               return(Inf)
@@ -359,11 +306,10 @@ setMethod(f="getNegLogLikelihood",signature=c(.Object="hydroState",parameters='m
 
             nll <- getLogLikelihood(.Object@markov.model.object, data, emission.probs)
 
-            if (!is.finite(nll)) {
+            if (!is.finite(nll))
               return(Inf)
-            } else {
+            else
               return( -nll)
-            }
           }
 )
 
@@ -371,8 +317,7 @@ setMethod(f="getNegLogLikelihood",signature=c(.Object="hydroState",parameters='m
 setGeneric(name="getNegLogLikelihood.fromTransformedVector",def=function(parameters,.Object) {standardGeneric("getNegLogLikelihood.fromTransformedVector")})
 setMethod(f="getNegLogLikelihood.fromTransformedVector",signature=c(parameters="numeric",.Object="hydroState"),definition=function(parameters,.Object)
           {
-            # Set the parameters.
-            .Object <- setParameters.fromTransformed.asVector(.Object, parameters)
+            parameters(.Object, transform=T) <- parameters
             nll = getNegLogLikelihood(.Object)
             return(nll)
           }
@@ -386,7 +331,7 @@ setMethod(f="getAIC",signature="hydroState",definition=function(.Object)
   nll <- getNegLogLikelihood(.Object)
 
   # Get the number of parameters
-  np <- length(getParameters.asVector(.Object))
+  np <- nrow(parameters(.Object, transform = F, as_df=T))
 
   return(2*(nll+np))
 }
@@ -400,7 +345,7 @@ setMethod(f="getAICc",signature="hydroState",definition=function(.Object)
   nll <- getNegLogLikelihood(.Object)
 
   # Get the number of parameters
-  np <- length(getParameters.asVector(.Object))
+  np <-  nrow(parameters(.Object, transform = F, as_df=T))
 
   # Calculate small sample size correction.
   n <- nrow(getQhat(.Object@Qhat.object, .Object@input.data))
@@ -428,7 +373,6 @@ setMethod(f = "fit",signature="hydroState",definition=function(.Object,
                                                                DEstrategy=3,
                                                                pop.size.perParameter=25,
                                                                max.generations=10000,
-                                                               Domains,
                                                                reltol=1e-8,
                                                                steptol=50,
                                                                print.iterations = 25,
@@ -436,24 +380,22 @@ setMethod(f = "fit",signature="hydroState",definition=function(.Object,
                                                                doParallel = F,
                                                                ...)
 {
+  # Get initial parameters and obj value
+  par.initial <- parameters(.Object, transform = F, as_df = T)
+  obj.initial <- getNegLogLikelihood.fromTransformedVector(par.initial[,3], .Object)
 
+  # Get parameter bounds in transformed space.
+  Domains <- bounds(.Object, T)
+  Domains <-  Domains[ par.initial[, 'parameter'], ]
 
-  # Get initial parameters and obj valu
-  par.initial <- getParameters.transformed.asVector(.Object)
-  obj.initial <- getNegLogLikelihood.fromTransformedVector(par.initial, .Object)
-
-  # Get parameter boounds in transformed space.
-  if (is.na(Domains))
-    Domains <- getBounds.transformed.asVector(.Object)
+  # Get vector of parameters
+  par.initial <- par.initial[,3]
 
   # No. parameters
   nvars <- nrow(Domains)
 
   # Set population size
   NP = nvars*pop.size.perParameter
-
-  # issure with parallel
-
 
   # Create and initial population WITH the existing model parameters.
   # DEstrategy <- 3
@@ -484,7 +426,6 @@ setMethod(f = "fit",signature="hydroState",definition=function(.Object,
     }
   }
 
-
   message('... Starting calibration using the following settings:')
   message(paste('    - Initial parameter set neg. log liklihood:',obj.initial))
   message(paste('    - total population size:',nvars*pop.size.perParameter))
@@ -505,7 +446,7 @@ setMethod(f = "fit",signature="hydroState",definition=function(.Object,
   .Object@calibration.results <- calib.results$optim
 
   # Set calibrated parameters
-  .Object <- setParameters.fromTransformed.asVector(.Object, .Object@calibration.results$bestmem)
+  parameters(.Object, transform = T) <- .Object@calibration.results$bestmem
 
   message('... Finished Calibration.')
   message(paste('    Best solution:',.Object@calibration.results$bestval))
@@ -531,16 +472,19 @@ setMethod(f="setStateNames",signature=c("hydroState","numeric"),definition=funct
   states.viterbi <- viterbi(.Object, do.plot=F, plot.options = c("A","B","C","D"))
 
   # Find the year defining normal flow and precipitation.
+  gotNormalState = F
   for (i in 1:length(year.normalFlow)) {
-    filt = states.viterbi[,1] == year.normalFlow[i];
+    filt = states.viterbi[,"Year"] == year.normalFlow[i];
 
     if (!any(is.na(states.viterbi[filt,'Viterbi State Number']))){
       states.viterbi <- states.viterbi[filt,]
       year.normalFlow = year.normalFlow[i]
+      gotNormalState = T
       break
     }
   }
-
+  if (!gotNormalState)
+    stop('The states were all NA for the years provided. Change or extend the years considered to be the normal state.')
 
   # Assess if the model has a monthly or annal time step and get the
   # 'normal' precipitation. If the monthly, then
@@ -548,10 +492,10 @@ setMethod(f="setStateNames",signature=c("hydroState","numeric"),definition=funct
   year.filt = .Object@input.data$year ==year.normalFlow
   if (any(names(.Object@input.data)=="month")) {
     is.monthly = T
-    Pavg = cbind(.Object@input.data$year[year.filt], .Object@input.data$month[year.filt], .Object@input.data$precipitation[year.filt])
+    Pavg = cbind(.Object@input.data$year[year.filt], .Object@input.data$month[year.filt], .Object@input.data$p[year.filt])
   } else {
     is.monthly = F
-    Pavg = c(year.normalFlow, .Object@input.data$precipitation[year.filt])
+    Pavg = c(year.normalFlow, .Object@input.data$p[year.filt])
   }
 
   # If monthly, get the most frequent state for the months of the year.
@@ -568,21 +512,24 @@ setMethod(f="setStateNames",signature=c("hydroState","numeric"),definition=funct
   # Assign normal precip conditions to all obs data
   data  = .Object@input.data
   data = getQhat(.Object@Qhat.object, .Object@input.data)
-  Qhat = data$Qhat.flow
+  Qhat = data$q
   if (is.monthly) {
     for (i in 1:nrow(Pavg)) {
      filt = data$month == Pavg[i,2]
-     data$precipitation[filt] = Pavg[i,3]
+     data$p[filt] = Pavg[i,3]
     }
   } else {
-    data$precipitation = Pavg[2]
+    data$p = Pavg[2]
   }
 
   # get number of states
   nStates = getNumStates(.Object@markov.model.object)
 
   # Get the MEDIAN QhatModel value of Qhat at normal precip and at the normal year
-  state.est <- getDistributionPercentiles(.Object@QhatModel.object, data, 0.5)
+  zeroThreshold = .Object@input.data[1,]
+  zeroThreshold$q = 0
+  zeroThreshold = as.numeric(getQhat(.Object@Qhat.object, zeroThreshold)$q[1])
+  state.est <- getDistributionPercentiles(.Object@QhatModel.object, data, zeroThreshold, 0.5)
   state.est <- state.est[[1]]
   state.est = state.est[year.filt,]
   if (is.monthly) {
@@ -624,8 +571,6 @@ setMethod(f="setStateNames",signature=c("hydroState","numeric"),definition=funct
 }
 )
 
-
-
 # @export plot_graph
 setGeneric(name="plot_graph",def=function(.Object, main=NA, relsize=NA) {standardGeneric("plot_graph")})
 setMethod(f="plot_graph",signature="hydroState",definition=function(.Object, main='Transtion Probability Graph', relsize=0.8)
@@ -663,7 +608,7 @@ setMethod(f="plot_graph",signature="hydroState",definition=function(.Object, mai
 }
 )
 
-# @exportMethod viterbiF\
+# @exportMethod viterbi
 setGeneric(name="viterbi",def=function(.Object, data, do.plot=NA, plot.percentiles=NA, plot.yearRange=NA, plot.options=NA) {standardGeneric("viterbi")})
 setMethod(f="viterbi",signature=c("hydroState","missing","missing","missing","missing","missing"),
           definition=function(.Object, data, do.plot=T, plot.percentiles = c(0.05, 0.5, 0.95), plot.yearRange=numeric(),plot.options = c("A","B","C","D"))
@@ -764,20 +709,19 @@ setMethod(f="viterbi",signature=c("hydroState","data.frame","logical","numeric",
               plot.units = 'year'
             }
 
-            # message(obsDates.Precip.asISO[1:27])
             # Get the transformed flow, Qhat
-            if (!any(names(data)=='Qhat.flow'))
-              stop('Input "data" must contain a column named "Qhat.flow".')
+            if (!any(names(data)=='q'))
+              stop('Input "data" must contain a column named "q".')
 
-            data.withNAs <- data
-            Qhat = data$Qhat.flow
+            data.withNAs <- .Object@input.data
+            Qhat = data$q
             nQhat = length(Qhat)
 
             # get number of states
             nStates = getNumStates(.Object@markov.model.object)
 
             # Built filter for non NAs.
-            filt <- !is.na(data$Qhat.flow)&!is.na(data$Qhat.precipitation)
+            filt <- !is.na(data$q)&!is.na(data$p)
 
             # Exit if modle has one state
             if (nStates==1) {
@@ -787,13 +731,13 @@ setMethod(f="viterbi",signature=c("hydroState","data.frame","logical","numeric",
                 results <- matrix(NA,length(filt), 3)
                 results[,1] <- obsDates
                 results[filt,2] <-viterbiPath[filt]
-                results[,3] <-data$flow
+                results[,3] <-data$q
                 colnames(results) <- c('Year','Viterbi State Number', 'Obs. flow')
               } else {
                 results <- matrix(NA,length(filt), 4)
                 results[,1:2] <- obsDates
                 results[filt,3] <-viterbiPath[filt]
-                results[,4] <-data$flow
+                results[,4] <-data$q
                 colnames(results) <- c('Year','Month','Viterbi State Number', 'Obs. flow')
               }
             } else {
@@ -803,17 +747,15 @@ setMethod(f="viterbi",signature=c("hydroState","data.frame","logical","numeric",
               # Get transformed value of zero flow
               zero.Flow = get.zeroFlow(.Object@Qhat.object)
 
-              # get emiision probs.
-              emissionProbs = getEmissionDensity(.Object@QhatModel.object, data, zero.Flow, NA)
+              # Get emiision probs.
+              emissionProbs = getEmissionDensity(.Object@QhatModel.object, data, zero.Flow)
 
               # Get initial states
               startProbs = getInitialStateProbabilities(.Object@markov.model.object)
               States = 1:nStates
 
-
               # Set probs to zero if the is no obs. data
-              transProbs[is.na(transProbs)]       = 0
-              #emissionProbs[is.na(emissionProbs)] = 0
+              transProbs[is.na(transProbs)] = 0
               emissionProbs[!filt,] = 1
               nQhat <- nrow(data)
 
@@ -879,7 +821,10 @@ setMethod(f="viterbi",signature=c("hydroState","data.frame","logical","numeric",
               plot.percentiles =  sort(plot.percentiles)
 
               # Get the precentiles each state at each time point and remove rows with no obs Qhat
-              state.est = getDistributionPercentiles(.Object@QhatModel.object, data, plot.percentiles)
+              zeroThreshold = .Object@input.data[1,]
+              zeroThreshold$q = 0
+              zeroThreshold = as.numeric(getQhat(.Object@Qhat.object, zeroThreshold)$q[1])
+              state.est = getDistributionPercentiles(.Object@QhatModel.object, data, zeroThreshold, plot.percentiles)
 
               # Remove NAs from the input data and Qhat
               # data <- data[filt,]
@@ -923,30 +868,33 @@ setMethod(f="viterbi",signature=c("hydroState","data.frame","logical","numeric",
               flow.normal.est =matrix(0, nQhat,3)
               for (i in 1:length(plot.percentiles)) {
                 data.tmp <- data.withNAs;
-                data.tmp$Qhat.flow <- NA
-                data.tmp$Qhat.flow[filt] = viterbi.est[,i]
+                data.tmp$q <- NA
+                data.tmp$q[filt] = viterbi.est[,i]
                 flow.viterbi.est[,i] <- getQ.backTransformed(.Object@Qhat.object,data.tmp)$flow.modelled[filt]
 
                 data.tmp <- data.withNAs;
-                data.tmp$Qhat.flow <- NA
-                data.tmp$Qhat.flow[filt] = state.est.normal[,i]
+                data.tmp$q <- NA
+                data.tmp$q[filt] = state.est.normal[,i]
                 flow.normal.est[,i] <- getQ.backTransformed(.Object@Qhat.object,data.tmp)$flow.modelled[filt]
               }
 
               # Get the conditional probabilities.
               zero.Flow = get.zeroFlow(.Object@Qhat.object)
-              emissionProbs = getEmissionDensity(.Object@QhatModel.object, data, zero.Flow, NA)
-              state.probs = getConditionalStateProbabilities(.Object@markov.model.object, data[filt,], emissionProbs[filt,])
+              emissionProbs = getEmissionDensity(.Object@QhatModel.object, data, zero.Flow)
+              emissionProbs = emissionProbs[filt, , drop=F]
+              state.probs = getConditionalStateProbabilities(.Object@markov.model.object,
+                                                             data[filt, ],
+                                                             emissionProbs)
 
               # Collate returned data.
               if (is.vector(obsDates)) {
                 results <- matrix(NA,length(filt), 9+2*nStates)
                 results[,1] <- obsDates.withNAs
                 results[filt,2] <-viterbiPath
-                results[,3] <-data.withNAs$flow
+                results[,3] <-data.withNAs$q
                 results[filt,4:9] <- cbind(flow.viterbi.est, flow.normal.est)
                 results[filt, 10:(10+nStates-1)] = t(state.probs)
-                results[filt, (10+nStates):(10+2*nStates-1)] = t(emissionProbs[filt,])
+                results[filt, (10+nStates):(10+2*nStates-1)] = t(emissionProbs)
                 colnames(results) <- c('Year','Viterbi State Number', 'Obs. flow',
                                        paste('Viterbi Flow -',plot.percentiles*100,'%ile',sep=''),
                                        paste('Normal State Flow-',plot.percentiles*100,'%ile',sep=''),
@@ -956,10 +904,10 @@ setMethod(f="viterbi",signature=c("hydroState","data.frame","logical","numeric",
                 results <- matrix(NA,length(filt), 10+2*nStates)
                 results[,1:2] <- obsDates.withNAs
                 results[filt,3] <-viterbiPath
-                results[,4] <-data.withNAs$flow
+                results[,4] <-data.withNAs$q
                 results[filt,5:10] <- cbind(flow.viterbi.est, flow.normal.est)
                 results[filt, 11:(11+nStates-1)] = t(state.probs)
-                results[filt, (11+nStates):(11+2*nStates-1)] = t(emissionProbs[filt,])
+                results[filt, (11+nStates):(11+2*nStates-1)] = t(emissionProbs)
                 colnames(results) <- c('Year','Month','Viterbi State Number', 'Obs. flow',
                                        paste('Viterbi Flow -',plot.percentiles*100,'%ile',sep=''),
                                        paste('Normal State Flow -',plot.percentiles*100,'%ile',sep=''),
@@ -973,13 +921,13 @@ setMethod(f="viterbi",signature=c("hydroState","data.frame","logical","numeric",
                 results <- matrix(NA,length(filt), 3)
                 results[,1] <- obsDates
                 results[filt,2] <-viterbiPath[filt]
-                results[,3] <-data$flow
+                results[,3] <-data$q
                 colnames(results) <- c('Year','Viterbi State Number', 'Obs. flow')
               } else {
                 results <- matrix(NA,length(filt), 4)
                 results[,1:2] <- obsDates
                 results[filt,3] <-viterbiPath[filt]
-                results[,4] <-data$flow
+                results[,4] <-data$q
                 colnames(results) <- c('Year','Month','Viterbi State Number', 'Obs. flow')
               }
             }
@@ -1041,7 +989,7 @@ setMethod(f="viterbi",signature=c("hydroState","data.frame","logical","numeric",
 
 
               # Calc axis limits.
-              ylim.flow <- c(0, ceiling(max( c(max(data$flow,na.rm=T),max(flow.viterbi.est,na.rm=T)))))
+              ylim.flow <- c(0, ceiling(max( c(max(data$q,na.rm=T),max(flow.viterbi.est,na.rm=T)))))
               ylim.precip.max = max(ylim.flow)*3
               ylim.precip <- c(-ylim.precip.max,0)
 
@@ -1070,7 +1018,7 @@ setMethod(f="viterbi",signature=c("hydroState","data.frame","logical","numeric",
                 }
                 # Plot obs precip
 
-                pframe = padr::pad(data.frame(obsDates.Precip.asISO, .Object@input.data$precipitation), interval = plot.units)
+                pframe = padr::pad(data.frame(obsDates.Precip.asISO, .Object@input.data$p), interval = plot.units)
                 if(plot.units == "month"){ #if seasonal... adjust to get plot with connecting lines..
                   if(with(rle(data$year), max(lengths)) <= 4){
                     pframe$.Object.input.data.precipitation = zoo::na.approx(object = replace(pframe$.Object.input.data.precipitation, is.na(pframe$.Object.input.data.precipitation), NA), maxgap = 2)
@@ -1099,7 +1047,7 @@ setMethod(f="viterbi",signature=c("hydroState","data.frame","logical","numeric",
                 }
 
                 # Plot obs flow
-                pframe = padr::pad(data.frame(obsDates.Precip.asISO, data.withNAs$flow), interval = plot.units)
+                pframe = padr::pad(data.frame(obsDates.Precip.asISO, data.withNAs$q), interval = plot.units)
                 if(plot.units == "month"){ #if seasonal... adjust to get plot with connecting lines..
                   if(with(rle(data$year), max(lengths)) <= 4){
                     pframe$data.withNAs.flow = zoo::na.approx(object = replace(pframe$data.withNAs.flow, is.na(pframe$data.withNAs.flow), NA), maxgap = 2)
@@ -1108,17 +1056,6 @@ setMethod(f="viterbi",signature=c("hydroState","data.frame","logical","numeric",
 
                 plot(pframe, type="l", col='grey', lwd=1, ylim=ylim.flow, xlim=xlim,
                      xlab='', ylab='',xaxt='n')
-                # ryticks.min = signif(1.2*max(data$precipitation,na.rm=T),1)
-                # ryticks = seq(-ryticks.min, 0, by=signif(ryticks.min/2,1))
-                # print(-1*(data$precipitation))
-                # twoord.plot(obsDates.asISO, data$flow,
-                #             obsDates.asISO, -1*(data$precipitation),
-                #             lylim=ylim.flow,rylim= ylim.precip,type=c("l","s"),
-                #             xlab="Year", ylab=paste("Flow [mm/",plot.units,"]",sep=''),rylab=paste("Precip [mm/",plot.units,"]",sep=''),
-                #             lytickpos=seq(0,max(ylim.flow), by=signif(max(ylim.flow)/5,1)), rytickpos=ryticks,
-                #             lcol='black',rcol='blue')
-
-
 
                 # Plot Markov states as boxes
                 for (i in 1:nQhat) {
@@ -1136,8 +1073,6 @@ setMethod(f="viterbi",signature=c("hydroState","data.frame","logical","numeric",
                 # Add axis labels and legend
                 mtext("Flow",side=2,line=3, cex = 0.7)
                 mtext(paste("[mm/",plot.units,"]"),side=2,line=2, cex=0.6)
-                #mtext('Year',side=1,line=2)
-                #legend('topleft', legend=.Object@state.labels, pch=21, col=state.colours, pt.bg=state.colours, xjust=0)
                 xaxis.ticks = as.Date(ISOdate(seq(min(data$year, na.rm = TRUE),max(data$year, na.rm = TRUE),by=10),1,1))
                 abline(v=xaxis.ticks, col = "lightgray", lty = "dotted",lwd = par("lwd"))
                 if(tail(plot.options, n=1) =="B"){
@@ -1165,11 +1100,11 @@ setMethod(f="viterbi",signature=c("hydroState","data.frame","logical","numeric",
                   par(mar = c(4,5,0.2,5))
                 }
                 # Calc axis limits.
-                ylim.qhat <- c(floor(min( c(min(data$Qhat.flow,na.rm=T),min(viterbi.est,na.rm=T)))) ,
-                               ceiling(max( c(max(data$Qhat.flow,na.rm=T),max(viterbi.est,na.rm=T)))))
+                ylim.qhat <- c(floor(min( c(min(data$q,na.rm=T),min(viterbi.est,na.rm=T)))) ,
+                               ceiling(max( c(max(data$q,na.rm=T),max(viterbi.est,na.rm=T)))))
 
                 # Plot obs Qhat
-                pframe = padr::pad(data.frame(obsDates.Precip.asISO, data$Qhat.flow), interval = plot.units)
+                pframe = padr::pad(data.frame(obsDates.Precip.asISO, data$q), interval = plot.units)
                 if(plot.units == "month"){ #if seasonal... adjust to get plot with connecting lines..
                   if(with(rle(data$year), max(lengths)) <= 4){
                     pframe$data.Qhat.flow = zoo::na.approx(object = replace(pframe$data.Qhat.flow, is.na(pframe$data.Qhat.flow), NA), maxgap = 2)
@@ -1212,15 +1147,15 @@ setMethod(f="viterbi",signature=c("hydroState","data.frame","logical","numeric",
 
               # # Calculate the means and residuals
               # if (plot.units == 'yr') {
-              #   P.mean = mean(data$precipitation)
-              #   P.resid = data$precipitation - P.mean;
+              #   P.mean = mean(data$p)
+              #   P.resid = data$p - P.mean;
               # } else {
               #   P.mean = rep(NA,length(.Object@QhatModel.object@subAnnual.Monthly.Steps))
-              #   P.resid = rep(NA, length(data$precipitation))
+              #   P.resid = rep(NA, length(data$p))
               #   for (i in 1:length(.Object@QhatModel.object@subAnnual.Monthly.Steps)) {
               #     filt = data$month == .Object@QhatModel.object@subAnnual.Monthly.Steps[i]
-              #     P.mean[i] =  mean(data$precipitation[filt])
-              #     P.resid[filt] = data$precipitation[filt] - P.mean[i]
+              #     P.mean[i] =  mean(data$p[filt])
+              #     P.resid[filt] = data$p[filt] - P.mean[i]
               #   }
               # }
               #
@@ -1261,8 +1196,11 @@ setMethod(f="viterbi",signature=c("hydroState","data.frame","logical","numeric",
 
                 # Get the conditional probabilities.
                 zero.Flow = get.zeroFlow(.Object@Qhat.object)
-                emissionProbs = getEmissionDensity(.Object@QhatModel.object, data, zero.Flow, NA)
-                state.probs = getConditionalStateProbabilities(.Object@markov.model.object, data[filt,], emissionProbs[filt,])
+                emissionProbs = getEmissionDensity(.Object@QhatModel.object, data, zero.Flow)
+                emissionProbs = emissionProbs[filt, , drop=F]
+                state.probs = getConditionalStateProbabilities(.Object@markov.model.object,
+                                                               data[filt,],
+                                                               emissionProbs)
 
                 # Plot bar graph
                 # par(mar = c(4,5,0.2,5))
@@ -1344,7 +1282,7 @@ setMethod(f="check.viterbi",signature="hydroState",definition=function(.Object, 
   # Get a time series of Qhat using the sample states
   Qhat.sample = generate.sample.Qhat.fromViterbi(.Object@QhatModel.object,data, states.sample)
 
-  data$Qhat.flow <- NULL
+  data$q <- NULL
   data = cbind.data.frame(data, Qhat.flow = Qhat.sample)
 
   # Find the Viterbi states for the sample Qhat data
@@ -1400,13 +1338,13 @@ setMethod(f="check.PseudoResiduals",signature="hydroState",definition=function(.
     data  = .Object@input.data
     n = nrow(data)
     data = getQhat(.Object@Qhat.object, .Object@input.data)
-    Qhat <- data$Qhat.flow
+    Qhat <- data$q
 
     # get number of states
     nStates = getNumStates(.Object@markov.model.object)
 
     # Built filter for non NAs of Q and P
-    filt <- !is.na(data$Qhat.flow)&!is.na(data$Qhat.precipitation)
+    filt <- !is.na(data$q)&!is.na(data$p)
 
 
     # Get the markov likelihood and return. Importantly, the object QhatBar is passed so that
@@ -1414,11 +1352,23 @@ setMethod(f="check.PseudoResiduals",signature="hydroState",definition=function(.
     #----------
     # get emission densities
     zero.Flow = get.zeroFlow(.Object@Qhat.object)
-    emissionDensity <- getEmissionDensity(.Object@QhatModel.object, data, zero.Flow, NA)
+    emissionDensity <- getEmissionDensity(.Object@QhatModel.object, data, zero.Flow)
     emissionDensity[!filt,] <- NA
 
     # Set the range in Qhat values at which to derive the conditional probs.
     Qhat.increments = seq(floor(min(Qhat[filt])),ceiling(max(Qhat[filt])),length.out=100)
+
+    # Set the range in Qhat values at which to derive the conditional probs.
+    Qhat.increments = seq(floor(min(Qhat[filt])),ceiling(max(Qhat[filt])),length.out=100)
+
+    # Get the emmision cumulative prob (not density) at each Qhat.increments value at each tiem step
+    # cumProb.increments = array(NA, dim=c(n,nStates, length(Qhat.increments)))
+    # for (j in 1:length(Qhat.increments)) {
+    #   for (i in 1:NROW(delta)){
+    #     cumProb.increments[delta[i,1]:delta[i,2],,j] <- getEmissionDensity(.Object@QhatModel.object, data[delta[i,1]:delta[i,2],], cumProb.threshold.Qhat= rep(Qhat.increments[j], nrow(data[delta[i,1]:delta[i,2],])))
+    #       # getEmissionDensity(.Object@QhatModel.object, data, cumProb.threshold.Qhat= rep(Qhat.increments[j], nrow(data)))
+    #   }
+    # }
 
     # Get the emmision cumulative prob (not density) at each Qhat.increments value at each tiem step
     cumProb.increments = array(NA, dim=c(n,nStates, length(Qhat.increments)))
@@ -1450,16 +1400,16 @@ setMethod(f="check.PseudoResiduals",signature="hydroState",definition=function(.
     #---------------------------------------------------------------------
     # NOTE, unlilke Zucchini, here the cumulative IS NOT USED. This is because cumProb.increments is
     # already the cumulative prob.
-    delta = .Object@QhatModel.object@precip.delta
-
-    cum.prob = array(NA, dim=c(length(Qhat.increments),n))
-    for(i in 1:NROW(delta)){
-      cum.prob[,delta[i,1]:delta[i,2]] <- getConditionalProbabilities(.Object@markov.model.object, data[delta[i,1]:delta[i,2],], as.matrix(emissionDensity[delta[i,1]:delta[i,2],]),
-                                                                      cumProb.increments[delta[i,1]:delta[i,2],1:nStates,1:length(Qhat.increments)])
-    }
-    # cum.prob <- getConditionalProbabilities(.Object@markov.model.object, data, emissionDensity, cumProb.increments)
+    # delta = .Object@QhatModel.object@precip.delta
+    #
+    # cum.prob = array(NA, dim=c(length(Qhat.increments),n))
+    # for(i in 1:NROW(delta)){
+    #   cum.prob[,delta[i,1]:delta[i,2]] <- getConditionalProbabilities(.Object@markov.model.object, data[delta[i,1]:delta[i,2],], as.matrix(emissionDensity[delta[i,1]:delta[i,2],]),
+    #                                                                   cumProb.increments[delta[i,1]:delta[i,2],1:nStates,1:length(Qhat.increments)])
+    # }
+    cum.prob <- getConditionalProbabilities(.Object@markov.model.object, data, emissionDensity, cumProb.increments)
     #cumdists <- rbind(rep(0,n), cdists)
-    #cumProb.increments <- rbind(rep(0,nStates), cumProb.increments)
+    cumProb.increments <- rbind(rep(0,nStates), cumProb.increments)
 
     P.est <- rep(NA,n)
     npsr <- rep(NA,n)
@@ -1469,9 +1419,9 @@ setMethod(f="check.PseudoResiduals",signature="hydroState",definition=function(.
         next
 
       # Interpolate the conditional cumulative distribution from the discrete values to Qhat at time point i
-      # NOTE, to avoid P.est[i]==0 (and hence -inf pseudo normal residuals), data$Qhat.flow[i] is limit to >0
+      # NOTE, to avoid P.est[i]==0 (and hence -inf pseudo normal residuals), data$q[i] is limit to >0
       # machine preision.
-      x = max(data$Qhat.flow[i], sqrt(.Machine$double.eps))
+      x = max(data$q[i], sqrt(.Machine$double.eps))
       ind <- which(Qhat.increments>=x)[1]
 
       if (ind==1) {

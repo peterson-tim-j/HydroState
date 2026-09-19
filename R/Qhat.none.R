@@ -11,13 +11,13 @@ Qhat.none <- setClass(
   # Define the slots
   slots = c(
     input.data = "data.frame",
-    parameters = 'parameters'
+    parameters = 'model_parameters'
   ),
 
   # Set the default values for the slots. (optional)
   prototype=list(
     input.data = data.frame(year=c(0),month=c(0),precipitation=c(0)),
-    parameters= new('parameters',c(),c())
+    parameters= new('model_parameters',c(),c())
   )
 
 

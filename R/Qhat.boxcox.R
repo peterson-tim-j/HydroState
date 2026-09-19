@@ -12,14 +12,14 @@ Qhat.boxcox <- setClass(
   # Define the slots
   slots = c(
     input.data = "data.frame",
-    parameters = "parameters",
+    parameters = "model_parameters",
     constant = 'numeric'
   ),
 
   # Set the default values for the slots. (optional)
   prototype=list(
     input.data = data.frame(year=c(0),month=c(0),precipitation=c(0)),
-    parameters = new('parameters',c('lambda'),c(1)),
+    parameters = new('model_parameters',c('lambda'),c(1)),
     constant = 1
   )
 )
@@ -45,16 +45,15 @@ setMethod(f="getQhat",signature=c("Qhat.boxcox",'data.frame'),definition=functio
             if (!is.data.frame(data))
               stop('"Data" must be a data.frame.')
 
-
             # Get object parameter list
-            parameters = getParameters(.Object@parameters)
+            parameters <- parameters(.Object@parameters)
 
             if (parameters$lambda>1e-8) {
-              data$Qhat.flow <- ((data$flow + .Object@constant)^parameters$lambda - 1)/parameters$lambda
+              data$q <- ((data$q + .Object@constant)^parameters$lambda - 1)/parameters$lambda
             } else {
-              data$Qhat.flow <- log(data$flow + .Object@constant)
+              data$q <- log(data$q + .Object@constant)
             }
-            data$Qhat.precipitation <- data$precipitation
+            data$p <- data$p
 
             return(data)
           }
@@ -73,13 +72,12 @@ setMethod(f="getQ.backTransformed",signature=c("Qhat.boxcox",'data.frame'),defin
   if (!is.data.frame(data))
     stop('"Data" must be a data.frame.')
 
-  # Get object parameter list
-  parameters = getParameters(.Object@parameters)
+  parameters <- parameters(.Object@parameters)
 
   if (parameters$lambda>1e-8) {
-    data$flow.modelled <- ( data$Qhat.flow * parameters$lambda + 1) ^ (1/parameters$lambda) - .Object@constant
+    data$flow.modelled <- ( data$q * parameters$lambda + 1) ^ (1/parameters$lambda) - .Object@constant
   } else {
-    data$flow.modelled <- exp(data$Qhat.flow)-1
+    data$flow.modelled <- exp(data$q)-1
   }
   return(data)
 }
@@ -87,8 +85,8 @@ setMethod(f="getQ.backTransformed",signature=c("Qhat.boxcox",'data.frame'),defin
 
 setMethod(f="get.zeroFlow",signature=c("Qhat.boxcox"),definition=function(.Object)
 {
-  data = data.frame(precipitation = 0, flow= 0)
+  data = data.frame(p = 0, q= 0)
   data = getQhat(.Object, data)
-  return(data$Qhat.flow)
+  return( as.numeric(data$q[1]))
 }
 )

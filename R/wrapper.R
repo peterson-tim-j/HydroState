@@ -123,12 +123,13 @@ select.transform <- function(func = 'boxcox', input.data=data.frame(year=c(), fl
 }
 
 #' @keywords internal
-select.stateModel <- function(input.data = data.frame(year=c(), flow=c(), precip=c()),
-                              parameters = c('a0','a1','std'),
-                              seasonal.parameters,
-                              state.shift.parameters = c('a0','std'),
-                              error.distribution,
-                              transition.graph = matrix(TRUE,2,2)){
+select.stateModel <- function( input.data,
+                               formula.mean = as.formula('q ~ a0 + a1*p'),
+                               formula.var = as.formula('e ~ b0'),
+                               shift.pars = c('a0', 'b0'),
+                               error.distribution = 'trunc.norm',
+                               transition.graph=matrix(T,2,2)
+                              ) {
 
   #Validate input.data
   if(!is.data.frame(input.data)){
@@ -138,67 +139,27 @@ select.stateModel <- function(input.data = data.frame(year=c(), flow=c(), precip
     stop("'input.data' must contain a 'year' column with an integer of years")
   }
 
-  #Validate parameters
-  if(!is.character(parameters)){
-    stop("'parameters' are not in a character vector")
-  }
-
-  if(!('a0' %in% parameters && 'a1' %in% parameters && 'std' %in% parameters)){
-    stop("'parameters' must contain 'a0', 'a1', 'std'")
-  }
-  if(('AR1' %in% parameters && 'AR2' %in% parameters && 'AR3' %in% parameters)||
-     ('AR1' %in% parameters && 'AR2' %in% parameters)  ||
-     ('AR1' %in% parameters && 'AR3' %in% parameters) ||
-     ('AR2' %in% parameters && 'AR3' %in% parameters)){
-    stop("'parameters' can contain only one auto-correlation term, either 'AR1', 'AR2', or 'AR3'")
-  }
-
-  #Validate seasonal.parameters
-  if(length(seasonal.parameters) > 0 && !is.character(seasonal.parameters)){
-    stop("'seasonal.parameters' are not characters")
-  }
-
-  if('AR1' %in% seasonal.parameters || 'AR2' %in% seasonal.parameters || 'AR3' %in% seasonal.parameters){
-    stop("'seasonal.parameters' cannot contain auto-correlation terms")
-  }
-  if(!('month' %in% colnames(input.data)) && length(seasonal.parameters) > 0){
-    stop("Please include monthly data with a 'month' column in the 'input.data' for subannual analysis.
-         hydroState defaults to subannual analysis when 'seasonal.parameters' are selected, but 'input.data' does not contain subannual data.
-         Columns with data for 'month' requried, else consider annual analysis with no 'seasonal.parameters'")
-  }
-
   #Validate state.shift.parameters
-  if(!is.character(state.shift.parameters)){
+  if(!is.character(shift.pars)){
     stop("'state.shift.parameters' are not character vector")
-  }
-
-  # If state shift parameters contain auto-correlation terms, but no auto-correlation in model parameters, STOP
-  if('AR1' %in% state.shift.parameters || 'AR2' %in% state.shift.parameters || 'AR3' %in% state.shift.parameters){
-    if(!(any(parameters == 'AR1') || any(parameters == 'AR2') ||  any(parameters == 'AR3'))){
-      stop("'state.shift.parameters' cannot contain auto-correlation terms because 'parameters' in state.model does not contain auto-correlation")
-    }
   }
 
   #Validate error.distribution
   if(!is.character(error.distribution)){
     stop("'error.distribution' is not a character string")
   }
-  if(!(error.distribution %in% c('normal','truc.normal','gamma'))){
+  if(!(error.distribution %in% c('normal','trunc.norm','gamma'))){
     stop("'error.distribution' must contain either 'normal', 'truc.normal' or 'gamma'")
-  }
-
-  if(length(seasonal.parameters) > 0 && error.distribution == 'normal'){
-    stop("Please select 'gamma' for error.distribution. At the moment, hydroState does not support seasonal parameters with 'error.distribution' = 'normal' or 'truc.normal'")
-
-  }else if(length(seasonal.parameters) > 0 && error.distribution == 'truc.normal'){
-
-    stop("Please select 'gamma' for error.distribution. At the moment, hydroState does not support seasonal parameters with 'error.distribution' = 'normal' or 'truc.normal'")
   }
 
   #Validate transition.graph
   if(!is.matrix(transition.graph)){
     stop("'transition.graph' must be a matrix")
   }
+
+  # Check mean formula
+  if (!any(all.vars(formula.mean[[2]]) %in% colnames(input.data)))
+    stop('The left-hand predictant in the mean formula must be in the input data.frame.')
 
   # If monthly data, sort in ascending order by year and month
   if('month' %in% colnames(input.data)){
@@ -208,253 +169,15 @@ select.stateModel <- function(input.data = data.frame(year=c(), flow=c(), precip
   }
 
   # Curate state model
-  if('AR1' %in% parameters || 'AR2' %in% parameters || 'AR3' %in% parameters){
-    auto.array = c(length(which(parameters == 'AR1')) > 0,
-                   length(which(parameters == 'AR2')) > 0,
-                   length(which(parameters == 'AR3')) > 0)
-    auto.term = paste('AR',which(auto.array == TRUE),sep='')
-
-    # Assume seasonal model if seasona paramaters
-    if(length(seasonal.parameters) > 0){
-
-      # Add if statement here if error.distribution for seasonal accepts normal or truc.normal; gamma for now
-      func = paste('QhatModel.subAnnual.homo.',error.distribution,'.linear.',auto.term,sep='')
-
-    }else{ # assume annual
-
-      # if truncated normal distribution, set item to true
-      if(error.distribution == 'truc.normal'){
-        use.truncated.dist = TRUE
-        func = paste('QhatModel.homo.','normal','.linear.',auto.term,sep='')
-      }else{
-        use.truncated.dist = FALSE
-        func = paste('QhatModel.homo.',error.distribution,'.linear.',auto.term,sep='')
-      }
-
-    }
-    # Else, no auto-correlation
-  }else{
-
-    # Assume seasonal model if seasonal paramaters
-    if(length(seasonal.parameters) > 0){
-
-      # Add if statement here if error.distribution for seasonal accepts normal or truc.normal; gamma for now
-      func = paste('QhatModel.subAnnual.homo.',error.distribution,'.linear',sep='')
-
-    }else{
-
-      # if truncated normal distribution, set item to true
-      if(error.distribution == 'truc.normal'){
-        use.truncated.dist = TRUE
-        func = paste('QhatModel.homo.','normal','.linear',sep='')
-      }else{
-        use.truncated.dist = FALSE
-        func = paste('QhatModel.homo.',error.distribution,'.linear',sep='')
-      }
-    }
-
-  }
-
-    # Check parameters that make model, to assign state shifts, no auto-correlation
-    if(length(parameters) == 3 && all(parameters %in% c('a0','a1','std'))){
-
-      state.array = c(length(which(state.shift.parameters == 'a0')) > 0,
-                      length(which(state.shift.parameters == 'a1')) > 0,
-                      length(which(state.shift.parameters == 'std')) > 0)
-
-      # If seasonal parameters, assume seasonal
-      if(length(seasonal.parameters) > 0){
-
-        #(one-day, have option to choose state shift for particular sinusoidal param (amp, phase, disp))
-        seasonal.array = c(length(which(seasonal.parameters == 'a0')) > 0,
-                           length(which(seasonal.parameters == 'a1')) > 0,
-                           length(which(seasonal.parameters == 'std')) > 0)
-
-        return(new(func, input.data, transition.graph,
-                     state.dependent.mean.a0 = state.array[1],
-                     state.dependent.mean.a1 = state.array[2],
-                     state.dependent.std.a0 = state.array[3],
-                     subAnnual.dependent.mean.a0 = seasonal.array[1],
-                     subAnnual.dependent.mean.a1 = seasonal.array[2],
-                     subAnnual.dependent.std.a0 = seasonal.array[3]))
-
-        # If not seasonal model, proceed with only option to select state shifts in model parameters
-      }else{
-
-        if(error.distribution %in% c('truc.normal','normal')){
-
-          return(new(func, input.data, use.truncated.dist, transition.graph,
-                     state.dependent.mean.a0 = state.array[1],
-                     state.dependent.mean.a1 = state.array[2],
-                     state.dependent.mean.trend=NA,
-                     state.dependent.std.a0 = state.array[3]))
-
-        }else{ #gamma does not need use.truncated.dist input
-
-          return(new(func, input.data, transition.graph,
-                     state.dependent.mean.a0 = state.array[1],
-                     state.dependent.mean.a1 = state.array[2],
-                     state.dependent.mean.trend=NA,
-                     state.dependent.std.a0 = state.array[3]))
-        }
-      }
-    }
-
-   # AR1 - now the same for auto-correlation, seasonal? seasonal state shifts for amp, phase, or disp? Or seasonal state shifts for all? ELSE non-seasonal state shifts
-  if(length(parameters) == 4 && all(parameters %in% c('a0','a1','std','AR1'))){
-
-    state.array = c(length(which(state.shift.parameters == 'a0')) > 0,
-                    length(which(state.shift.parameters == 'a1')) > 0,
-                    length(which(state.shift.parameters == 'AR1')) > 0,
-                    length(which(state.shift.parameters == 'std')) > 0)
-
-    # If seasonal parameters, assume seasonal
-    if(length(seasonal.parameters) > 0){
-
-      #(one-day, have option to choose state shift for particular sinusoidal param (amp, phase, disp))
-      seasonal.array = c(length(which(seasonal.parameters == 'a0')) > 0,
-                         length(which(seasonal.parameters == 'a1')) > 0,
-                         length(which(seasonal.parameters == 'std')) > 0)
-
-        return(new(func, input.data, transition.graph,
-                   state.dependent.mean.a0 = state.array[1],
-                   state.dependent.mean.a1 = state.array[2],
-                   state.dependent.mean.AR1 = state.array[3],
-                   state.dependent.std.a0 = state.array[4],
-                   subAnnual.dependent.mean.a0 = seasonal.array[1],
-                   subAnnual.dependent.mean.a1 = seasonal.array[2],
-                   subAnnual.dependent.std.a0 = seasonal.array[3]))
-
-      # If not seasonal model, proceed with only option to select state shifts in model parameters
-    }else{
-
-      if(error.distribution %in% c('truc.normal','normal')){
-
-        return(new(func, use.truncated.dist, input.data, transition.graph,
-                   state.dependent.mean.a0 = state.array[1],
-                   state.dependent.mean.a1 = state.array[2],
-                   state.dependent.mean.trend=NA,
-                   state.dependent.mean.AR1 = state.array[3],
-                   state.dependent.std.a0 = state.array[4]))
-      }else{ # gamma
-
-        return(new(func, input.data, transition.graph,
-                   state.dependent.mean.a0 = state.array[1],
-                   state.dependent.mean.a1 = state.array[2],
-                   state.dependent.mean.trend=NA,
-                   state.dependent.mean.AR1 = state.array[3],
-                   state.dependent.std.a0 = state.array[4]))
-      }
-    }
-  }
-  # AR2
-  if(length(parameters) == 4 && all(parameters %in% c('a0','a1','std','AR2'))){
-
-    state.array = c(length(which(state.shift.parameters == 'a0')) > 0,
-                    length(which(state.shift.parameters == 'a1')) > 0,
-                    length(which(state.shift.parameters == 'AR1')) > 0,
-                    length(which(state.shift.parameters == 'AR2')) > 0,
-                    length(which(state.shift.parameters == 'std')) > 0)
-
-    # If seasonal parameters, assume seasonal
-    if(length(seasonal.parameters) > 0){
-
-      #(one-day, have option to choose state shift for particular sinusoidal param (amp, phase, disp))
-      seasonal.array = c(length(which(seasonal.parameters == 'a0')) > 0,
-                         length(which(seasonal.parameters == 'a1')) > 0,
-                         length(which(seasonal.parameters == 'std')) > 0)
-
-      return(new(func, input.data, transition.graph,
-                 state.dependent.mean.a0 = state.array[1],
-                 state.dependent.mean.a1 = state.array[2],
-                 state.dependent.mean.AR1 = state.array[3],
-                 state.dependent.mean.AR2 = state.array[4],
-                 state.dependent.std.a0 = state.array[5],
-                 subAnnual.dependent.mean.a0 = seasonal.array[1],
-                 subAnnual.dependent.mean.a1 = seasonal.array[2],
-                 subAnnual.dependent.std.a0 = seasonal.array[3]))
-
-      # If not seasonal model, proceed with only option to select state shifts in model parameters
-    }else{
-
-      if(error.distribution %in% c('truc.normal','normal')){
-
-        return(new(func, input.data,use.truncated.dist, transition.graph,
-                   state.dependent.mean.a0 = state.array[1],
-                   state.dependent.mean.a1 = state.array[2],
-                   state.dependent.mean.trend=NA,
-                   state.dependent.mean.AR1 = state.array[3],
-                   state.dependent.mean.AR2 = state.array[4],
-                   state.dependent.std.a0 = state.array[5]))
-      }else{ # gamma
-
-        return(new(func, input.data, transition.graph,
-                   state.dependent.mean.a0 = state.array[1],
-                   state.dependent.mean.a1 = state.array[2],
-                   state.dependent.mean.trend=NA,
-                   state.dependent.mean.AR1 = state.array[3],
-                   state.dependent.mean.AR2 = state.array[4],
-                   state.dependent.std.a0 = state.array[5]))
-      }
-    }
-  }
-
-  # AR3
-  if(length(parameters) == 4 && all(parameters %in% c('a0','a1','std','AR3'))){
-
-    state.array = c(length(which(state.shift.parameters == 'a0')) > 0,
-                    length(which(state.shift.parameters == 'a1')) > 0,
-                    length(which(state.shift.parameters == 'AR1')) > 0,
-                    length(which(state.shift.parameters == 'AR2')) > 0,
-                    length(which(state.shift.parameters == 'AR3')) > 0,
-                    length(which(state.shift.parameters == 'std')) > 0)
-
-    # If seasonal parameters, assume seasonal
-    if(length(seasonal.parameters) > 0){
-
-      #(one-day, have option to choose state shift for particular sinusoidal param (amp, phase, disp))
-      seasonal.array = c(length(which(seasonal.parameters == 'a0')) > 0,
-                         length(which(seasonal.parameters == 'a1')) > 0,
-                         length(which(seasonal.parameters == 'std')) > 0)
-
-      return(new(func, input.data, transition.graph,
-                 state.dependent.mean.a0 = state.array[1],
-                 state.dependent.mean.a1 = state.array[2],
-                 state.dependent.mean.AR1 = state.array[3],
-                 state.dependent.mean.AR2 = state.array[4],
-                 state.dependent.mean.AR3 = state.array[5],
-                 state.dependent.std.a0 = state.array[6],
-                 subAnnual.dependent.mean.a0 = seasonal.array[1],
-                 subAnnual.dependent.mean.a1 = seasonal.array[2],
-                 subAnnual.dependent.std.a0 = seasonal.array[3]))
-
-      # If not seasonal model, proceed with only option to select state shifts in model parameters
-    }else{
-
-      if(error.distribution %in% c('truc.normal','normal')){
-
-        return(new(func, input.data,  use.truncated.dist, transition.graph,
-                   state.dependent.mean.a0 = state.array[1],
-                   state.dependent.mean.a1 = state.array[2],
-                   state.dependent.mean.trend=NA,
-                   state.dependent.mean.AR1 = state.array[3],
-                   state.dependent.mean.AR2 = state.array[4],
-                   state.dependent.mean.AR3 = state.array[5],
-                   state.dependent.std.a0 = state.array[6]))
-      }else{ # gamma
-
-        return(new(func, input.data, transition.graph,
-                   state.dependent.mean.a0 = state.array[1],
-                   state.dependent.mean.a1 = state.array[2],
-                   state.dependent.mean.trend=NA,
-                   state.dependent.mean.AR1 = state.array[3],
-                   state.dependent.mean.AR2 = state.array[4],
-                   state.dependent.mean.AR3 = state.array[5],
-                   state.dependent.std.a0 = state.array[6]))
-      }
-    }
-  }
-
+  return(new('QhatModel',
+             input.data,
+             formula.mean,
+             formula.var,
+             shift.pars,
+             error.distribution,
+             transition.graph=transition.graph
+             )
+         )
 }
 
 #' @keywords internal
@@ -518,8 +241,14 @@ select.Markov <- function(flickering = FALSE,
 #' @param input.data dataframe of annual, seasonal, or monthly runoff and precipitation observations. Gaps with missing data in either streamflow or precipitation are permitted. Monthly data is required when using \code{seasonal.parameters}.
 #' @param data.transform character string with the method of transformation. The default is 'boxcox'. Other options: 'log', 'burbidge', 'none'
 #' @param data.transform.constant scalar numeric to allow the transform to handle zero flow. Default is 1.
-#' @param parameters character vector of parameters to construct model. Required and default: \code{a0}, \code{a1}, \code{std}. Auto-correlation terms optional: \code{AR1}, \code{AR2}, or \code{AR3}.
-#' @param seasonal.parameters character vector of one or all parameters (\code{a0}, \code{a1}, \code{std}) defined as a sinusoidal function to represent seasonal variation. Requires monthly or seasonal data. Default is empty, no seasonal parameters.
+#' @param formula.mean formula for the mean value at each time step. Parameters must be explicit in the
+#' formula. Required and default: \code{q ~ a0 + a1 * P}. Any right hand side terms not within \code{input.date} are
+#' assumed to be parameters. Hence, errors cannot be thrown if a formula term intended to be a variable is missing
+#' from \code{input.date}. Auto-correlation terms optional: \code{AR1}, \code{AR2}, or \code{AR3}. Any or all AR terms
+#' can be used, noting that a parameter is expected to be input before the AR term (e.g.\code{a3 * AR1}).
+#' @param formula.var formula for the error variance at each time step. Parameters must be explicit in the formula.
+#' Required and the default is \code{v ~ b0 * var(q.obs)} where \code{var(q.obs)} is the variance of the
+#' observed predictant and is used to allow the b0 parameter to be between zero and one.
 #' @param state.shift.parameters character vector of one or all parameters (\code{a0}, \code{a1}, \code{std}, \code{AR1}, \code{AR2}, \code{AR3}) able to shift as dependent on state. Default is \code{a0} and \code{std}.
 #' @param error.distribution character string of the distribution in the HMM error. Default is 'truc.normal'. Others include: 'normal' or 'gamma'
 #' @param flickering logical \code{TRUE}/\code{FALSE}. \code{TRUE} = allows more sensitive markov flickering between states over time. When \code{FALSE} (default), state needs to persist for at least three time steps before state shift can occur.
@@ -544,33 +273,26 @@ select.Markov <- function(flickering = FALSE,
 #' # OR
 #'
 #' ## Build annual hydroState model with specified objects
-
-#' # Build hydroState model with: 2-state, normal error distribution,
-#' # 1-lag of auto-correlation, and state dependent parameters ('a1', 'std')
-#' model = build(input.data = streamflow_annual_221201,
-#'                    data.transform = 'boxcox',
-#'                    data.transform.constant = 1,
-#'                    parameters = c('a0','a1','std','AR1'),
-#'                    state.shift.parameters = c('a1','std'),
-#'                    error.distribution = 'normal',
-#'                    flickering = FALSE,
-#'                    transition.graph = matrix(TRUE,2,2))
+#' # Build hydroState model with: 2-state, truncated normal error distribution,
+#' # 1-lag of auto-correlation, and state dependent parameters ('a0', 'b0')
+#' mod <- build(input.data = obs.data,
+#'              data.transform = "boxcox",
+#'              formula.mean = as.formula(q ~ a0 + a1*p + a2*AR1),
+#'              formula.var = as.formula(v ~ b0 * var(q.obs)),
+#'              state.shift.parameters = c("a0", "b0"),
+#'              error.distribution = "trunc.norm",
+#'              transition.graph = matrix(TRUE, 2, 2)
+#'              )
 #'
-
-
-
 build <- function(input.data = data.frame(year=c(), flow=c(), precip=c()),
-                       data.transform = 'boxcox',
-                       data.transform.constant = 1,
-                       parameters = c('a0','a1','std'),
-                       seasonal.parameters = NULL,
-                       state.shift.parameters = c('a0','std'),
-                       error.distribution = 'truc.normal',
-                       flickering = FALSE,
-                       transition.graph = matrix(TRUE,2,2)){
-
-
-
+                  data.transform = 'boxcox',
+                  data.transform.constant = 1,
+                  formula.mean = as.formula('q ~ a0 + a1*p'),
+                  formula.var = as.formula('e ~ b0'),
+                  state.shift.parameters =  c('a0', 'b0'),
+                  error.distribution = 'trunc.norm',
+                  flickering = FALSE,
+                  transition.graph = matrix(TRUE,2,2)){
 
   #Validate input.data
   if(!is.data.frame(input.data)){
@@ -606,521 +328,19 @@ build <- function(input.data = data.frame(year=c(), flow=c(), precip=c()),
     data.transform = select.transform(data.transform, input.data, data.transform.constant)
   }
 
-  # default state model error.distribution if NULL
-  if(missing(error.distribution) && length(seasonal.parameters) < 1){
-    error.distribution = 'truc.normal'
-  }else if(missing(error.distribution) && length(seasonal.parameters) > 0){
-    error.distribution = 'gamma'
-  }
-
-# If no inputs except input.data, just run default analysis
-    if(is.null(parameters) && is.null(seasonal.parameters) && is.null(state.shift.parameters)){
-
-      # create state model
-      stateModel = select.stateModel(input.data,
-                                     parameters = c('a0','a1','std'),
-                                     seasonal.parameters,
-                                     state.shift.parameters = c('a0','std'),
-                                     error.distribution = error.distribution,
-                                     transition.graph = transition.graph)
-
-      # create Markov model
-      Markov = select.Markov(flickering, transition.graph)
-
-      # build default model
-      return(new('hydroState',input.data, data.transform, stateModel, Markov))
-
-    }else if(!is.null(parameters) && is.null(seasonal.parameters) && is.null(state.shift.parameters)){
-
-      # create state model
-      stateModel = select.stateModel(input.data,
-                                     parameters,
-                                     seasonal.parameters,
-                                     state.shift.parameters = c('a0','std'),
-                                     error.distribution = error.distribution,
-                                     transition.graph = transition.graph)
-
-      # create Markov model
-      Markov = select.Markov(flickering, transition.graph)
-
-      # build default model
-      return(new('hydroState',input.data, data.transform, stateModel, Markov))
-
-    }else if(!is.null(parameters) && !is.null(seasonal.parameters) && is.null(state.shift.parameters)){
-
-
-      # create state model
-      stateModel = select.stateModel(input.data,
-                                     parameters,
-                                     seasonal.parameters,
-                                     state.shift.parameters = c('a0','std'),
-                                     error.distribution = error.distribution,
-                                     transition.graph = transition.graph)
-
-      # create Markov model
-      Markov = select.Markov(flickering, transition.graph)
-
-      # build default model
-      return(new('hydroState',input.data, data.transform, stateModel, Markov))
-
-    }else if(!is.null(parameters) && !is.null(seasonal.parameters) && !is.null(state.shift.parameters)){
-
-      # create state model
-      stateModel = select.stateModel(input.data,
-                                     parameters,
-                                     seasonal.parameters,
-                                     state.shift.parameters,
-                                     error.distribution = error.distribution,
-                                     transition.graph = transition.graph)
-
-      # create Markov model
-      Markov = select.Markov(flickering, transition.graph)
-
-      # build default model
-      return(new('hydroState',input.data, data.transform, stateModel, Markov))
-
-    }else if(is.null(parameters) && is.null(seasonal.parameters) && !is.null(state.shift.parameters)){
-
-      # create state model
-      stateModel = select.stateModel(input.data,
-                                     parameters = c('a0','a1','std'),
-                                     seasonal.parameters,
-                                     state.shift.parameters,
-                                     error.distribution = error.distribution,
-                                     transition.graph = transition.graph)
-
-      # create Markov model
-      Markov = select.Markov(flickering, transition.graph)
-
-      # build default model
-      return(new('hydroState',input.data, data.transform, stateModel, Markov))
-
-    }else if(is.null(parameters) && !is.null(seasonal.parameters) && !is.null(state.shift.parameters)){
-
-      # create state model
-      stateModel = select.stateModel(input.data,
-                                     parameters = c('a0','a1','std'),
-                                     seasonal.parameters,
-                                     state.shift.parameters,
-                                     error.distribution = error.distribution,
-                                     transition.graph = transition.graph)
-
-      # create Markov model
-      Markov = select.Markov(flickering, transition.graph)
-
-      # build default model
-      return(new('hydroState',input.data, data.transform, stateModel, Markov))
-
-    }else if(!is.null(parameters) && is.null(seasonal.parameters) && !is.null(state.shift.parameters)){
-
-      # create state model
-      stateModel = select.stateModel(input.data,
-                                     parameters,
-                                     seasonal.parameters,
-                                     state.shift.parameters,
-                                     error.distribution = error.distribution,
-                                     transition.graph = transition.graph)
-
-      # create Markov model
-      Markov = select.Markov(flickering, transition.graph)
-
-      # build default model
-      return(new('hydroState',input.data, data.transform, stateModel, Markov))
-
-    }else if(is.null(parameters) && !is.null(seasonal.parameters) && is.null(state.shift.parameters)){
-
-      # create state model
-      stateModel = select.stateModel(input.data,
-                                     parameters = c('a0','a1','std'),
-                                     seasonal.parameters,
-                                     state.shift.parameters = c('a0','std'),
-                                     error.distribution = error.distribution,
-                                     transition.graph = transition.graph)
-
-      # create Markov model
-      Markov = select.Markov(flickering, transition.graph)
-
-      # build default model
-      return(new('hydroState',input.data, data.transform, stateModel, Markov))
-
-    }
-
-}
-
-
-#' Builds all hydroState models
-#'
-#' \code{build.all}
-#'
-#' @description
-#' \code{build.all} builds all possible combinations of hydroState models. The same fields are available as in \code{\link{build}} in order to specify the type of models to be built. After all models are built, they are fitted using the same \code{fit.hydroState()} function.
-#'
-#' @details
-#' All possible combinations of hydroState models are built for each auto-correlation lag and residual distribution from 1 to 3 states for a specified data transformation. This allows for investigation of state changes in the \code{state.shift.parameters}: the intercept \code{c('a0', 'std')} or slope \code{c('a1', 'std')}. To reduce the number of models in the search, specify which field(s) to remain constant. For example, to investigate the best model with the number of auto-correlation terms and number of states with a \code{boxcox} data transform and \code{gamma} distribution of the residuals, set \code{data.transform} to \code{boxcox} and \code{error.distribution} to \code{gamma}. If no fields are specified, all possible model combinations are built. If investigating state shifts in the intercept \code{a0} and slope \code{a1}, it is recommended to build and fit the model combinations separately.
-#'
-#' @param input.data dataframe of annual, seasonal, or monthly runoff and precipitation observations. Gaps with missing data in either streamflow or precipitation are permitted, and the handling of them is further discussed in \code{build}. Monthly data is required when using \code{seasonal.parameters} that assumes selected model parameters are better defined with a sinusoidal function.
-#' @param data.transform character string of method of transformation. If empty, the default builds all possible combinations of models with \code{boxcox} data transformation.
-#' @param parameters character vector of parameters to determine model form. If empty, the default builds all possible combinations of model forms.
-#' @param seasonal.parameters character vector of parameters with sinusoidal function to represent seasonal variation. Requires monthly or seasonal data. If empty and monthly or seasonal data is given, the default builds all possible combinations of models with a seasonal parameter for each and all parameters.
-#' @param state.shift.parameters character vector of one or all parameters to identify state dependent parameters. Only one set of parameters permitted. If empty, the default builds all possible model combinations with \code{c('a0','std')} as state shift parameters.
-#' @param error.distribution character string of the distribution in the HMM error. If empty, the default builds models with all possible combinations of error distribution: \code{c('truc.normal', 'normal','gamma')}
-#' @param flickering logical \code{TRUE}/\code{FALSE}. \code{TRUE} = allows more sensitive markov flickering between states over time. When \code{FALSE} (default), state needs to persist for at least three time steps before state shift can occur.
-#' @param transition.graph list of transition.graph matrices for the given number of states. If empty, the default builds models with all possible combinations of states.
-#'      Default (all state models): \code{list(matrix(TRUE,1,1),matrix(TRUE,2,2),matrix(TRUE,3,3))},
-#'      Only 1 and 2 state models:  \code{list(matrix(TRUE,1,1),matrix(TRUE,2,2))},
-#'      Only 2 state models:  \code{list(matrix(TRUE,2,2))}
-#' @param siteID character string of site identifier.
-#' @param summary.table data frame with a table summarizing all built models and corresponding reference model. From function \code{summary()}. If empty, summary table will be built automatically.
-#'
-#'
-#' @return
-#' A list of built hydroState models with every combination of objects ready to be fitted
-#'
-#' @keywords hydroState build all
-#'
-#'
-#' @export
-#' @importFrom methods new
-#'
-#' @examples
-#' # Load data
-#' data(streamflow_annual_221201)
-#'
-#' # Build all annual models with state shift in intercept 'a0'
-#' all.annual.models = build.all(input.data = streamflow_annual_221201,
-#'                                     state.shift.parameters = c('a0','std'),
-#'                                      siteID = '221201')
-#'
-#' # OR
-#'
-#' # Build all annual models with state shift in slope 'a1'
-#' all.annual.models = build.all(input.data = streamflow_annual_221201,
-#'                                     state.shift.parameters = c('a1','std'),
-#'                                      siteID = '221201')
-#'
-
-
-build.all <-function(input.data = data.frame(year=c(), flow=c(), precip=c()),
-                         data.transform = NULL,
-                         parameters = NULL,
-                         seasonal.parameters = NULL,
-                         state.shift.parameters = NULL,
-                         error.distribution = NULL,
-                         flickering = FALSE,
-                         transition.graph = NULL,
-                         summary.table = NULL,
-                         siteID = NULL){
-
-  #######################################################
-
-
-
-  #site id
-  if(is.null(siteID)){
-    siteID = ""
-  }
-
-  # get data.transform (all possible options)
-
-  if(is.null(data.transform)){
-    data.transform = list('boxcox')
-    names(data.transform) = c("boxcox")
-  }else if(length(data.transform)>1){
-    stop("Only one data.transform is permitted.")
-  }else{
-    data.transform = list(data.transform)
-  }
-
-  if(is.null(parameters)){
-    parameters = list(list('a0','a1','std'), list('a0','a1','std','AR1'), list('a0','a1','std','AR2'), list('a0','a1','std','AR3'))
-    names(parameters) = c("AR0","AR1","AR2","AR3")
-  }else if(length(parameters)>length(unique(parameters))){
-    stop("parameters requiers only one set of unique paremeters as character vector (i.e. c('param1', 'param2')) per build.all")
-  }else{
-    parameters = list(parameters)
-    names(parameters) = ifelse("AR1" %in% unlist(parameters),"AR1",ifelse("AR2" %in% unlist(parameters),"AR2", ifelse("AR3" %in% unlist(parameters), "AR3","AR0")))
-  }
-
-  if(is.null(transition.graph)){
-    transition.graph = list(matrix(TRUE,1,1),matrix(TRUE,2,2),matrix(TRUE,3,3))#,matrix(c(TRUE,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,FALSE,TRUE),3,3))
-    names(transition.graph) = c("1State","2State","3State")
-
-  }else{
-
-    # if(length(transition.graph) == 1){
-      if(!is.list(transition.graph)){
-        stop("transition.graph must be a list of a matrix or matrices for investigating transition state graphs in build.all")
-      }
-      # if(!(is.matrix(transition.graph))){
-      #   stop("transition.graph must be a matrix for investigating one transition graph in build.all")
-      # }
-    # }else{
-
-      # if(length(transition.graph) > 1){
-      #   if(!(is.list(transition.graph))){
-      #     stop("transition.graph must be a list of matrices for investigating multiple transition state graphs in build.all")
-      #   }
-      #   if(!(is.matrix(unlist(transition.graph)))){
-      #     stop("transition.graph must be a list of matrices for investigating multiple transition state graphs in build.all, items in list are not matrices")
-      #   }
-      # }
-    # }
-
-      if(any(lengths(transition.graph) ==1)){
-        names(transition.graph)[which(lengths(transition.graph) ==1)] = "1State"
-      }
-
-      if(any(lengths(transition.graph) ==4)){
-        names(transition.graph)[which(lengths(transition.graph) ==4)] = "2State"
-      }
-
-      if(any(lengths(transition.graph) ==9)){
-        names(transition.graph)[which(lengths(transition.graph) ==9)] = "3State"
-      }
-
-    # which list item does not have a 1, 2, 3 state matrix
-      if(length(which(!(lengths(transition.graph) %in% c(1, 4, 9)))) >0){
-      names(transition.graph)[length(which(!(lengths(transition.graph) %in% c(1, 4, 9))))] <- "UserState"
-      }
-
-    }
-
-
-  if(is.null(state.shift.parameters)){
-    state.shift.parameters = list(c('a0','std'))
-    names(state.shift.parameters) = paste(unlist(state.shift.parameters), collapse = '')
-  }else if(length(state.shift.parameters)>length(unique(state.shift.parameters))){
-    stop("state.shift.parameters requiers only one set of unique parameters as character vector (i.e. c('param1', 'param2')) per build.all")
-  }else{
-    state.shift.parameters = list(state.shift.parameters)
-    names(state.shift.parameters) =  paste(unlist(state.shift.parameters), collapse = '')  #ifelse("a0" %in% unlist(state.shift.parameters),"a0",ifelse("a1" %in% unlist(state.shift.parameters),"a1", ""))
-
-  }
-
-  if('month' %in% colnames(input.data)){
-
-    if(length(seasonal.parameters) < 1){
-      seasonal.parameters = list(list('a0'), list('a0','std'),list('a0','a1','std'),
-                                 list('a1'), list('a1','std'), list('a0','a1'),list('std'))
-      names(seasonal.parameters) =list('a0.seasonal', 'a0.std.seasonal', 'a0.a1.std.seasonal',
-                                       'a1.seasonal', 'a1.std.seasonal', 'a0.a1.seasonal', 'std.seasonal')
-    }else{
-      seasonal.parameters = list(seasonal.parameters)
-      names(seasonal.parameters) = ifelse("a0" %in% unlist(seasonal.parameters),"a0.seasonal",
-                                          ifelse("a1" %in% unlist(seasonal.parameters),"a1.seasonal",
-                                                 ifelse("a0" %in% unlist(seasonal.parameters) && "a1" %in% unlist(seasonal.parameters) ,"a0.a1.seasonal",
-                                                        ifelse("a0" %in% unlist(seasonal.parameters) && "std" %in% unlist(seasonal.parameters) ,"a0.std.seasonal",
-                                                               ifelse("a1" %in% unlist(seasonal.parameters) && "std" %in% unlist(seasonal.parameters) ,"a1.std.seasonal",
-                                                                      ifelse("a0" %in% unlist(seasonal.parameters) && "a1" %in% unlist(seasonal.parameters) && "std" %in% unlist(seasonal.parameters) ,"a0.a1.std.seasonal",
-                                                                             ifelse("std" %in% unlist(seasonal.parameters),"std.seasonal","")))))))
-
-    }
-  }
-
-  if('month' %in% colnames(input.data)){
-
-    if(length(seasonal.parameters) > 0){
-
-      error.distribution = list('gamma')
-      message('Subannual models built with gamma error.distribution')
-
-    }else if(missing(error.distribution)){
-      error.distribution = list('truc.normal','normal','gamma')
-    }else{
-      error.distribution = list(error.distribution)
-    }
-
-  }else{
-
-    if(missing(error.distribution)){
-      error.distribution = list('truc.normal','normal','gamma')
-    }else{
-      error.distribution = list(error.distribution)
-    }
-
-  }
-
-  # build all models
-
-  if(length(seasonal.parameters) > 0){
-    build.all.model = vector(mode = "list", length = length(transition.graph) * length(error.distribution) * length(state.shift.parameters) * length(seasonal.parameters) * length(data.transform))
-    build.all.model.names = vector(mode = "list", length = length(transition.graph) * length(error.distribution) * length(state.shift.parameters) * length(seasonal.parameters) * length(data.transform))
-
-    build.all.model.count = 1
-
-    # seasonal first... if seasonal parameters
-    for(i in 1:length(parameters)){
-
-      temp.parameters = parameters[[i]]
-
-      temp.parameters.name = names(parameters[i])
-
-      for(j in 1:length(data.transform)){
-
-        temp.data.transform = data.transform[[j]]
-
-        for(k in 1:length(state.shift.parameters)){
-
-          temp.state.shift.parameters = state.shift.parameters[[k]]
-
-          temp.state.shift.parameters.name = names(state.shift.parameters[k])
-
-          for(m in 1:length(seasonal.parameters)){
-
-            temp.seasonal.parameters = seasonal.parameters[[m]]
-
-            temp.seasonal.parameters.name = names(seasonal.parameters[m])
-
-            for(z in 1:length(error.distribution)){
-
-              temp.error.distribution = error.distribution[[z]]
-
-              for(y in 1:length(transition.graph)){
-
-                temp.transition.graph = transition.graph[[y]]
-
-                temp.transition.graph.name = names(transition.graph[y])
-
-
-                build.all.model[[build.all.model.count]] = hydroState::build(input.data,
-                                                                      data.transform = temp.data.transform,
-                                                                      parameters = unlist(temp.parameters),
-                                                                      seasonal.parameters = unlist(temp.seasonal.parameters),
-                                                                      state.shift.parameters = unlist(temp.state.shift.parameters),
-                                                                      error.distribution = unlist(temp.error.distribution),
-                                                                      flickering = flickering,
-                                                                      transition.graph = temp.transition.graph)
-
-                build.all.model.names[[build.all.model.count]] <- paste("model.",temp.transition.graph.name,".",temp.error.distribution,".",temp.data.transform,".",temp.parameters.name,".",temp.seasonal.parameters.name,".",temp.state.shift.parameters.name,sep="")
-
-                build.all.model.count = build.all.model.count + 1
-
-              }
-            }
-          }
-        }
-      }
-    }
-
-    # if not seasonal, just do annual..
-  }else{
-    build.all.model = vector(mode = "list", length = length(transition.graph) * length(error.distribution) * length(state.shift.parameters) * length(data.transform))
-    build.all.model.names = vector(mode = "list", length = length(transition.graph) * length(error.distribution) * length(state.shift.parameters) * length(data.transform))
-
-    build.all.model.count = 1
-
-    for(i in 1:length(parameters)){
-
-      temp.parameters = parameters[[i]]
-
-      temp.parameters.name = names(parameters[i])
-
-      for(j in 1:length(data.transform)){
-
-        temp.data.transform = data.transform[[j]]
-
-        for(k in 1:length(state.shift.parameters)){
-
-          temp.state.shift.parameters = state.shift.parameters[[k]]
-
-          temp.state.shift.parameters.name = names(state.shift.parameters[k])
-
-          for(z in 1:length(error.distribution)){
-
-            temp.error.distribution = error.distribution[[z]]
-
-            for(y in 1:length(transition.graph)){
-
-              temp.transition.graph = transition.graph[[y]]
-
-              temp.transition.graph.name = names(transition.graph[y])
-
-
-              build.all.model[[build.all.model.count]] = hydroState::build(input.data,
-                                                                    data.transform = temp.data.transform,
-                                                                    parameters = unlist(temp.parameters),
-                                                                    state.shift.parameters = unlist(temp.state.shift.parameters),
-                                                                    error.distribution = unlist(temp.error.distribution),
-                                                                    flickering = flickering,
-                                                                    transition.graph = temp.transition.graph)
-
-              build.all.model.names[[build.all.model.count]] <- paste("model.",temp.transition.graph.name,".",temp.error.distribution,".",temp.data.transform,".",temp.parameters.name,".",temp.state.shift.parameters.name,sep="")
-
-              build.all.model.count = build.all.model.count + 1
-
-            }
-          }
-        }
-      }
-    }
-  }
-
-  build.all.model <- setNames(build.all.model, unlist(build.all.model.names))
-
-  # make all.models a all.Models object
-  build.all.model <- new('hydroState.allModels',models = build.all.model, siteID = siteID)
-
-  if(is.null(summary.table)){
-
-    build.all.model <- get.summary.table(build.all.model)
-
-  }else{
-
-    build.all.model <- get.summary.table(build.all.model, summary.table)
-  }
-  # now create summary table and assign calibration items
-
-
-  # build.all.model.table <- showModelAll(build.all.model)
-  # order and make a hydroState.allModels object
-  # debugonce("get.summary.table","hydroState.allModels")
-
-  return(build.all.model)
-
-}
-
-#' Summarize all models
-#'
-#'\code{summary}
-#'
-#' @description
-#' \code{summary} outputs a summary table of all built hydroState models and allows users to edit the reference models for calibration.
-#'
-#' @details
-#' For every model object in \code{build.all}, there is a reference model for calibration. The reference model is a slightly simpler model with one less parameter. During calibration with \code{fit}, the model performance must exceed the the performance of the reference model else the model is rejected. This function is used to output the \code{summary.table} and adjust the reference models. Afterwards, all models can be re-build with including this \code{summary.table} in the \code{build.all} function.
-#'
-#'
-#' @param object hydroState.allModels object with a list of models from \code{build.all}
-#' @param ... No additional input required
-#'
-#' @return
-#' A data.frame with a summary table of all models and reference models
-#'
-#' @keywords hydroState summary all models
-#'
-#' @export
-#'
-#' @examples
-#' # Show summary table of all fitted model details and reference models
-#'
-#' all.models.ref.table = summary(all.models.annual.fitted.407211)
-#'
-
-summary.hydroState.allModels <- function(object, ...){
-
-  all.models = object
-
-
-  if(class(all.models)[1] == 'hydroState.allModels'){
-
-    all.models.summary <- get.summary.table(all.models, all.models@models.summary)
-
-    return(as.data.frame(all.models.summary@models.summary))
-
-  }else{
-
-    stop("'all.models' is not a 'hydroState.allModels' object")
-  }
+  # create state model
+  stateModel = select.stateModel(input.data,
+                                 formula.mean,
+                                 formula.var,
+                                 state.shift.parameters,
+                                 error.distribution,
+                                 transition.graph)
+
+  # create Markov model
+  Markov = select.Markov(flickering, transition.graph)
+
+  # build default model
+  return(new('hydroState',input.data, data.transform, stateModel, Markov))
 }
 
 

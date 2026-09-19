@@ -80,6 +80,7 @@ Useful links:
 
 Authors:
 \itemize{
+  \item Tim Peterson \email{tim.peterson@monash.edu} (\href{https://orcid.org/0000-0002-1885-0826}{ORCID}) [copyright holder]
   \item Thomas Westfall \email{thomas.westfall1@monash.edu} (\href{https://orcid.org/0009-0000-0529-881X}{ORCID})
 }
 

@@ -8,10 +8,10 @@ build(
   input.data = data.frame(year = c(), flow = c(), precip = c()),
   data.transform = "boxcox",
   data.transform.constant = 1,
-  parameters = c("a0", "a1", "std"),
-  seasonal.parameters = NULL,
-  state.shift.parameters = c("a0", "std"),
-  error.distribution = "truc.normal",
+  formula.mean = as.formula("q ~ a0 + a1*p"),
+  formula.var = as.formula("e ~ b0"),
+  state.shift.parameters = c("a0", "b0"),
+  error.distribution = "trunc.norm",
   flickering = FALSE,
   transition.graph = matrix(TRUE, 2, 2)
 )
@@ -23,9 +23,15 @@ build(
 
 \item{data.transform.constant}{scalar numeric to allow the transform to handle zero flow. Default is 1.}
 
-\item{parameters}{character vector of parameters to construct model. Required and default: \code{a0}, \code{a1}, \code{std}. Auto-correlation terms optional: \code{AR1}, \code{AR2}, or \code{AR3}.}
+\item{formula.mean}{formula for the mean value at each time step. Parameters must be explicit in the
+formula. Required and default: \code{q ~ a0 + a1 * P}. Any right hand side terms not within \code{input.date} are
+assumed to be parameters. Hence, errors cannot be thrown if a formula term intended to be a variable is missing
+from \code{input.date}. Auto-correlation terms optional: \code{AR1}, \code{AR2}, or \code{AR3}. Any or all AR terms
+can be used, noting that a parameter is expected to be input before the AR term (e.g.\code{a3 * AR1}).}
 
-\item{seasonal.parameters}{character vector of one or all parameters (\code{a0}, \code{a1}, \code{std}) defined as a sinusoidal function to represent seasonal variation. Requires monthly or seasonal data. Default is empty, no seasonal parameters.}
+\item{formula.var}{formula for the error variance at each time step. Parameters must be explicit in the formula.
+Required and the default is \code{v ~ b0 * var(q.obs)} where \code{var(q.obs)} is the variance of the
+observed predictant and is used to allow the b0 parameter to be between zero and one.}
 
 \item{state.shift.parameters}{character vector of one or all parameters (\code{a0}, \code{a1}, \code{std}, \code{AR1}, \code{AR2}, \code{AR3}) able to shift as dependent on state. Default is \code{a0} and \code{std}.}
 
@@ -86,16 +92,16 @@ model = build(input.data = streamflow_annual_221201)
 # OR
 
 ## Build annual hydroState model with specified objects
-# Build hydroState model with: 2-state, normal error distribution,
-# 1-lag of auto-correlation, and state dependent parameters ('a1', 'std')
-model = build(input.data = streamflow_annual_221201,
-                   data.transform = 'boxcox',
-                   data.transform.constant = 1,
-                   parameters = c('a0','a1','std','AR1'),
-                   state.shift.parameters = c('a1','std'),
-                   error.distribution = 'normal',
-                   flickering = FALSE,
-                   transition.graph = matrix(TRUE,2,2))
+# Build hydroState model with: 2-state, truncated normal error distribution,
+# 1-lag of auto-correlation, and state dependent parameters ('a0', 'b0')
+mod <- build(input.data = obs.data,
+             data.transform = "boxcox",
+             formula.mean = as.formula(q ~ a0 + a1*p + a2*AR1),
+             formula.var = as.formula(v ~ b0 * var(q.obs)),
+             state.shift.parameters = c("a0", "b0"),
+             error.distribution = "trunc.norm",
+             transition.graph = matrix(TRUE, 2, 2)
+             )
 
 }
 \keyword{build}

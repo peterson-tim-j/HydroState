@@ -11,14 +11,14 @@ Qhat.burbidge <- setClass(
   # Define the slots
   slots = c(
     input.data = "data.frame",
-    parameters = "parameters",
+    parameters = "model_parameters",
     constant = 'numeric'
   ),
 
   # Set the default values for the slots. (optional)
   prototype=list(
     input.data = data.frame(year=c(0),month=c(0),precipitation=c(0)),
-    parameters= new('parameters',c('lambda.burbidge'),c(10)),
+    parameters= new('model_parameters',c('lambda.burbidge'),c(10)),
     constant = 1
   )
 )
@@ -45,10 +45,9 @@ setMethod(f="getQhat",signature=c("Qhat.burbidge",'data.frame'),definition=funct
     stop('"Data" must be a data.frame.')
 
   # Get object parameter list
-  parameters = getParameters(.Object@parameters)
-
-  data$Qhat.flow <- asinh((data$flow + .Object@constant)/abs(parameters$lambda.burbidge))/asinh(1.0/abs(parameters$lambda.burbidge))
-  data$Qhat.precipitation <- data$precipitation
+  parameters <- parameters(.Object@parameters)
+  data$q <- asinh((data$q + .Object@constant)/abs(parameters$lambda.burbidge))/asinh(1.0/abs(parameters$lambda.burbidge))
+  data$p <- data$p
 
   return(data)
 }
@@ -57,7 +56,7 @@ setMethod(f="getQhat",signature=c("Qhat.burbidge",'data.frame'),definition=funct
 # Calculate the transformed flow using the object data
 setMethod(f="getQhat",signature="Qhat.burbidge",definition=function(.Object)
 {
-  data = .Object@input.data$flow
+  data = .Object@input.data$q
   return(getQhat(.Object, data))
 }
 )
@@ -67,11 +66,18 @@ setMethod(f="getQ.backTransformed",signature=c("Qhat.burbidge",'data.frame'),def
   if (!is.data.frame(data))
     stop('"Data" must be a data.frame.')
 
-  # Get object parameter list
-  parameters = getParameters(.Object@parameters)
+  parameters <- parameters(.Object@parameters)
 
-  data$flow.modelled <- sinh(data$Qhat.flow * asinh(1.0/abs(parameters$lambda.burbidge)))*abs(parameters$lambda.burbidge) - .Object@constant
+  data$flow.modelled <- sinh(data$q * asinh(1.0/abs(parameters$lambda.burbidge)))*abs(parameters$lambda.burbidge) - .Object@constant
   return(data)
 
+}
+)
+
+setMethod(f="get.zeroFlow",signature=c("Qhat.burbidge"),definition=function(.Object)
+{
+  data = data.frame(p = 0, q= 0)
+  data = getQhat(.Object, data)
+  return( as.numeric(data$q[1]))
 }
 )

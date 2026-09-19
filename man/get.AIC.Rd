@@ -10,7 +10,7 @@ get.AIC(model)
 \item{model}{fitted \code{hydroState} model object.}
 }
 \value{
-AIC value of a single model or a list variable of AIC values for al models
+AIC value of a single model or a list variable of AIC values for all models
 }
 \description{
 \code{get.AIC} retrieves Akaike information criteria from a fitted hydroState model object or all models.

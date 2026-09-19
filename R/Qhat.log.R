@@ -11,14 +11,14 @@ Qhat.log <- setClass(
   # Define the slots
   slots = c(
     input.data = "data.frame",
-    parameters = 'parameters',
+    parameters = 'model_parameters',
     constant = 'numeric'
   ),
 
   # Set the default values for the slots. (optional)
   prototype=list(
     input.data = data.frame(year=c(0),month=c(0),precipitation=c(0)),
-    parameters= new('parameters',c(),c()),
+    parameters= new('model_parameters',c(),c()),
     constant = 1
   )
 )
@@ -40,7 +40,7 @@ setMethod(f="getQhat",signature=c("Qhat.log",'data.frame'),definition=function(.
   if (!is.data.frame(data))
     stop('"data" must be a data.frame.')
 
-  data$Qhat.flow <- log(data$flow + .Object@constant)
+  data$Qhat.flow <- log(data$q + .Object@constant)
   data$Qhat.precipitation <- data$precipitation
   return(data)
 }
@@ -60,7 +60,15 @@ setMethod(f="getQ.backTransformed",signature=c("Qhat.log",'data.frame'),definiti
   if (!is.data.frame(data))
     stop('"data" must be a data.frame.')
 
-  data$flow.modelled <- exp(data$Qhat.flow) - .Object@constant
+  data$flow.modelled <- exp(data$q) - .Object@constant
   return(data)
+}
+)
+
+setMethod(f="get.zeroFlow",signature=c("Qhat.log"),definition=function(.Object)
+{
+  data = data.frame(p = 0, q= 0)
+  data = getQhat(.Object, data)
+  return( as.numeric(data$q[1]))
 }
 )

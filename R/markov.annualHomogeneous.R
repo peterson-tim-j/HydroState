@@ -12,7 +12,7 @@ markov.annualHomogeneous <- setClass(
   slots = c(
     transition.graph = "matrix",
     transition.graph.parameter.index = "matrix",
-    parameters = "parameters"
+    parameters = "model_parameters"
 
   ),
 
@@ -20,7 +20,7 @@ markov.annualHomogeneous <- setClass(
   prototype=list(
     transition.graph = matrix(TRUE,2,2),
     transition.graph.parameter.index = matrix(c(1,-1,2,-1),nrow = 2,ncol=2),
-    parameters = new('parameters',c('transition.prob', 'initial.state.prob'),c(1,1))
+    parameters = new('model_parameters',character(),numeric())
   )
 )
 
@@ -32,18 +32,35 @@ validObject <- function(object) {
 setValidity("markov.annualHomogeneous", validObject)
 
 # Initialise object
-#setGeneric(name="initialize",def=function(.Object,transition.graph) {standardGeneric("initialize")})
 setMethod(f="initialize",
           signature="markov.annualHomogeneous",
           definition=function(.Object, transition.graph)
           {
             .Object@transition.graph <- transition.graph
 
-            # Set te number of transition parameters and a matrxi of indexes to them.
-            .Object <- initialize.TransitionParameters(.Object)
+            # Get the number of transition parameters and a matrxi of indexes to them.
+            trans_Pr <- initialize.TransitionParameters(.Object)
+            .Object@transition.graph.parameter.index <- trans_Pr$trans_Pr_index
 
-            # Set the initial stat probs.
-            .Object <- initialize.StateProbParameters(.Object)
+            # Get the initial stat probs.
+            state_Pr <- initialize.StateProbParameters(.Object)
+
+            # Build obj for parameters if >1 states
+            if (getNumStates(.Object)>1) {
+              param.names <- c('transition.prob', 'initial.probs')
+              param.nstates = c(length(trans_Pr$trans_Pr), length(state_Pr))
+              .Object@parameters = new('model_parameters', param.names, param.nstates)
+
+              # Sets bounds 0-1
+              bnds <- bounds(.Object@parameters)
+              bnds[,1] = 0
+              bnds[,2] = 1
+              bounds(.Object@parameters) <- bnds
+            } else {
+              .Object@parameters@values = list()
+              .Object@parameters@bounds = matrix( numeric(), 0, 2, dimnames = list(character(),c('lower','upper')))
+              .Object@parameters@transform = logical()
+            }
 
             validObject(.Object)
             return(.Object)
@@ -56,46 +73,47 @@ setMethod(f="initialize.TransitionParameters",
           signature="markov.annualHomogeneous",
           definition=function(.Object)
           {
-
             # Get number of states
             nStates = getNumStates(.Object)
 
             # Handle 1 state model.
             if (nStates==1) {
-              .Object@transition.graph.parameter.index <- matrix(1,1,1)
-              .Object@parameters@values$transition.prob <- c()
-              return(.Object)
-            }
+              trans_Pr_index = matrix(1,1,1)
+              trans_Pr = numeric()
+              #.Object@transition.graph.parameter.index <- matrix(1,1,1)
+              #.Object@parameters@values$transition.prob <- c()
+              #return(.Object)
+            } else {
+              # Set dimensions of matrix of indexes to transition probs.
+              trans_Pr_index = matrix(0,nStates,nStates)
 
-            # Set dimensions of matrix of indexes to transition probs.
-            .Object@transition.graph.parameter.index = matrix(0,nStates,nStates)
+              # First set the transition parameters to the number of states
+              # and define indexes to these parameters.
+              trans_Pr = rep(0.5, nStates)
+              diag(trans_Pr_index) = 1:nStates
 
-            # First set the transition parameters to the number of states
-            # and define indexes to these parameters.
-            .Object@parameters@values$transition.prob = rep(0.5, nStates)
-            diag(.Object@transition.graph.parameter.index) = 1:nStates
+              # Loop through each row of the graph and assess if there are more than one TRUE
+              # entry that is non-diagonal
+              for (i in 1:nStates) {
+                # Build an index to state transitions from state i excluding the diagonal
+                ind <- 1:nStates
+                filt <- as.vector(.Object@transition.graph[i,])
+                filt[i] <- FALSE
+                ind <- ind[filt]
 
-            # Loop through each row of the graph and assess if there are more than one TRUE
-            # entry that is non-diagonal
-            for (i in 1:nStates) {
-              # Build an index to state transitions from state i excluding the diagonal
-              ind <- 1:nStates
-              filt <- as.vector(.Object@transition.graph[i,])
-              filt[i] <- FALSE
-              ind <- ind[filt]
-
-              # Chec there is only one other tranition and asign prob.
-              if (length(ind)>1) {
-                nParams = length(.Object@parameters@values$transition.prob)
-                .Object@parameters@values$transition.prob = c(.Object@parameters@values$transition.prob, rep(0.0, length(ind)-1))
-                .Object@transition.graph.parameter.index[i,ind[1:length(ind)-1]] = (nParams+1):(nParams+length(ind)-1);
-                .Object@transition.graph.parameter.index[i,ind[length(ind)]] = -1;
-              } else {
-                .Object@transition.graph.parameter.index[i,ind] = -1;
+                # Check there is only one other transition and asign prob.
+                if (length(ind)>1) {
+                  nParams = length(trans_Pr)
+                  trans_Pr = c(trans_Pr, rep(0.0, length(ind)-1))
+                  trans_Pr_index[i,ind[1:length(ind)-1]] = (nParams+1):(nParams+length(ind)-1);
+                  trans_Pr_index[i,ind[length(ind)]] = -1;
+                } else {
+                  trans_Pr_index[i,ind] = -1;
+                }
               }
             }
 
-            return(.Object)
+            return(list(trans_Pr=trans_Pr, trans_Pr_index=trans_Pr_index) )
           }
 )
 
@@ -108,38 +126,14 @@ setMethod(f="initialize.StateProbParameters",
             # Get number of states
             nStates = getNumStates(.Object)
 
-            # Handle 1 state model.
-            if (nStates==1) {
-              .Object@parameters@values$initial.state.prob <- c()
-              return(.Object)
-            }
-
             # Set dimensions of matrix of indexes to transition probs.
-            .Object@parameters@values$initial.state.prob = rep(1/nStates,nStates-1)
+            if (nStates==1)
+              state_Pr <- c()
+            else
+              state_Pr = rep(1/nStates,nStates-1)
 
-            return(.Object)
+            return(state_Pr)
 
-          }
-)
-
-# create a method to assign the parameter
-#setGeneric(name="setParameters", def=function(.Object,parameters) {standardGeneric("setParameters")})
-setMethod(f="setParameters",
-          signature="markov.annualHomogeneous",
-          definition=function(.Object,parameters)
-          {
-            if (length(.Object@parameters$transition.prob)==length(parameters$transition.prob)) {
-              .Object@parameters$transition.prob = pmin(pmax(0,parameters$transition.prob),1)
-            } else {
-              stop('The length of "transition.prob" must equal that within the object.')
-            }
-
-            if (length(.Object@parameters$initial.state.prob)==length(parameters$initial.state.prob)) {
-              .Object@parameters$initial.state.prob = pmin(pmax(0,parameters$initial.state.prob),1)
-            } else {
-              stop('The length of "initial.state.prob" must equal that within the object.')
-            }
-            return(.Object)
           }
 )
 
@@ -148,7 +142,6 @@ setMethod(f="getInitialStateProbabilities",
           signature="markov.annualHomogeneous",
           definition=function(.Object)
           {
-
             # Get number of states
             nStates = getNumStates(.Object)
 
@@ -157,8 +150,7 @@ setMethod(f="getInitialStateProbabilities",
               return(c(1))
             }
 
-            # Get object parameter vector
-            parameters = getParameters(.Object@parameters)
+            parameters <- parameters(.Object@parameters)
 
             initial.probs = c(parameters$initial.state.prob,0);
 
@@ -200,8 +192,7 @@ setMethod(f="getTransitionProbabilities",
               return(c(1))
             }
 
-            # Get object parameter vector
-            parameters = getParameters(.Object@parameters)
+            parameters <- parameters(.Object@parameters)
 
             # Loop though each element of the transition graph to build the matrix
             Tprob = matrix(0.0,nStates,nStates)
@@ -219,8 +210,6 @@ setMethod(f="getTransitionProbabilities",
                     Tprob[i,j] = (1-Psum) * parameters$transition.prob[.Object@transition.graph.parameter.index[i,j]]
                     Psum = Psum + Tprob[i,j]
                   }
-
-
                 }
               }
             }
@@ -240,19 +229,15 @@ setMethod(f="getTransitionProbabilities",
 setMethod(f="getLogLikelihood", signature=c("markov.annualHomogeneous","data.frame","matrix"),
           definition=function(.Object, data, emission.probs)
           {
-          # Check all the emmision probs. are finite.
+            # Check all the emmision probs. are finite.
             if (any(is.infinite(emission.probs)))
               return(Inf)
-            # message("getLogLikelihood")
+
             # Get number of states
             nStates = getNumStates(.Object)
 
-            # Check required fields exist
-            if (!any(names(data)=='Qhat.flow'))
-              stop('"data" must be a data.frame with the field "Qhat.flow".')
-
             # Built filter for non NAs.
-            filt <- is.finite(data$Qhat.flow)&is.finite(data$Qhat.precipitation)
+            filt <- is.finite(data$q) & is.finite(data$p)
 
             # Handle 1 state model.
             if (nStates==1) {
@@ -284,7 +269,7 @@ setMethod(f="getLogLikelihood", signature=c("markov.annualHomogeneous","data.fra
               # Get prob of switching into state i
               prob.in = sum(Tprob[ind,i])
 
-              if ((prob.in + prob.out)>=1) {
+              if ((prob.in + prob.out) > 1) {
                 return(Inf)
               }
             }
@@ -296,7 +281,6 @@ setMethod(f="getLogLikelihood", signature=c("markov.annualHomogeneous","data.fra
               if (any(which(max(P.forward[,1])==P.forward[,1]) != which(max(P.forward[,2])==P.forward[,2])))
                 return(Inf)
             }
-
 
             # Set Emmision probs 1.0 if no obs data.
             emission.probs[!filt,] = 1
@@ -326,7 +310,6 @@ setMethod(f="getLogLikelihood", signature=c("markov.annualHomogeneous","data.fra
             }
 
             return(lscale)
-
           }
 )
 
@@ -336,17 +319,11 @@ setGeneric(name="getLogForwardProbabilities",def=function(.Object, data, emissio
 setMethod(f="getLogForwardProbabilities", signature=c("markov.annualHomogeneous","data.frame","matrix"),
           definition=function(.Object, data, emission.probs)
           {
-
             # Get number of states
             nStates = getNumStates(.Object)
 
             # Built filter for non NAs.
-            filt <- !is.na(data$Qhat.flow)
-
-            # Handle 1 state model.
-            #if (nStates==1) {
-            #  return(sum(log(emission.probs[filt])))
-            #}
+            filt <- !is.na(data$q)
 
             # Get the initial state probabilites
             alpha = getInitialStateProbabilities(.Object)
@@ -389,7 +366,7 @@ setMethod(f="getLogBackwardProbabilities", signature=c("markov.annualHomogeneous
             nStates = getNumStates(.Object)
 
             # Built filter for non NAs.
-            filt <- !is.na(data$Qhat.flow)
+            filt <- !is.na(data$q)
 
             # Handle 1 state model.
             #if (nStates==1) {
@@ -474,7 +451,6 @@ setMethod(f="getConditionalProbabilities", signature="markov.annualHomogeneous",
             nxc       <- dim(cumprob.atQhatIncrements)[length(dim(cumprob.atQhatIncrements))] # to get last dim
             dxc       <- matrix(NA,nrow=nxc,ncol=n)
 
-
             la        <- getLogForwardProbabilities(.Object, data, emission.probs)
             lb        <- getLogBackwardProbabilities(.Object, data, emission.probs)
 
@@ -491,15 +467,9 @@ setMethod(f="getConditionalProbabilities", signature="markov.annualHomogeneous",
               # time. However, here the time-varying means and auto-regressive terms make the emmision probs
               # time-dependent and so here a 3D array is passed to this function with the depth dimension
               # containing the cumulative probs. at pre-defined incrementts of Qhat for a given state and time point.
-
-              if(nStates ==1){ # had to include this because cumprob.atQhatIncrements ignored one state dim
-                Px <- cumprob.atQhatIncrements[i,]
-              }else{
-                Px <- cumprob.atQhatIncrements[i,,]
-              }
+              Px <- cumprob.atQhatIncrements[i,,]
 
               dxc[,i]  <- as.vector(foo%*%Px)
-
             }
 
             return(dxc)
